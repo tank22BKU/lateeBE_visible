@@ -1,0 +1,43 @@
+﻿services:
+  mysql:
+    image: mysql:8.0
+    container_name: latee-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: latee
+      MYSQL_USER: user
+      MYSQL_PASSWORD: pass
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+
+  clinicalcase:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: clinicalcase-api
+    ports:
+      - "5001:8080"
+    depends_on:
+      - mysql
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__ClinicalCaseDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+
+  virtualpatient:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: virtualpatient-api
+    ports:
+      - "5002:8080"
+    depends_on:
+      - mysql
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__VirtualPatientDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+
+volumes:
+  mysql_data:

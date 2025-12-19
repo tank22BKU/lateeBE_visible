@@ -1,0 +1,90 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{984BB9B3-3FA3-BE33-9484-CAC21695A33C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ClinicalCaseService", "ClinicalCaseService", "{24CFAD0E-CD5B-A361-F2AE-27598CB1C44B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClinicalCaseService.API", "src\Services\ClinicalCaseService\ClinicalCaseService.API\ClinicalCaseService.API.csproj", "{0EF552CA-36B0-4FAD-A26F-22A87D6C4AEF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClinicalCaseService.Domain", "src\Services\ClinicalCaseService\ClinicalCaseService.Domain\ClinicalCaseService.Domain.csproj", "{18EE76D5-5882-4BB9-A752-1F43AD567656}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClinicalCaseService.Application", "src\Services\ClinicalCaseService\ClinicalCaseService.Application\ClinicalCaseService.Application.csproj", "{DB35343A-E151-46C7-A74A-2F5630A4B998}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClinicalCaseService.Infrastructure", "src\Services\ClinicalCaseService\ClinicalCaseService.Infrastructure\ClinicalCaseService.Infrastructure.csproj", "{262D003A-2E20-4E24-B968-54E097682F80}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0EF552CA-36B0-4FAD-A26F-22A87D6C4AEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0EF552CA-36B0-4FAD-A26F-22A87D6C4AEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0EF552CA-36B0-4FAD-A26F-22A87D6C4AEF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0EF552CA-36B0-4FAD-A26F-22A87D6C4AEF}.Debug|x64.Build.0 = Debug|Any CPU
+		{0EF552CA-36B0-4FAD-A26F-22A87D6C4AEF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0EF552CA-36B0-4FAD-A26F-22A87D6C4AEF}.Debug|x86.Build.0 = Debug|Any CPU
+		{0EF552CA-36B0-4FAD-A26F-22A87D6C4AEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0EF552CA-36B0-4FAD-A26F-22A87D6C4AEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0EF552CA-36B0-4FAD-A26F-22A87D6C4AEF}.Release|x64.ActiveCfg = Release|Any CPU
+		{0EF552CA-36B0-4FAD-A26F-22A87D6C4AEF}.Release|x64.Build.0 = Release|Any CPU
+		{0EF552CA-36B0-4FAD-A26F-22A87D6C4AEF}.Release|x86.ActiveCfg = Release|Any CPU
+		{0EF552CA-36B0-4FAD-A26F-22A87D6C4AEF}.Release|x86.Build.0 = Release|Any CPU
+		{18EE76D5-5882-4BB9-A752-1F43AD567656}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18EE76D5-5882-4BB9-A752-1F43AD567656}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18EE76D5-5882-4BB9-A752-1F43AD567656}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{18EE76D5-5882-4BB9-A752-1F43AD567656}.Debug|x64.Build.0 = Debug|Any CPU
+		{18EE76D5-5882-4BB9-A752-1F43AD567656}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{18EE76D5-5882-4BB9-A752-1F43AD567656}.Debug|x86.Build.0 = Debug|Any CPU
+		{18EE76D5-5882-4BB9-A752-1F43AD567656}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18EE76D5-5882-4BB9-A752-1F43AD567656}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18EE76D5-5882-4BB9-A752-1F43AD567656}.Release|x64.ActiveCfg = Release|Any CPU
+		{18EE76D5-5882-4BB9-A752-1F43AD567656}.Release|x64.Build.0 = Release|Any CPU
+		{18EE76D5-5882-4BB9-A752-1F43AD567656}.Release|x86.ActiveCfg = Release|Any CPU
+		{18EE76D5-5882-4BB9-A752-1F43AD567656}.Release|x86.Build.0 = Release|Any CPU
+		{DB35343A-E151-46C7-A74A-2F5630A4B998}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB35343A-E151-46C7-A74A-2F5630A4B998}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB35343A-E151-46C7-A74A-2F5630A4B998}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DB35343A-E151-46C7-A74A-2F5630A4B998}.Debug|x64.Build.0 = Debug|Any CPU
+		{DB35343A-E151-46C7-A74A-2F5630A4B998}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DB35343A-E151-46C7-A74A-2F5630A4B998}.Debug|x86.Build.0 = Debug|Any CPU
+		{DB35343A-E151-46C7-A74A-2F5630A4B998}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB35343A-E151-46C7-A74A-2F5630A4B998}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB35343A-E151-46C7-A74A-2F5630A4B998}.Release|x64.ActiveCfg = Release|Any CPU
+		{DB35343A-E151-46C7-A74A-2F5630A4B998}.Release|x64.Build.0 = Release|Any CPU
+		{DB35343A-E151-46C7-A74A-2F5630A4B998}.Release|x86.ActiveCfg = Release|Any CPU
+		{DB35343A-E151-46C7-A74A-2F5630A4B998}.Release|x86.Build.0 = Release|Any CPU
+		{262D003A-2E20-4E24-B968-54E097682F80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{262D003A-2E20-4E24-B968-54E097682F80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{262D003A-2E20-4E24-B968-54E097682F80}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{262D003A-2E20-4E24-B968-54E097682F80}.Debug|x64.Build.0 = Debug|Any CPU
+		{262D003A-2E20-4E24-B968-54E097682F80}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{262D003A-2E20-4E24-B968-54E097682F80}.Debug|x86.Build.0 = Debug|Any CPU
+		{262D003A-2E20-4E24-B968-54E097682F80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{262D003A-2E20-4E24-B968-54E097682F80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{262D003A-2E20-4E24-B968-54E097682F80}.Release|x64.ActiveCfg = Release|Any CPU
+		{262D003A-2E20-4E24-B968-54E097682F80}.Release|x64.Build.0 = Release|Any CPU
+		{262D003A-2E20-4E24-B968-54E097682F80}.Release|x86.ActiveCfg = Release|Any CPU
+		{262D003A-2E20-4E24-B968-54E097682F80}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{984BB9B3-3FA3-BE33-9484-CAC21695A33C} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{24CFAD0E-CD5B-A361-F2AE-27598CB1C44B} = {984BB9B3-3FA3-BE33-9484-CAC21695A33C}
+		{0EF552CA-36B0-4FAD-A26F-22A87D6C4AEF} = {24CFAD0E-CD5B-A361-F2AE-27598CB1C44B}
+		{18EE76D5-5882-4BB9-A752-1F43AD567656} = {24CFAD0E-CD5B-A361-F2AE-27598CB1C44B}
+		{DB35343A-E151-46C7-A74A-2F5630A4B998} = {24CFAD0E-CD5B-A361-F2AE-27598CB1C44B}
+		{262D003A-2E20-4E24-B968-54E097682F80} = {24CFAD0E-CD5B-A361-F2AE-27598CB1C44B}
+	EndGlobalSection
+EndGlobal
