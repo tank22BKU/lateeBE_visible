@@ -1,0 +1,6 @@
+@VirtualPatientService.API_HostAddress = http://localhost:5090
+
+GET {{VirtualPatientService.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

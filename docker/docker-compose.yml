@@ -12,32 +12,147 @@
     volumes:
       - mysql_data:/var/lib/mysql
       - ./mysql/init:/docker-entrypoint-initdb.d
+    networks:
+      - latee-network
 
   clinicalcase:
     build:
       context: ..
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile.ClinicalCase
     container_name: clinicalcase-api
     ports:
-      - "5001:8080"
+      - "8001:8080"
     depends_on:
       - mysql
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__ClinicalCaseDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+    networks:
+      - latee-network
 
   virtualpatient:
     build:
       context: ..
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile.VirtualPatient
     container_name: virtualpatient-api
     ports:
-      - "5002:8080"
+      - "8002:8080"
     depends_on:
       - mysql
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__VirtualPatientDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+    networks:
+      - latee-network
+    # ollama:
+    #   image: ollama/ollama:latest
+    #   container_name: ollama
+    #   ports:
+    #     - "11434:11434"
+    #   volumes:
+    #     - ollama_data:/root/.ollama
+    #   command: >
+    #     bash -c " ollama serve & sleep 5 && ollama pull llama3.1:8b && wait "
+    #   networks:
+    #     - latee-network
+
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - latee-network
+    environment:
+      - OLLAMA_NUM_PARALLEL=2
+      - OLLAMA_FLASH_ATTENTION=1
+      - OLLAMA_NUM_GPU=1
+      - OLLAMA_MAX_LOADED_MODELS=1
+      - OLLAMA_KEEP_ALIVE=30m
+      - OLLAMA_NUM_THREAD=4
+      - OLLAMA_NUM_CTX=4096
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1 # Chỉ dùng 1 GPU
+              capabilities: [ gpu ]
+    # healthcheck:
+    #   test: [ "CMD", "ollama", "list" ]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 10
+
+  ollama-warmup:
+    image: ollama/ollama:latest
+    container_name: ollama-warmup
+    depends_on:
+      ollama:
+        condition: service_started
+    entrypoint: [ "/bin/sh", "-c" ]
+    command: >
+      ollama pull llama3.1-8b && ollama run llama3.1-8b "ping"
+    restart: "no"
+
+  ai-assistant:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.AIAssistant
+    container_name: ai-assistant-api
+    ports:
+      - "8003:8000"
+    volumes:
+      - ../src/Services/AIAssistantService/python_api/data:/src/data:ro
+    env_file:
+      - ../.env
+    depends_on:
+      ollama:
+        condition: service_started
+      ollama-warmup:
+        condition: service_completed_successfully
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+    develop:
+      watch:
+        - action: rebuild
+          path: ../src/Services/AIAssistantService/python_api
+    networks:
+      - latee-network
+
+  api-gateway:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.APIGateway
+    container_name: api-gateway
+    ports:
+      - "5000:8080"
+    volumes:
+      - ../src/Gateway/ApiGateway/ocelot.json:/app/ocelot.json:ro
+    depends_on:
+      - clinicalcase
+      - virtualpatient
+      - ai-assistant
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+    networks:
+      - latee-network
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - latee-network
 
 volumes:
   mysql_data:
+  ollama_data:
+
+
+networks:
+  latee-network:
+    driver: bridge

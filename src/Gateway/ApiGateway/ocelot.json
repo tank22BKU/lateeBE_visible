@@ -1,0 +1,147 @@
+{
+    "Routes": [
+        {
+            "DownstreamPathTemplate": "/api/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "clinicalcase",
+                    "Port": 8080
+                }
+            ],
+            "UpstreamPathTemplate": "/clinical-case/api/{everything}",
+            "UpstreamHttpMethod": [
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE"
+            ],
+            "SwaggerKey": "clinicalcase"
+        },
+        {
+            "DownstreamPathTemplate": "/api/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "virtualpatient",
+                    "Port": 8080
+                }
+            ],
+            "UpstreamPathTemplate": "/virtual-patient/api/{everything}",
+            "UpstreamHttpMethod": [
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE"
+            ],
+            "SwaggerKey": "virtualpatient"
+        },
+        {
+            "DownstreamPathTemplate": "/swagger/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "clinicalcase",
+                    "Port": 8080
+                }
+            ],
+            "UpstreamPathTemplate": "/clinical-case/swagger/{everything}",
+            "UpstreamHttpMethod": [
+                "GET"
+            ]
+        },
+        {
+            "DownstreamPathTemplate": "/swagger/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "virtualpatient",
+                    "Port": 8080
+                }
+            ],
+            "UpstreamPathTemplate": "/virtual-patient/swagger/{everything}",
+            "UpstreamHttpMethod": [
+                "GET"
+            ]
+        },
+        {
+            "DownstreamPathTemplate": "/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "ai-assistant",
+                    "Port": 8000
+                }
+            ],
+            "UpstreamPathTemplate": "/ai-assistant/{everything}",
+            "UpstreamHttpMethod": [
+                "POST"
+            ],
+            "SwaggerKey": "aiassistant",
+            "Timeout": 300000
+        },
+        {
+            "DownstreamPathTemplate": "/openapi.json",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "ai-assistant",
+                    "Port": 8000
+                }
+            ],
+            "UpstreamPathTemplate": "/ai-assistant/openapi.json",
+            "UpstreamHttpMethod": [
+                "GET"
+            ]
+        },
+        {
+            "DownstreamPathTemplate": "/docs",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "ai-assistant",
+                    "Port": 8000
+                }
+            ],
+            "UpstreamPathTemplate": "/ai-assistant/docs",
+            "UpstreamHttpMethod": [
+                "GET"
+            ]
+        }
+    ],
+    "SwaggerEndPoints": [
+        {
+            "Key": "clinicalcase",
+            "Config": [
+                {
+                    "Name": "Clinical Case API",
+                    "Version": "v1",
+                    "Url": "http://clinicalcase:8080/swagger/v1/swagger.json"
+                }
+            ]
+        },
+        {
+            "Key": "virtualpatient",
+            "Config": [
+                {
+                    "Name": "Virtual Patient API",
+                    "Version": "v1",
+                    "Url": "http://virtualpatient:8080/swagger/v1/swagger.json"
+                }
+            ]
+        },
+        {
+            "Key": "aiassistant",
+            "Config": [
+                {
+                    "Name": "AI Assistant API",
+                    "Version": "v1",
+                    "Url": "http://ai-assistant:8000/openapi.json"
+                }
+            ]
+        }
+    ],
+    "GlobalConfiguration": {
+        "BaseUrl": "http://localhost:5000"
+    }
+}

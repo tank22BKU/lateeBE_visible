@@ -1,6 +1,6 @@
-using ClinicalCaseService.Application;
-using ClinicalCaseService.Infrastructure;
-using ClinicalCaseService.Infrastructure.Persistence;
+using VirtualPatientService.Application;
+using VirtualPatientService.Infrastructure;
+using VirtualPatientService.Infrastructure.Persistance;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,9 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Database
 // =======================
 var connectionString =
-    builder.Configuration.GetConnectionString("ClinicalCaseDb");
+    builder.Configuration.GetConnectionString("VirtualPatientDb");
 
-builder.Services.AddDbContext<ClinicalCaseDbContext>(options =>
+builder.Services.AddDbContext<VirtualPatientDbContext>(options =>
 {
     options.UseMySql(
         connectionString,
@@ -41,14 +41,13 @@ builder.Services.AddCors(options =>
     });
 });
 
-
 builder.Services.AddEndpointsApiExplorer();
 //builder.Services.AddSwaggerGen();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
     {
-        Title = "Clinical Case API",
+        Title = "Virtual Patient API",
         Version = "v1"
     });
 });
@@ -66,7 +65,7 @@ if (app.Environment.IsDevelopment())
     //app.UseSwaggerUI();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Clinical Case API v1");
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Virtual Patient API v1");
     });
 }
 

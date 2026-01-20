@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference
+      Include="..\VirtualPatientService.Application\VirtualPatientService.Application.csproj" />
+    <ProjectReference
+      Include="..\VirtualPatientService.Infrastructure\VirtualPatientService.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
