@@ -62,6 +62,7 @@ dotnet new sln -n AIAssistantService
 
 ### Khi sửa ocelot.json
 docker compose -f docker/docker-compose.yml up -d --build api-gateway
+docker compose -f docker/docker-compose.yml up -d --build ai-assistant
 
 - Tương tự khi sửa 1 service nào thì build lại service đó
 

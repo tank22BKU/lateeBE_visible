@@ -42,16 +42,19 @@ public class ClinicalCaseRepository : IClinicalCaseRepository
     public async Task<(List<ClinicalCase> Items, int Total)>
     GetPagedAsync(string? status, int page, int pageSize)
     {
-        var query = _db.ClinicalCases.AsNoTracking();
+        var ClinicalcasesQuery = _db.ClinicalCases.AsNoTracking();
+        var VirtualPatinetsQuery = _db.VirtualPatients.AsNoTracking();
 
         if (!string.IsNullOrEmpty(status))
         {
-            query = query.Where(x => x.Status == status);
+            ClinicalcasesQuery = ClinicalcasesQuery.Where(x => x.Status == status);
         }
 
-        var total = await query.CountAsync();
+        VirtualPatinetsQuery = VirtualPatinetsQuery;
 
-        var items = await query
+        var total = await ClinicalcasesQuery.CountAsync();
+
+        var items = await ClinicalcasesQuery
             .OrderByDescending(x => x.CreatedAt) // BẮT BUỘC
             .Skip((page - 1) * pageSize)
             .Take(pageSize)

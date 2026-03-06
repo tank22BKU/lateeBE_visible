@@ -1,0 +1,124 @@
+from typing import List, Optional, Dict, Any, Tuple
+from pydantic import BaseModel
+import time
+import os
+
+HISTORY_MAX_ITEMS = 50  # int(os.getenv("HISTORY_MAX_ITEMS", "50"))
+# History config
+HISTORY_TTL_SECONDS = (
+    3600  # int(os.getenv("HISTORY_TTL_SECONDS", "3600"))  # 1 hour default
+)
+
+try:
+    import redis
+except Exception:
+    redis = None
+
+try:
+    from cachetools import TTLCache
+except Exception:
+    TTLCache = None
+
+
+# --------------------
+# Request/Response models
+# --------------------
+class MessageItem(BaseModel):
+    role: str  # "doctor" or "patient" or "system"
+    content: str
+
+
+class AssistantRequest(BaseModel):
+    doctor_id: str
+    question: str
+    patient_history: Optional[List[MessageItem]] = []
+    use_rag: Optional[bool] = True
+
+
+class AssistantResponse(BaseModel):
+    answer: str
+    source_documents: Optional[List[str]] = None
+
+
+# --------------------
+# Storage abstraction for assistant-history
+# --------------------
+class HistoryStore:
+    def append(self, doctor_id: str, question: str, answer: str) -> None:
+        raise NotImplementedError()
+
+    def get(self, doctor_id: str) -> List[Dict[str, str]]:
+        raise NotImplementedError()
+
+    def clear(self, doctor_id: str) -> None:
+        raise NotImplementedError()
+
+
+class RedisHistoryStore(HistoryStore):
+    def __init__(self, url: str):
+        self.client = redis.from_url(url, decode_responses=True)
+
+    def _key(self, doctor_id: str) -> str:
+        return f"assistant_history:{doctor_id}"
+
+    def append(self, doctor_id: str, question: str, answer: str):
+        key = self._key(doctor_id)
+        # store as simple JSON-like string; use timestamp prefix for ordering
+        item = {"q": question, "a": answer, "ts": int(time.time())}
+        import json
+
+        self.client.rpush(key, json.dumps(item))
+        self.client.expire(key, HISTORY_TTL_SECONDS)
+        # trim list to max items
+        self.client.ltrim(key, -HISTORY_MAX_ITEMS, -1)
+
+    def get(self, doctor_id: str):
+        key = self._key(doctor_id)
+        arr = self.client.lrange(key, 0, -1)
+        import json
+
+        return [json.loads(x) for x in arr] if arr else []
+
+    def clear(self, doctor_id: str):
+        self.client.delete(self._key(doctor_id))
+
+
+class MemoryHistoryStore(HistoryStore):
+    def __init__(self):
+        if TTLCache is None:
+            raise RuntimeError("cachetools is required for in-memory history store")
+        # each doctor_id -> list of (ts, item)
+        self.cache = TTLCache(maxsize=10000, ttl=HISTORY_TTL_SECONDS)
+
+    def append(self, doctor_id: str, question: str, answer: str):
+        lst = self.cache.get(doctor_id, [])
+        lst.append({"q": question, "a": answer, "ts": int(time.time())})
+        # trim
+        if len(lst) > HISTORY_MAX_ITEMS:
+            lst = lst[-HISTORY_MAX_ITEMS:]
+        self.cache[doctor_id] = lst
+
+    def get(self, doctor_id: str):
+        return self.cache.get(doctor_id, [])
+
+    def clear(self, doctor_id: str):
+        if doctor_id in self.cache:
+            del self.cache[doctor_id]
+
+
+class QuestionValidationRequest(BaseModel):
+    doctor_id: str
+    learner_question: str  # Câu hỏi của learner dành cho bệnh nhân
+    conversation_context: Optional[List[MessageItem]] = (
+        []
+    )  # Lịch sử hội thoại để hiểu ngữ cảnh
+
+
+class ValidationFlag(BaseModel):
+    isValid: bool
+    reason: str
+    suggestion: Optional[str] = ""
+
+
+class QuestionValidationResponse(BaseModel):
+    flag: ValidationFlag
