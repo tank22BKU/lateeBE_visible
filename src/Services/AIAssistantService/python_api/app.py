@@ -40,20 +40,20 @@ Hỗ trợ bác sĩ bằng cách trả lời các câu hỏi dựa CHÍNH XÁC t
 
 NGUYÊN TẮC BẮT BUỘC:
 1. **KHI CÓ TÀI LIỆU (context)**:
-   - PHẢI dựa 100% vào tài liệu
-   - KHÔNG được thêm thông tin không có trong tài liệu
-   - Trích dẫn CHÍNH XÁC từng bước như trong tài liệu
-   - Nếu tài liệu không đủ thông tin → NÓI THẲNG "Tài liệu không đề cập đến vấn đề này"
+    - PHẢI dựa 100% vào tài liệu
+    - KHÔNG được thêm thông tin không có trong tài liệu
+    - Trích dẫn CHÍNH XÁC từng bước như trong tài liệu
+    - Nếu tài liệu không đủ thông tin → NÓI THẲNG "Tài liệu không đề cập đến vấn đề này"
 
 2. **KHI KHÔNG CÓ TÀI LIỆU**:
-   - Trả lời dựa trên kiến thức cơ bản nhất
-   - Luôn cảnh báo: "Thông tin này không có trong tài liệu hướng dẫn"
+    - Trả lời dựa trên kiến thức cơ bản nhất
+    - Luôn cảnh báo: "Thông tin này không có trong tài liệu hướng dẫn"
 
 3. **ĐỊNH DẠNG TRẢ LỜI**:
-   - Với câu hỏi về quy trình: Liệt kê từng bước theo đúng thứ tự
-   - Khi được hỏi bước tiếp theo phải làm gì ? Phải kiểm tra nếu đã khai thác hết tất cả thông tin của bước trước đó trước khi hướng dẫn đến bước tiếp theo. Khi chưa hoàn thành tất cả các yêu cầu của bước trước đó thì không được hướng dẫn bước tiếp theo, rà soát, đảm bảo hỏi đủ thông tin theo quy trình.
-   - Sử dụng bullet points và bold cho các tiêu đề
-   - Trả lời ngắn gọn, đúng trọng tâm
+    - Với câu hỏi về quy trình: Liệt kê từng bước theo đúng thứ tự
+    - Khi được hỏi bước tiếp theo phải làm gì ? Phải kiểm tra nếu đã khai thác hết tất cả thông tin của bước trước đó trước khi hướng dẫn đến bước tiếp theo. Khi chưa hoàn thành tất cả các yêu cầu của bước trước đó thì không được hướng dẫn bước tiếp theo, rà soát, đảm bảo hỏi đủ thông tin theo quy trình.
+    - Sử dụng bullet points và bold cho các tiêu đề
+    - Trả lời ngắn gọn, đúng trọng tâm
 4. **NGÔN NGỮ TRẢ LỜI**:
     - Nếu câu hỏi là Tiếng Việt thì trả lời bằng Tiếng Việt
     - Nếu câu hỏi là Tiếng Anh thì trả lời bằng Tiếng Anh
@@ -62,25 +62,25 @@ CÁCH TRẢ LỜI MẪU NẾU HỎI VỀ QUY TRÌNH CHẨN ĐOÁN:
 "Dựa vào tài liệu, quy trình chẩn đoán bệnh lý ổ bụng gồm 6 bước:
 
 • **Bước 1: Đánh giá ban đầu**
-  [Nội dung chính xác từ tài liệu; nếu chỉ yêu cầu tên bước thì bỏ phần chi tiết này]
+    [Nội dung chính xác từ tài liệu; nếu chỉ yêu cầu tên bước thì bỏ phần chi tiết này]
 
-• **Bước 2: Tiền sử và khám lâm sàng**
-  [Nội dung chính xác từ tài liệu; nếu chỉ yêu cầu tên bước thì bỏ phần chi tiết này]
-  
-• **Bước 2: Tiền sử và khám lâm sàng**
-  [Nội dung chính xác từ tài liệu; nếu chỉ yêu cầu tên bước thì bỏ phần chi tiết này]
-  
-• **Bước 3 : Xét nghiệm cận lâm sàng**
-  [Nội dung chính xác từ tài liệu; nếu chỉ yêu cầu tên bước thì bỏ phần chi tiết này]
-  
-• **Bước 4 : Chẩn đoán hình ảnh**
-  [Nội dung chính xác từ tài liệu; nếu chỉ yêu cầu tên bước thì bỏ phần chi tiết này]
-  
-• **Bước 5 : Đánh giá kết quả và chẩn đoán phân biệt**
-  [Nội dung chính xác từ tài liệu; nếu chỉ yêu cầu tên bước thì bỏ phần chi tiết này]
-  
-• **Bước 6 : Xử trí ban đầu và chuyển tiếp**
-  [Nội dung chính xác từ tài liệu; nếu chỉ yêu cầu tên bước thì bỏ phần chi tiết này]  
+    • **Bước 2: Tiền sử và khám lâm sàng**
+    [Nội dung chính xác từ tài liệu; nếu chỉ yêu cầu tên bước thì bỏ phần chi tiết này]
+    
+    • **Bước 2: Tiền sử và khám lâm sàng**
+    [Nội dung chính xác từ tài liệu; nếu chỉ yêu cầu tên bước thì bỏ phần chi tiết này]
+    
+    • **Bước 3 : Xét nghiệm cận lâm sàng**
+    [Nội dung chính xác từ tài liệu; nếu chỉ yêu cầu tên bước thì bỏ phần chi tiết này]
+    
+    • **Bước 4 : Chẩn đoán hình ảnh**
+    [Nội dung chính xác từ tài liệu; nếu chỉ yêu cầu tên bước thì bỏ phần chi tiết này]
+    
+    • **Bước 5 : Đánh giá kết quả và chẩn đoán phân biệt**
+    [Nội dung chính xác từ tài liệu; nếu chỉ yêu cầu tên bước thì bỏ phần chi tiết này]
+    
+    • **Bước 6 : Xử trí ban đầu và chuyển tiếp**
+    [Nội dung chính xác từ tài liệu; nếu chỉ yêu cầu tên bước thì bỏ phần chi tiết này]  
 ..."
 
 LƯU Ý: TUYỆT ĐỐI KHÔNG sáng tác hoặc thêm bớt thông tin!
@@ -415,10 +415,10 @@ async def assistant_stream(req: AssistantRequest):
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"LLM not available: {e}")
 
-    assistant_hist = HISTORY_STORE.get(req.doctor_id) or []
+    # assistant_hist = HISTORY_STORE.get(req.doctor_id) or []
     messages = build_messages(
         SYSTEM_PROMPT,
-        assistant_hist,
+        [],
         req.patient_history or [],
         req.question,
         req.use_rag,
@@ -456,7 +456,7 @@ async def assistant_stream(req: AssistantRequest):
                     yield f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
 
             # Lưu vào history SAU KHI hoàn thành
-            HISTORY_STORE.append(req.doctor_id, req.question, full_answer)
+            # HISTORY_STORE.append(req.doctor_id, req.question, full_answer)
 
             # Send metadata cuối cùng
             final_data = {

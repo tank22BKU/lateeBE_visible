@@ -69,13 +69,33 @@
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {
+                    "Host": "vp-python-api",
+                    "Port": 8080
+                }
+            ],
+            "UpstreamPathTemplate": "/virtual-patient/ai/{everything}",
+            "UpstreamHttpMethod": [
+                "GET",
+                "POST",
+                "OPTIONS"
+            ],
+            "SwaggerKey": "virtualpatient",
+            "Timeout": 300000
+        },
+        {
+            "DownstreamPathTemplate": "/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
                     "Host": "ai-assistant",
                     "Port": 8000
                 }
             ],
             "UpstreamPathTemplate": "/ai-assistant/{everything}",
             "UpstreamHttpMethod": [
-                "POST"
+                "GET",
+                "POST",
+                "OPTIONS"
             ],
             "SwaggerKey": "aiassistant",
             "Timeout": 300000
