@@ -425,3 +425,35 @@ docker/mysql/data/
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# =========================
+# LATEE project specific
+# =========================
+
+# Keep sample env file tracked
+!example.env
+
+# Python virtual environments / caches in services
+src/Services/VirtualPatientService/vp_api/venv/
+src/Services/VirtualPatientService/vp_api/__pycache__/
+src/Services/AIAssistantService/python_api/__pycache__/
+
+# Runtime folders
+volumes/
+logs/
+tmp/
+temp/
+
+# AI model artifacts (large files)
+*.gguf
+*.safetensors
+*.onnx
+*.pt
+*.pth
+*.bin
+
+# Service data artifacts
+src/Services/VirtualPatientService/vp_api/data/
+
+# Optional: keep adapter setup outputs out of git
+docker/ollama_vp_setup/vp_adapter.gguf
