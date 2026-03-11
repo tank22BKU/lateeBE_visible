@@ -1,5 +1,5 @@
 # app.py
-from typing import List, Optional, Dict, Any
+from typing import Tuple, List, Optional, Dict, Any
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import os
@@ -18,157 +18,34 @@ from typing import AsyncGenerator
 
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
-from typing import Tuple, List, Optional
 
-try:
-    import redis
-except Exception:
-    redis = None
-
-try:
-    from cachetools import TTLCache
-except Exception:
-    TTLCache = None
+from dtos import (
+    AssistantRequest,
+    AssistantResponse,
+    MessageItem,
+    QuestionValidationRequest,
+    QuestionValidationResponse,
+    ValidationFlag,
+    HISTORY_MAX_ITEMS,
+    HISTORY_TTL_SECONDS,
+    RedisHistoryStore,
+    MemoryHistoryStore,
+    redis,
+    TTLCache,
+)
 
 load_dotenv()
 
-
-SYSTEM_PROMPT = """Bạn là trợ lý AI y khoa chuyên về chẩn đoán bệnh lý ổ bụng.
-
-NHIỆM VỤ CHÍNH:
-Hỗ trợ bác sĩ bằng cách trả lời các câu hỏi dựa CHÍNH XÁC trên tài liệu được cung cấp.
-
-NGUYÊN TẮC BẮT BUỘC:
-1. **KHI CÓ TÀI LIỆU (context)**:
-    - PHẢI dựa 100% vào tài liệu
-    - KHÔNG được thêm thông tin không có trong tài liệu
-    - Trích dẫn CHÍNH XÁC từng bước như trong tài liệu
-    - Nếu tài liệu không đủ thông tin → NÓI THẲNG "Tài liệu không đề cập đến vấn đề này"
-
-2. **KHI KHÔNG CÓ TÀI LIỆU**:
-    - Trả lời dựa trên kiến thức cơ bản nhất
-    - Luôn cảnh báo: "Thông tin này không có trong tài liệu hướng dẫn"
-
-3. **ĐỊNH DẠNG TRẢ LỜI**:
-    - Với câu hỏi về quy trình: Liệt kê từng bước theo đúng thứ tự
-    - Khi được hỏi bước tiếp theo phải làm gì ? Phải kiểm tra nếu đã khai thác hết tất cả thông tin của bước trước đó trước khi hướng dẫn đến bước tiếp theo. Khi chưa hoàn thành tất cả các yêu cầu của bước trước đó thì không được hướng dẫn bước tiếp theo, rà soát, đảm bảo hỏi đủ thông tin theo quy trình.
-    - Sử dụng bullet points và bold cho các tiêu đề
-    - Trả lời ngắn gọn, đúng trọng tâm
-4. **NGÔN NGỮ TRẢ LỜI**:
-    - Nếu câu hỏi là Tiếng Việt thì trả lời bằng Tiếng Việt
-    - Nếu câu hỏi là Tiếng Anh thì trả lời bằng Tiếng Anh
-
-CÁCH TRẢ LỜI MẪU NẾU HỎI VỀ QUY TRÌNH CHẨN ĐOÁN:
-"Dựa vào tài liệu, quy trình chẩn đoán bệnh lý ổ bụng gồm 6 bước:
-
-• **Bước 1: Đánh giá ban đầu**
-    [Nội dung chính xác từ tài liệu; nếu chỉ yêu cầu tên bước thì bỏ phần chi tiết này]
-
-    • **Bước 2: Tiền sử và khám lâm sàng**
-    [Nội dung chính xác từ tài liệu; nếu chỉ yêu cầu tên bước thì bỏ phần chi tiết này]
-    
-    • **Bước 2: Tiền sử và khám lâm sàng**
-    [Nội dung chính xác từ tài liệu; nếu chỉ yêu cầu tên bước thì bỏ phần chi tiết này]
-    
-    • **Bước 3 : Xét nghiệm cận lâm sàng**
-    [Nội dung chính xác từ tài liệu; nếu chỉ yêu cầu tên bước thì bỏ phần chi tiết này]
-    
-    • **Bước 4 : Chẩn đoán hình ảnh**
-    [Nội dung chính xác từ tài liệu; nếu chỉ yêu cầu tên bước thì bỏ phần chi tiết này]
-    
-    • **Bước 5 : Đánh giá kết quả và chẩn đoán phân biệt**
-    [Nội dung chính xác từ tài liệu; nếu chỉ yêu cầu tên bước thì bỏ phần chi tiết này]
-    
-    • **Bước 6 : Xử trí ban đầu và chuyển tiếp**
-    [Nội dung chính xác từ tài liệu; nếu chỉ yêu cầu tên bước thì bỏ phần chi tiết này]  
-..."
-
-LƯU Ý: TUYỆT ĐỐI KHÔNG sáng tác hoặc thêm bớt thông tin!
-"""
-
-HF_TOKEN = os.getenv(
-    "HF_TOKEN", ""
-) 
+HF_TOKEN = os.getenv("HF_TOKEN", "")
 REPO_ID = os.getenv("HF_REPO_ID", "meta-llama/Llama-3.1-8B-Instruct")
 USE_REDIS = bool(os.getenv("REDIS_URL"))
 
-# History config
-HISTORY_TTL_SECONDS = (
-    3600  # int(os.getenv("HISTORY_TTL_SECONDS", "3600"))  # 1 hour default
-)
-HISTORY_MAX_ITEMS = 50  # int(os.getenv("HISTORY_MAX_ITEMS", "50"))
 
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 REDIS_DB = int(os.getenv("REDIS_DB", 0))
 
 app = FastAPI(title="Medical Assistant API")
-
-
-# --------------------
-# Storage abstraction for assistant-history
-# --------------------
-class HistoryStore:
-    def append(self, doctor_id: str, question: str, answer: str) -> None:
-        raise NotImplementedError()
-
-    def get(self, doctor_id: str) -> List[Dict[str, str]]:
-        raise NotImplementedError()
-
-    def clear(self, doctor_id: str) -> None:
-        raise NotImplementedError()
-
-
-class RedisHistoryStore(HistoryStore):
-    def __init__(self, url: str):
-        self.client = redis.from_url(url, decode_responses=True)
-
-    def _key(self, doctor_id: str) -> str:
-        return f"assistant_history:{doctor_id}"
-
-    def append(self, doctor_id: str, question: str, answer: str):
-        key = self._key(doctor_id)
-        # store as simple JSON-like string; use timestamp prefix for ordering
-        item = {"q": question, "a": answer, "ts": int(time.time())}
-        import json
-
-        self.client.rpush(key, json.dumps(item))
-        self.client.expire(key, HISTORY_TTL_SECONDS)
-        # trim list to max items
-        self.client.ltrim(key, -HISTORY_MAX_ITEMS, -1)
-
-    def get(self, doctor_id: str):
-        key = self._key(doctor_id)
-        arr = self.client.lrange(key, 0, -1)
-        import json
-
-        return [json.loads(x) for x in arr] if arr else []
-
-    def clear(self, doctor_id: str):
-        self.client.delete(self._key(doctor_id))
-
-
-class MemoryHistoryStore(HistoryStore):
-    def __init__(self):
-        if TTLCache is None:
-            raise RuntimeError("cachetools is required for in-memory history store")
-        # each doctor_id -> list of (ts, item)
-        self.cache = TTLCache(maxsize=10000, ttl=HISTORY_TTL_SECONDS)
-
-    def append(self, doctor_id: str, question: str, answer: str):
-        lst = self.cache.get(doctor_id, [])
-        lst.append({"q": question, "a": answer, "ts": int(time.time())})
-        # trim
-        if len(lst) > HISTORY_MAX_ITEMS:
-            lst = lst[-HISTORY_MAX_ITEMS:]
-        self.cache[doctor_id] = lst
-
-    def get(self, doctor_id: str):
-        return self.cache.get(doctor_id, [])
-
-    def clear(self, doctor_id: str):
-        if doctor_id in self.cache:
-            del self.cache[doctor_id]
 
 
 REDIS_URL = os.getenv("REDIS_URL")
@@ -217,26 +94,6 @@ RETRIEVER = RAGLoader().get_retriever()
 
 
 # --------------------
-# Request/Response models
-# --------------------
-class MessageItem(BaseModel):
-    role: str  # "doctor" or "patient" or "system"
-    content: str
-
-
-class AssistantRequest(BaseModel):
-    doctor_id: str
-    question: str
-    patient_history: Optional[List[MessageItem]] = []
-    use_rag: Optional[bool] = True
-
-
-class AssistantResponse(BaseModel):
-    answer: str
-    source_documents: Optional[List[str]] = None
-
-
-# --------------------
 # Utility: build messages for LLM
 # --------------------
 def build_messages(
@@ -262,7 +119,7 @@ def build_messages(
 
     # add patient_history as a single context block to avoid role confusion
     if patient_history:
-        block = "Lịch sử hội thoại giữa bác sĩ và bệnh nhân:\n"
+        block = "\nLịch sử hội thoại giữa bác sĩ và bệnh nhân:\n"
         for m in patient_history:
             role = m.role
             block += f"- {role}: {m.content}\n"
@@ -287,6 +144,9 @@ async def lifespan(app: FastAPI):
     except:
         pass
     print("✅LLM pool ready")
+
+
+from config import SYSTEM_PROMPT, VALIDATION_PROMPT
 
 
 # --------------------
@@ -337,57 +197,6 @@ def assistant_endpoint(req: AssistantRequest):
             ]
         except Exception:
             # ignore retrieval errors but warn in logs if needed
-            pass
-
-    try:
-        resp = llm.invoke(messages)
-        answer = resp.content.strip()
-        HISTORY_STORE.append(req.doctor_id, req.question, answer)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"LLM generation failed: {e}")
-
-    return AssistantResponse(answer=answer, source_documents=source_docs or None)
-
-
-@app.post("/assistant_with_history", response_model=AssistantResponse)
-def assistant_with_history(req: AssistantRequest):
-    """
-    Endpoint for asking the assistant WITH the patient-doctor chat history included in request.
-    """
-    global IS_RERUNNING
-
-    try:
-        llm = get_llm()
-        if IS_RERUNNING:
-            IS_RERUNNING = False
-            HISTORY_STORE.clear(
-                req.doctor_id
-            )  # clear history on first run to avoid mixing contexts
-    except Exception as e:
-        raise HTTPException(status_code=503, detail=f"LLM not available: {e}")
-
-    assistant_hist = HISTORY_STORE.get(req.doctor_id) or []
-    messages = build_messages(
-        SYSTEM_PROMPT,
-        assistant_hist,
-        req.patient_history or [],
-        req.question,
-        req.use_rag,
-    )
-
-    source_docs = []
-    if RETRIEVER and req.use_rag:
-        try:
-            docs = RETRIEVER.get_relevant_documents(req.question)
-            ctx = "\n\n".join(d.page_content for d in docs[:3])
-            messages[-1] = HumanMessage(
-                content=f"Dựa vào các tài liệu sau:\n{ctx}\n\nCâu hỏi: {req.question}"
-            )
-            source_docs = [
-                getattr(d, "metadata", {}).get("source", None) or (d.page_content[:200])
-                for d in docs[:3]
-            ]
-        except Exception:
             pass
 
     try:
@@ -513,45 +322,183 @@ async def prepare_llm_async():
     return await loop.run_in_executor(executor, get_llm)
 
 
-@app.post("/assistant/multiplethread", response_model=AssistantResponse)
-async def assistant_endpoint_optimized(req: AssistantRequest):
+
+@app.post("/assistant/validate_question")
+async def validate_question_endpoint(req: QuestionValidationRequest):
     """
-    Optimized endpoint với parallel processing
-    KHÔNG thay đổi logic, CHỈ tối ưu thứ tự thực thi
+    Endpoint để kiểm tra tính hợp lệ của câu hỏi learner dành cho bệnh nhân.
+    Trả về flag trước, sau đó stream explain.
     """
-
-    # === BƯỚC 1: Chạy song song RAG + LLM warm-up ===
-    rag_task = retrieve_documents_async(req.question, req.use_rag)
-    llm_task = prepare_llm_async()
-
-    # Đợi cả 2 hoàn thành
-    (docs, source_docs), llm = await asyncio.gather(rag_task, llm_task)
-
-    # === BƯỚC 2: Build messages (nhanh) ===
-    assistant_hist = HISTORY_STORE.get(req.doctor_id) or []
-    messages = build_messages(
-        SYSTEM_PROMPT,
-        assistant_hist,
-        req.patient_history or [],
-        req.question,
-        req.use_rag,
-    )
-
-    # === BƯỚC 3: Augment với RAG context ===
-    if docs:
-        ctx = "\n\n".join(d.page_content for d in docs)
-        # Replace last message với augmented version
-        messages[-1] = HumanMessage(
-            content=f"Dựa vào các tài liệu sau:\n{ctx}\n\nCâu hỏi: {req.question}"
-        )
-
-    # === BƯỚC 4: Generate (blocking operation) ===
     try:
-        loop = asyncio.get_event_loop()
-        resp = await loop.run_in_executor(executor, lambda: llm.invoke(messages))
-        answer = resp.content.strip()
-        HISTORY_STORE.append(req.doctor_id, req.question, answer)
+        llm = get_llm()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"LLM generation failed: {e}")
+        raise HTTPException(status_code=503, detail=f"LLM not available: {e}")
 
-    return AssistantResponse(answer=answer, source_documents=source_docs or None)
+    # Xây dựng context từ conversation history
+    context_text = ""
+    if req.conversation_context:
+        context_text = "\n\nLịch sử hội thoại (để hiểu ngữ cảnh):\n"
+        for msg in req.conversation_context[-10:]:
+            context_text += f"- {msg.role}: {msg.content}\n"
+
+    # Lấy tài liệu quy trình từ RAG
+    process_docs = ""
+    if RETRIEVER:
+        try:
+            docs = RETRIEVER.invoke("quy trình chẩn đoán bệnh lý ổ bụng 6 bước")
+            process_docs = "\n\n".join(d.page_content for d in docs[:2])
+        except Exception:
+            pass
+
+    # Prompt được cải thiện để bắt buộc JSON format
+    evaluation_prompt = f"""Tài liệu quy trình chẩn đoán:
+{process_docs}
+{context_text}
+
+Câu hỏi của học viên cần đánh giá: "{req.learner_question}"
+
+BẮT BUỘC: Chỉ trả về JSON thuần túy, không có text giải thích thêm, không có markdown, không có preamble.
+
+Format JSON bắt buộc:
+{{"isValid": true, "reason": "...", "suggestion": "..."}}
+hoặc
+{{"isValid": false, "reason": "...", "suggestion": "..."}}"""
+
+    messages = [
+        SystemMessage(content=VALIDATION_PROMPT),
+        HumanMessage(content=evaluation_prompt),
+    ]
+
+    async def generate_validation() -> AsyncGenerator[str, None]:
+        """Stream response với flag trước, explain sau"""
+        try:
+            # Thu thập toàn bộ response
+            full_response = ""
+            for chunk in llm.stream(messages):
+                if hasattr(chunk, "content") and chunk.content:
+                    full_response += chunk.content
+
+            print(f"[DEBUG] Raw LLM response: {full_response[:500]}")  # Debug log
+
+            # Parse JSON với xử lý lỗi tốt hơn
+            result = None
+            clean_response = full_response.strip()
+
+            # Thử nhiều cách clean JSON
+            # 1. Loại bỏ markdown code blocks
+            if "```json" in clean_response:
+                clean_response = clean_response.split("```json")[1].split("```")[0]
+            elif "```" in clean_response:
+                clean_response = clean_response.split("```")[1].split("```")[0]
+
+            # 2. Tìm JSON object đầu tiên trong response
+            import re
+
+            json_match = re.search(r'\{[^{}]*"isValid"[^{}]*\}', clean_response)
+            if json_match:
+                clean_response = json_match.group(0)
+
+            try:
+                result = json.loads(clean_response.strip())
+            except json.JSONDecodeError:
+                # Fallback: Phân tích thủ công nếu JSON lỗi
+                print(f"[DEBUG] JSON parse failed, trying manual parse")
+
+                # Kiểm tra keywords để quyết định isValid
+                lower_response = full_response.lower()
+                is_valid = True
+                reason = "Câu hỏi phù hợp với quy trình chẩn đoán"
+                suggestion = ""
+
+                # Các từ khóa cho invalid
+                invalid_keywords = [
+                    "không hợp lệ",
+                    "vi phạm",
+                    "sai",
+                    "không phù hợp",
+                    "không nên",
+                    "tránh",
+                    "không đúng",
+                    'isvalid": false',
+                    'isvalid":false',
+                    '"isvalid": false',
+                ]
+
+                if any(kw in lower_response for kw in invalid_keywords):
+                    is_valid = False
+                    # Trích xuất reason từ response
+                    if "reason" in lower_response:
+                        try:
+                            reason_part = full_response.split("reason")[1].split(",")[0]
+                            reason = reason_part.strip(" :\"'{}\n")[:200]
+                        except:
+                            reason = "Câu hỏi cần điều chỉnh để phù hợp với quy trình chẩn đoán"
+
+                    # Trích xuất suggestion
+                    if "suggestion" in lower_response:
+                        try:
+                            sugg_part = full_response.split("suggestion")[1]
+                            suggestion = sugg_part.strip(" :\"'{}\n")[:500]
+                        except:
+                            suggestion = "Hãy đặt câu hỏi theo quy trình 6 bước chẩn đoán bệnh lý ổ bụng"
+
+                result = {
+                    "isValid": is_valid,
+                    "reason": reason,
+                    "suggestion": suggestion,
+                }
+                print(f"[DEBUG] Manual parse result: {result}")
+
+            # Đảm bảo result có đủ keys
+            if not result or "isValid" not in result:
+                result = {
+                    "isValid": True,  # Default cho safe
+                    "reason": "Câu hỏi có thể chấp nhận được",
+                    "suggestion": "",
+                }
+
+            # Gửi flag trước
+            flag_data = {
+                "isValid": result.get("isValid", True),
+                "reason": result.get("reason", ""),
+                "suggestion": result.get("suggestion", ""),
+            }
+            yield f"data: {json.dumps(flag_data, ensure_ascii=False)}\n\n"
+
+            # Stream explanation nếu không hợp lệ
+            if not result.get("isValid", True):
+                suggestion = result.get("suggestion", "")
+                if suggestion:
+                    # Stream từng từ
+                    words = suggestion.split()
+                    for i, word in enumerate(words):
+                        chunk_text = word + (" " if i < len(words) - 1 else "")
+                        explain_data = {"isValid": result.get("isValid"), "reason": result.get("reason") , "suggestion": chunk_text}
+                        yield f"data: {json.dumps(explain_data, ensure_ascii=False)}\n\n"
+                        await asyncio.sleep(0.03)
+
+            # Gửi signal kết thúc
+            done_data = {"type": "done"}
+            yield f"data: {json.dumps(done_data)}\n\n"
+
+        except Exception as e:
+            print(f"[ERROR] Validation error: {str(e)}")
+            # Trả về flag mặc định an toàn
+            safe_flag = {
+                "type": "flag",
+                "isValid": True,
+                "reason": "Không thể đánh giá chính xác, vui lòng kiểm tra thủ công",
+            }
+            yield f"data: {json.dumps(safe_flag, ensure_ascii=False)}\n\n"
+
+            done_data = {"type": "done"}
+            yield f"data: {json.dumps(done_data)}\n\n"
+
+    return StreamingResponse(
+        generate_validation(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+        },
+    )

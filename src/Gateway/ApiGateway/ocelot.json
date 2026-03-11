@@ -79,8 +79,36 @@
                 "POST",
                 "OPTIONS"
             ],
-            "SwaggerKey": "virtualpatient",
+            "SwaggerKey": "vppython",
             "Timeout": 300000
+        },
+        {
+            "DownstreamPathTemplate": "/openapi.json",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "vp-python-api",
+                    "Port": 8080
+                }
+            ],
+            "UpstreamPathTemplate": "/virtual-patient/ai/openapi.json",
+            "UpstreamHttpMethod": [
+                "GET"
+            ]
+        },
+        {
+            "DownstreamPathTemplate": "/docs",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "vp-python-api",
+                    "Port": 8080
+                }
+            ],
+            "UpstreamPathTemplate": "/virtual-patient/ai/docs",
+            "UpstreamHttpMethod": [
+                "GET"
+            ]
         },
         {
             "DownstreamPathTemplate": "/{everything}",
@@ -147,6 +175,16 @@
                     "Name": "Virtual Patient API",
                     "Version": "v1",
                     "Url": "http://virtualpatient:8080/swagger/v1/swagger.json"
+                }
+            ]
+        },
+        {
+            "Key": "vppython",
+            "Config": [
+                {
+                    "Name": "Virtual Patient AI (Python) API",
+                    "Version": "v1",
+                    "Url": "http://vp-python-api:8080/openapi.json"
                 }
             ]
         },
