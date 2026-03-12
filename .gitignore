@@ -456,4 +456,10 @@ temp/
 src/Services/VirtualPatientService/vp_api/data/
 
 # Optional: keep adapter setup outputs out of git
-docker/ollama_vp_setup/vp_adapter.gguf
+docker/Llama-3.1-Virtual-Patient-MimicIV_Ver2.0/vp_adapter.gguf
+
+venv/
+__pycache__/
+*.gguf
+*.safetensors
+data/generated artifacts
