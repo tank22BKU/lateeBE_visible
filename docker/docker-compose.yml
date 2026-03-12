@@ -154,6 +154,8 @@
     depends_on:
       ollama:
         condition: service_started
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
     entrypoint: [ "/bin/sh" ]
     command: 
       - "-c"

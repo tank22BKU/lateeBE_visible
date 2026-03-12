@@ -79,8 +79,7 @@
                 "POST",
                 "OPTIONS"
             ],
-            "SwaggerKey": "vppython",
-            "Timeout": 300000
+            "SwaggerKey": "vppython"
         },
         {
             "DownstreamPathTemplate": "/openapi.json",
