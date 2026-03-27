@@ -16,21 +16,15 @@ from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 # ==========================================
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama-vp:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "virtual-patient-model")
-# Sửa URL để trỏ trực tiếp vào endpoint GetById của .NET
 VIRTUAL_PATIENT_BASE_URL = os.getenv("VIRTUAL_PATIENT_API_URL", "http://virtualpatient:8080/api/virtual-patients")
 
-# Cache lưu trữ dữ liệu prompt đã dựng sẵn để tối ưu tốc độ
 PROMPT_CACHE = TTLCache(maxsize=1000, ttl=600) 
 
 # ==========================================
-# 2. CORE LOGIC: GET DETAIL & BUILD PROMPT
+# 2. CORE LOGIC
 # ==========================================
 
 async def get_patient_detail_from_net(patient_id: str) -> Optional[Dict[str, Any]]:
-    """
-    Bước 1: Gọi API .NET lấy thông tin chi tiết bằng ID
-    Endpoint: GET /api/virtual-patients/{id}
-    """
     async with httpx.AsyncClient() as client:
         try:
             url = f"{VIRTUAL_PATIENT_BASE_URL}/{patient_id}"
@@ -47,18 +41,13 @@ async def get_patient_detail_from_net(patient_id: str) -> Optional[Dict[str, Any
     return None
 
 def _build_system_prompt_from_detail(data: Dict[str, Any]) -> Dict[str, str]:
-    """
-    Bước 2: Nạp toàn bộ thông tin chi tiết vào System Prompt (Ground Truth)
-    """
-    # Trích xuất dữ liệu từ JSON camelCase của .NET
     name = data.get("name", "Patient")
     age = data.get("age", "Unknown")
     gender = data.get("gender", "Unknown")
     occupation = data.get("occupation", "Unknown")
     description = data.get("description", "")
     chief_concern = data.get("chiefConcern", "")
-    
-    # Xử lý các object lồng nhau
+
     vitals = data.get("vitalSigns") or {}
     persona = data.get("persona") or {}
     
@@ -70,30 +59,30 @@ def _build_system_prompt_from_detail(data: Dict[str, Any]) -> Dict[str, str]:
     system_prompt = (
         f"You are {name}, a {age}-year-old {gender} working as a {occupation}.\n"
         "STRICT ROLEPLAY: You are a human patient in a medical interview. You are NOT an AI assistant.\n\n"
-        
+
         "*** PERSONALITY & BEHAVIOR (Persona) ***\n"
         f"- Current Mood: {emotional_state}\n"
         f"{behavioral_rules_str}\n"
         "- Tone: Natural, brief, and informal.\n\n"
-        
+
         "*** GROUND TRUTH (YOUR MEDICAL RECORD) ***\n"
         f"- CHIEF COMPLAINT: {chief_concern}\n"
         f"- PHYSICAL VITALS: {vitals_str}\n"
         f"- DETAILED HISTORY: {description}\n\n"
-        
+
         "*** CRITICAL INSTRUCTIONS ***\n"
-        "1. STAY IN CHARACTER: You are a normal human patient. If asked about medical knowledge or explanations, act confused or say you are not sure.\n"
-        "2. GROUND TRUTH: Answer based ONLY on your Medical Record. Do not hallucinate or invent any medical symptoms, diagnoses, or history.\n"
-        "3. FILL IN THE BLANKS: If the record has '___', invent realistic personal details (e.g., address, daily habits) to stay in character, but NEVER invent medical facts.\n"
-        "4. LIMIT DISCLOSURE: Do NOT reveal too much information at once. Only provide information that is directly asked.\n"
-        "5. MINIMAL ANSWERS: Keep responses short, natural, and human-like. Avoid long explanations unless explicitly requested.\n"
-        "6. GRADUAL REVEAL: Important symptoms or details should be revealed gradually, not all at once.\n"
-        "7. NATURAL HUMAN BEHAVIOR:\n"
-        "   - You may hesitate, be unsure, or forget details.\n"
-        "   - You may downplay or exaggerate symptoms depending on emotional state.\n"
-        "   - You do NOT speak like a doctor.\n"
-        "8. RESIST OVER-ANSWERING: If a question is vague, respond briefly or ask for clarification instead of giving full details.\n"
-        "9. DO NOT SELF-DIAGNOSE: Never suggest a diagnosis unless explicitly part of your character.\n\n"
+        "1. STAY IN CHARACTER: You are a normal human patient. If asked about medical knowledge, act unsure or confused.\n"
+        "2. GROUND TRUTH: Answer ONLY based on your Medical Record. Do NOT invent symptoms or medical facts.\n"
+        "3. FILL IN THE BLANKS: If information is missing, invent normal personal details (e.g., habits, address) but NEVER medical facts.\n"
+        "4. LIMIT DISCLOSURE: Only answer what is asked. Do not provide extra or unrelated information.\n"
+        "5. KEEP IT BRIEF: Respond as short as possible while still answering correctly. Avoid unnecessary details.\n"
+        "6. GRADUAL REVEAL: Share symptoms and details step-by-step, not all at once.\n"
+        "7. HUMAN BEHAVIOR: You may hesitate, forget, or be unsure. Do not sound like a doctor.\n"
+        "8. HANDLE UNCLEAR QUESTIONS: If a question is vague, answer briefly or ask for clarification.\n"
+        "9. NO SELF-DIAGNOSIS: Do not suggest any diagnosis unless it is explicitly part of your role.\n"
+        "10. AVOID OVER-SHARING: Do not add extra explanations or background unless directly asked.\n"
+        "11. EXCEPTION: You may give slightly longer or more emotional responses only when pain is severe or emotions are strong.\n\n"
+        "12. STRICT ANSWERING: If the question asks for a single piece of information (e.g., name, age, job), respond with ONLY that information and NOTHING else.\n"
     )
     
     return {
@@ -112,7 +101,7 @@ class MemoryStore:
         key = self._key(doc_id, pat_id)
         history = self.cache.get(key, [])
         history.append({"q": q, "a": a})
-        self.cache[key] = history[-15:] # Giữ 15 câu thoại gần nhất
+        self.cache[key] = history[-15:] 
     def get(self, doc_id, pat_id): return self.cache.get(self._key(doc_id, pat_id), [])
     def clear(self, doc_id, pat_id):
         key = self._key(doc_id, pat_id)
@@ -128,10 +117,9 @@ class VPRequest(BaseModel):
     patient_id: str
     question: str
 
-app = FastAPI(title="LATEE Virtual Patient AI - Direct Detail Engine")
+app = FastAPI(title="LATEE Virtual Patient AI API", version="1.6")
 
 async def get_effective_prompt(patient_id: str):
-    """Helper để lấy prompt từ cache hoặc fetch mới từ .NET"""
     if patient_id in PROMPT_CACHE:
         return PROMPT_CACHE[patient_id]
     

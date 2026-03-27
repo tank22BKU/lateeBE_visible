@@ -69,7 +69,7 @@
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {
-                    "Host": "vp-python-api",
+                    "Host": "virtualpatient-python",
                     "Port": 8080
                 }
             ],
@@ -86,7 +86,7 @@
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {
-                    "Host": "vp-python-api",
+                    "Host": "virtualpatient-python",
                     "Port": 8080
                 }
             ],
@@ -100,7 +100,7 @@
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {
-                    "Host": "vp-python-api",
+                    "Host": "virtualpatient-python",
                     "Port": 8080
                 }
             ],
