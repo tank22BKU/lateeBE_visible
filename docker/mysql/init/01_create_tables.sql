@@ -1,12 +1,27 @@
-﻿
-CREATE TABLE patients (
-    patientid VARCHAR(10) PRIMARY KEY,
-    gender CHAR(1) CHECK (gender IN ('M','F')),
+﻿CREATE TABLE patients (
+    patientid VARCHAR(50) PRIMARY KEY,
+    clinical_case_id VARCHAR(50) NOT NULL, 
+    name VARCHAR(100) NOT NULL,
     age INT,
-    behaviors TEXT,
+    gender VARCHAR(20),
+    pronouns VARCHAR(20),
+    ethnicity VARCHAR(50),
+    occupation VARCHAR(100),
+    setting VARCHAR(50),
+    level VARCHAR(20),
+    time_setting VARCHAR(50),
+    avatar_img TEXT,
     description TEXT,
-    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    chief_concern TEXT,
+    
+    vital_signs JSON, 
+    instructions JSON,
+    case_rules JSON,
+    persona JSON,
+    
+    status VARCHAR(20) DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 CREATE TABLE clinicalcases (

@@ -1,27 +1,25 @@
-using System.Text.Json;
 using MediatR;
+using System.Text.Json;
 using VirtualPatientService.Domain.Repositories;
 
 namespace VirtualPatientService.Application.Queries.GetVirtualPatients;
 
-public class GetVirtualPatientsHandler : IRequestHandler<GetVirtualPatientQuery, PagedResult<VirtualPatientDto>>
+public class GetVirtualPatientByIdHandler : IRequestHandler<GetVirtualPatientByIdQuery, VirtualPatientDto?>
 {
     private readonly IVirtualPatientRepository _repo;
 
-    public GetVirtualPatientsHandler(IVirtualPatientRepository repo)
+    public GetVirtualPatientByIdHandler(IVirtualPatientRepository repo)
     {
         _repo = repo;
     }
 
-    public async Task<PagedResult<VirtualPatientDto>> Handle(GetVirtualPatientQuery q, CancellationToken cancellationToken)
+    public async Task<VirtualPatientDto?> Handle(GetVirtualPatientByIdQuery request, CancellationToken cancellationToken)
     {
-        if (q.Page < 1) q = q with { Page = 1 };
-        if (q.PageSize <= 0 || q.PageSize > 100)
-            q = q with { PageSize = 20 };
+        var x = await _repo.GetByIdAsync(request.PatientId);
+        
+        if (x == null) return null;
 
-        var (items, total) = await _repo.GetPagedAsync(q.Gender, q.Page, q.PageSize);
-
-        var dtos = items.Select(x => new VirtualPatientDto
+        return new VirtualPatientDto
         {
             PatientId = x.PatientId,
             ClinicalCaseId = x.ClinicalCaseId,
@@ -31,19 +29,10 @@ public class GetVirtualPatientsHandler : IRequestHandler<GetVirtualPatientQuery,
             Occupation = x.Occupation,
             Description = x.Description,
             ChiefConcern = x.ChiefConcern,
-            
             VitalSigns = string.IsNullOrEmpty(x.VitalSigns) ? null : JsonSerializer.Deserialize<object>(x.VitalSigns),
             Instructions = string.IsNullOrEmpty(x.Instructions) ? null : JsonSerializer.Deserialize<object>(x.Instructions),
             CaseRules = string.IsNullOrEmpty(x.CaseRules) ? null : JsonSerializer.Deserialize<object>(x.CaseRules),
             Persona = string.IsNullOrEmpty(x.Persona) ? null : JsonSerializer.Deserialize<object>(x.Persona)
-        }).ToList();
-
-        return new PagedResult<VirtualPatientDto>
-        {
-            Items = dtos,
-            Total = total,
-            Page = q.Page,
-            PageSize = q.PageSize
         };
     }
 }

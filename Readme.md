@@ -80,8 +80,6 @@ docker compose -f docker/docker-compose.yml up --build ollama
 # Kiểm tra model có được tạo không
 docker exec ollama ollama list
 
-# Nên thấy: llama3.1-with-adapter (merged with adapter)
-
 # Trong terminal khác, kiểm tra model có được tạo không
 docker exec ollama ollama list
 
