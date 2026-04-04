@@ -70,9 +70,9 @@
       - OLLAMA_NUM_PARALLEL=2
       - OLLAMA_FLASH_ATTENTION=1
       - OLLAMA_NUM_GPU=1
-      - OLLAMA_MAX_LOADED_MODELS=1
+      - OLLAMA_MAX_LOADED_MODELS=2
       - OLLAMA_KEEP_ALIVE=30m
-      - OLLAMA_NUM_THREAD=4
+      - OLLAMA_NUM_THREAD=2
       - OLLAMA_NUM_CTX=4096
     deploy:
       resources:
@@ -81,22 +81,27 @@
             - driver: nvidia
               count: 1 # Chỉ dùng 1 GPU
               capabilities: [ gpu ]
-    # healthcheck:
-    #   test: [ "CMD", "ollama", "list" ]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 10
+    healthcheck:
+      test: [ "CMD", "ollama", "list" ]
+      interval: 120s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   ollama-warmup:
     image: ollama/ollama:latest
     container_name: ollama-warmup
     depends_on:
       ollama:
-        condition: service_started
+        condition: service_healthy
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
     entrypoint: [ "/bin/sh", "-c" ]
     command: >
-      ollama pull llama3.1-8b && ollama run llama3.1-8b "ping"
+      ollama pull llama3.1:8b && ollama run llama3.1:8b "ping"
     restart: "no"
+    networks:
+      - latee-network
 
   ai-assistant:
     build:
@@ -107,6 +112,7 @@
       - "8003:8000"
     volumes:
       - ../src/Services/AIAssistantService/python_api/data:/src/data:ro
+      - ../src/Services/AIAssistantService/python_api:/src
     env_file:
       - ../.env
     depends_on:
@@ -114,7 +120,13 @@
         condition: service_started
       ollama-warmup:
         condition: service_completed_successfully
-    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --workers 4
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 120s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     develop:
       watch:
         - action: rebuild
@@ -132,9 +144,12 @@
     volumes:
       - ../src/Gateway/ApiGateway/ocelot.json:/app/ocelot.json:ro
     depends_on:
-      - clinicalcase
-      - virtualpatient
-      - ai-assistant
+      clinicalcase:
+        condition: service_started
+      virtualpatient:
+        condition: service_started
+      ai-assistant:
+        condition: service_healthy
     environment:
       ASPNETCORE_ENVIRONMENT: Development
     networks:

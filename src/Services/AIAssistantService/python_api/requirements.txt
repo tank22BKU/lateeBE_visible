@@ -1,28 +1,14 @@
-# Streamlit UI
 pypdf
-# LangChain mới
-langchain
-requests
 langchain-core
-langchain-community[all]
-
+langchain-community
 langchain-ollama
-#langchain-huggingface
 langchain-text-splitters
 faiss-cpu
-sentence-transformers
-huggingface-hub
-streamlit
-python-multipart
-
-# HuggingFace embeddings / LLM
 transformers>=4.33.2
-
-# Utilities
-tqdm>=4.66.1
-numpy>=1.26.0
+sentence-transformers
 fastapi
 pydantic
 uvicorn 
 cachetools
 redis
+python-dotenv

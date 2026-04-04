@@ -1,5 +1,5 @@
 from typing import List, Optional, Dict, Any, Tuple
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import time
 import os
 
@@ -31,7 +31,7 @@ class MessageItem(BaseModel):
 class AssistantRequest(BaseModel):
     doctor_id: str
     question: str
-    patient_history: Optional[List[MessageItem]] = []
+    patient_history: List[MessageItem] = Field(default_factory=list)
     use_rag: Optional[bool] = True
 
 
@@ -109,8 +109,8 @@ class MemoryHistoryStore(HistoryStore):
 class QuestionValidationRequest(BaseModel):
     doctor_id: str
     learner_question: str  # Câu hỏi của learner dành cho bệnh nhân
-    conversation_context: Optional[List[MessageItem]] = (
-        []
+    conversation_context: List[MessageItem] = Field(
+        default_factory=list
     )  # Lịch sử hội thoại để hiểu ngữ cảnh
 
 
@@ -122,3 +122,23 @@ class ValidationFlag(BaseModel):
 
 class QuestionValidationResponse(BaseModel):
     flag: ValidationFlag
+
+
+class ClinicalReasoningInteraction(BaseModel):
+    dimension: str
+    question: str
+    answer: str
+
+
+class ClinicalReasoningRequest(BaseModel):
+    patient_case: str
+    learner_diagnosis: str
+    interaction_history: List[ClinicalReasoningInteraction] = Field(
+        default_factory=list
+    )
+
+
+class ClinicalReasoningResponse(BaseModel):
+    dimension: str
+    question: str
+    stop: bool

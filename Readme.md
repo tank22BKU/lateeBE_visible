@@ -55,8 +55,9 @@ dotnet new sln -n AIAssistantService
 - Build khi ở root
 + docker compose -f docker/docker-compose.yml up --build
 - Cleam & Rebuild
-+ docker compose -f docker/docker-compose.yml down (if u want to migrate db and volume again LET ADD "-v" )
-+ docker exec ollama ollama run llama3.1:8b
++ docker compose -f docker/docker-compose.yml down -v
++ docker compose -f docker/docker-compose.yml up -d --build
++ docker exec ollama ollama pull llama3.1:8b
 + docker compose -f docker/docker-compose.yml up
 
 

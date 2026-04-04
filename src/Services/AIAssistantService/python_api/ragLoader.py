@@ -15,7 +15,9 @@ _CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "200"))
 
 
 class RAGLoader:
-    def __init__(self, pdf_dir: str = "./data"):
+    def __init__(self, pdf_dir: Optional[str] = None):
+        if pdf_dir is None:
+            pdf_dir = Path(__file__).resolve().parent / "data"
         self.pdf_dir = Path(pdf_dir)
         self.retriever = None
         self.indexed = False

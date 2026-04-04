@@ -75,7 +75,9 @@
             ],
             "UpstreamPathTemplate": "/ai-assistant/{everything}",
             "UpstreamHttpMethod": [
-                "POST"
+                "GET",
+                "POST",
+                "PUT"
             ],
             "SwaggerKey": "aiassistant",
             "Timeout": 300000
@@ -91,7 +93,10 @@
             ],
             "UpstreamPathTemplate": "/ai-assistant/openapi.json",
             "UpstreamHttpMethod": [
-                "GET"
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE"
             ]
         },
         {
