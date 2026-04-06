@@ -1,19 +1,17 @@
 import os
 import json
-import asyncio
 import httpx
-from typing import Optional, Dict, Any, AsyncGenerator, List
+from typing import Optional, Dict, Any, List
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from contextlib import asynccontextmanager
 from cachetools import TTLCache
 from langchain_ollama import ChatOllama
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
-from fastapi.middleware.cors import CORSMiddleware
 
 # ==========================================
-# 1. CONFIG
+# 1. CONFIG & APP INIT
 # ==========================================
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama-vp:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "virtual-patient-model")
@@ -21,7 +19,7 @@ VIRTUAL_PATIENT_BASE_URL = os.getenv("VIRTUAL_PATIENT_API_URL", "http://virtualp
 
 PROMPT_CACHE = TTLCache(maxsize=1000, ttl=600) 
 
-app = FastAPI(title="LATEE VP AI")
+app = FastAPI(title="LATEE VP AI - Stateless Architecture")
 
 app.add_middleware(
     CORSMiddleware,
@@ -32,9 +30,21 @@ app.add_middleware(
 )
 
 # ==========================================
-# 2. CORE LOGIC
+# 2. MODELS (DATA TRANSFER OBJECTS)
 # ==========================================
+class MessageItem(BaseModel):
+    role: str
+    content: str
 
+class VPRequest(BaseModel):
+    doctor_id: str
+    patient_id: str
+    question: str
+    chat_history: List[MessageItem] = [] 
+
+# ==========================================
+# 3. CORE LOGIC & SYSTEM PROMPT
+# ==========================================
 async def get_patient_detail_from_net(patient_id: str) -> Optional[Dict[str, Any]]:
     async with httpx.AsyncClient() as client:
         try:
@@ -75,51 +85,23 @@ def _build_system_prompt_from_detail(data: Dict[str, Any]) -> Dict[str, str]:
          "*** CRITICAL INSTRUCTIONS ***\n"
         "1. STAY IN CHARACTER: You are a normal human patient. If asked about medical knowledge, act unsure or confused.\n"
         "2. GROUND TRUTH: Answer ONLY based on your Medical Record. Do NOT invent symptoms or medical facts.\n"
-        "3. FILL IN THE BLANKS: If information is missing, invent normal personal details (e.g., habits, address) but NEVER medical facts.\n"
-        "4. LIMIT DISCLOSURE: Only answer what is asked. Do not provide extra or unrelated information.\n"
-        "5. KEEP IT BRIEF: Respond as short as possible while still answering correctly. Avoid unnecessary details.\n"
-        "6. GRADUAL REVEAL: Share symptoms and details step-by-step, not all at once.\n"
-        "7. HUMAN BEHAVIOR: You may hesitate, forget, or be unsure. Do not sound like a doctor.\n"
-        "8. HANDLE UNCLEAR QUESTIONS: If a question is vague, answer briefly or ask for clarification.\n"
-        "9. NO SELF-DIAGNOSIS: Do not suggest any diagnosis unless it is explicitly part of your role.\n"
-        "10. AVOID OVER-SHARING: Do not add extra explanations or background unless directly asked.\n"
-        "11. EXCEPTION: You may give slightly longer or more emotional responses only when pain is severe or emotions are strong.\n\n"
-        "12. STRICT ANSWERING: If the question asks for a single piece of information (e.g., name, age, job), respond with ONLY that information and NOTHING else.\n"
+        "3. LIMIT DISCLOSURE: Only answer what is asked. Do not provide extra or unrelated information.\n"
+        "4. KEEP IT BRIEF: Respond as short as possible while still answering correctly. Avoid unnecessary details.\n"
+        "5. GRADUAL REVEAL: Share symptoms and details step-by-step, not all at once.\n"
+        "6. HUMAN BEHAVIOR: You may hesitate, forget, or be unsure. Do not sound like a doctor.\n"
+        "7. HANDLE UNCLEAR QUESTIONS: If a question is vague, answer briefly or ask for clarification.\n"
+        "8. NO SELF-DIAGNOSIS: Do not suggest any diagnosis unless it is explicitly part of your role.\n"
+        "9. AVOID OVER-SHARING: Do not add extra explanations or background unless directly asked.\n"
+        "10. EXCEPTION: You may give slightly longer or more emotional responses only when pain is severe or emotions are strong.\n\n"
+        "11. STRICT ANSWERING: If the question asks for a single piece of information (e.g., name, age, job), respond with ONLY that information and NOTHING else.\n"
+        "12. FILL IN THE BLANKS: Fill missing info with normal details, then compress the sentence to its shortest form without losing meaning; never invent medical facts.\n"
     )
     
     return {
         "system_prompt": system_prompt,
         "initial_greeting": f"Good morning, Doctor..."
     }
-
-# ==========================================
-# 3. MEMORY
-# ==========================================
-class MemoryStore:
-    def __init__(self):
-        self.cache = TTLCache(maxsize=5000, ttl=3600)
-    def _key(self, doc_id, pat_id): return f"{doc_id}:{pat_id}"
-    def add(self, doc_id, pat_id, q, a):
-        key = self._key(doc_id, pat_id)
-        history = self.cache.get(key, [])
-        history.append({"q": q, "a": a})
-        self.cache[key] = history[-15:] 
-    def get(self, doc_id, pat_id): return self.cache.get(self._key(doc_id, pat_id), [])
-    def clear(self, doc_id, pat_id):
-        key = self._key(doc_id, pat_id)
-        if key in self.cache: del self.cache[key]
-
-HISTORY = MemoryStore()
-
-class VPRequest(BaseModel):
-    doctor_id: str
-    patient_id: str
-    question: str
-
-class VPRequest2(BaseModel):
-    doctor_id: str
-    patient_id: str
-
+    
 async def get_effective_prompt(patient_id: str):
     if patient_id in PROMPT_CACHE: return PROMPT_CACHE[patient_id]
     detail = await get_patient_detail_from_net(patient_id)
@@ -128,52 +110,51 @@ async def get_effective_prompt(patient_id: str):
     PROMPT_CACHE[patient_id] = prompt_data
     return prompt_data
 
-def prepare_messages(data, chat_history, question):
+def prepare_messages(data, chat_history_from_fe, question):
     messages = [SystemMessage(content=data["system_prompt"])]
     
-    if not chat_history:
+    if not chat_history_from_fe:
         messages.append(AIMessage(content=data["initial_greeting"]))
-    
-    for h in chat_history:
-        messages.extend([HumanMessage(content=h["q"]), AIMessage(content=h["a"])])
-    
+    else:
+        for msg in chat_history_from_fe:
+            if msg.role == 'doctor':
+                messages.append(HumanMessage(content=msg.content))
+            elif msg.role == 'patient':
+                messages.append(AIMessage(content=msg.content))
+                
     messages.append(HumanMessage(content=question))
     return messages
 
+# ==========================================
+# 4. API ENDPOINTS
+# ==========================================
 @app.post("/chat")
 async def chat_with_patient(req: VPRequest):
     data = await get_effective_prompt(req.patient_id)
     if not data: raise HTTPException(404, detail="Bệnh án không tồn tại.")
+
+    messages = prepare_messages(data, req.chat_history, req.question)
     
-    chat_history = HISTORY.get(req.doctor_id, req.patient_id)
-    messages = prepare_messages(data, chat_history, req.question)
-    
-    llm = ChatOllama(model=OLLAMA_MODEL, base_url=OLLAMA_URL, temperature=0.1)
+    llm = ChatOllama(model=OLLAMA_MODEL, base_url=OLLAMA_URL, temperature=0.0)
     response = await llm.ainvoke(messages)
     
-    final_a = response.content.strip()
-    HISTORY.add(req.doctor_id, req.patient_id, req.question, final_a)
-    return {"answer": final_a}
+    return {"answer": response.content.strip()}
 
 @app.post("/stream")
 async def chat_with_patient_stream(req: VPRequest):
     data = await get_effective_prompt(req.patient_id)
     if not data: raise HTTPException(404, detail="Bệnh án không tồn tại.")
 
-    chat_history = HISTORY.get(req.doctor_id, req.patient_id)
-    messages = prepare_messages(data, chat_history, req.question)
+    messages = prepare_messages(data, req.chat_history, req.question)
+
     llm = ChatOllama(model=OLLAMA_MODEL, base_url=OLLAMA_URL, temperature=0.1)
 
     async def generate():
-        full_a = ""
         try:
             async for chunk in llm.astream(messages):
                 if hasattr(chunk, "content") and chunk.content:
-                    token = chunk.content
-                    full_a += token
-                    yield f"data: {json.dumps({'type': 'token', 'content': token}, ensure_ascii=False)}\n\n"
+                    yield f"data: {json.dumps({'type': 'token', 'content': chunk.content}, ensure_ascii=False)}\n\n"
             
-            HISTORY.add(req.doctor_id, req.patient_id, req.question, full_a)
             yield f"data: {json.dumps({'type': 'done'})}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
@@ -188,7 +169,3 @@ async def chat_with_patient_stream(req: VPRequest):
         }
     )
 
-@app.post("/reset")
-async def reset_conversation(req: VPRequest2):
-    HISTORY.clear(req.doctor_id, req.patient_id)
-    return {"message": "Memory reset thành công."}

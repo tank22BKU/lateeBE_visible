@@ -1,54 +1,54 @@
 ﻿### How to create new service
 
 ### Create 4 layer
-mkdir -p src/Services/VirtualPatientService
-cd src/Services/VirtualPatientService
+mkdir -p src/Services/AssessmentService
+cd src/Services/AssessmentService
 
-dotnet new webapi -n VirtualPatientService.API --framework net9.0
-dotnet new classlib -n VirtualPatientService.Domain --framework net9.0
-dotnet new classlib -n VirtualPatientService.Application --framework net9.0
-dotnet new classlib -n VirtualPatientService.Infrastructure --framework net9.0
+dotnet new webapi -n AssessmentService.API --framework net9.0
+dotnet new classlib -n AssessmentService.Domain --framework net9.0
+dotnet new classlib -n AssessmentService.Application --framework net9.0
+dotnet new classlib -n AssessmentService.Infrastructure --framework net9.0
 
 cd ../../../
-dotnet sln add src\Services\VirtualPatientService\VirtualPatientService.API\VirtualPatientService.API.csproj
-dotnet sln add src\Services\VirtualPatientService\VirtualPatientService.Domain\VirtualPatientService.Domain.csproj
-dotnet sln add src\Services\VirtualPatientService\VirtualPatientService.Application\VirtualPatientService.Application.csproj
-dotnet sln add src\Services\VirtualPatientService\VirtualPatientService.Infrastructure\VirtualPatientService.Infrastructure.csproj
+dotnet sln add src\Services\AssessmentService\AssessmentService.API\AssessmentService.API.csproj
+dotnet sln add src\Services\AssessmentService\AssessmentService.Domain\AssessmentService.Domain.csproj
+dotnet sln add src\Services\AssessmentService\AssessmentService.Application\AssessmentService.Application.csproj
+dotnet sln add src\Services\AssessmentService\AssessmentService.Infrastructure\AssessmentService.Infrastructure.csproj
 
 
 ### Set dependency injection
-dotnet add src\Services\VirtualPatientService\VirtualPatientService.API\VirtualPatientService.API.csproj reference src\Services\VirtualPatientService\VirtualPatientService.Application\VirtualPatientService.Application.csproj
-dotnet add src\Services\VirtualPatientService\VirtualPatientService.Application\VirtualPatientService.Application.csproj reference src\Services\VirtualPatientService\VirtualPatientService.Domain\VirtualPatientService.Domain.csproj
-dotnet add src\Services\VirtualPatientService\VirtualPatientService.Infrastructure\VirtualPatientService.Infrastructure.csproj reference src\Services\VirtualPatientService\VirtualPatientService.Domain\VirtualPatientService.Domain.csproj
-dotnet add src\Services\VirtualPatientService\VirtualPatientService.API\VirtualPatientService.API.csproj reference src\Services\VirtualPatientService\VirtualPatientService.Infrastructure\VirtualPatientService.Infrastructure.csproj
+dotnet add src\Services\AssessmentService\AssessmentService.API\AssessmentService.API.csproj reference src\Services\AssessmentService\AssessmentService.Application\AssessmentService.Application.csproj
+dotnet add src\Services\AssessmentService\AssessmentService.Application\AssessmentService.Application.csproj reference src\Services\AssessmentService\AssessmentService.Domain\AssessmentService.Domain.csproj
+dotnet add src\Services\AssessmentService\AssessmentService.Infrastructure\AssessmentService.Infrastructure.csproj reference src\Services\AssessmentService\AssessmentService.Domain\AssessmentService.Domain.csproj
+dotnet add src\Services\AssessmentService\AssessmentService.API\AssessmentService.API.csproj reference src\Services\AssessmentService\AssessmentService.Infrastructure\AssessmentService.Infrastructure.csproj
 
 
 ### Include packages
 - API
-dotnet add src/Services/VirtualPatientService/VirtualPatientService.API package Swashbuckle.AspNetCore
+dotnet add src/Services/AssessmentService/AssessmentService.API package Swashbuckle.AspNetCore
 
 
 - Application
-dotnet add src/Services/VirtualPatientService/VirtualPatientService.Application package AutoMapper --version 15.1.0
-dotnet add src/Services/VirtualPatientService/VirtualPatientService.Application package AutoMapper.Extensions.Microsoft.DependencyInjection --version 12.0.1
-dotnet add src/Services/VirtualPatientService/VirtualPatientService.Application package FluentValidation --version 12.1.0
-dotnet add src/Services/VirtualPatientService/VirtualPatientService.Application package FluentValidation.DependencyInjectionExtensions --version 12.1.0
-dotnet add src/Services/VirtualPatientService/VirtualPatientService.Application package MediatR --version 13.1.0
-dotnet add src/Services/VirtualPatientService/VirtualPatientService.Application package Microsoft.EntityFrameworkCore --version 9.0.0
+dotnet add src/Services/AssessmentService/AssessmentService.Application package AutoMapper --version 15.1.0
+dotnet add src/Services/AssessmentService/AssessmentService.Application package AutoMapper.Extensions.Microsoft.DependencyInjection --version 12.0.1
+dotnet add src/Services/AssessmentService/AssessmentService.Application package FluentValidation --version 12.1.0
+dotnet add src/Services/AssessmentService/AssessmentService.Application package FluentValidation.DependencyInjectionExtensions --version 12.1.0
+dotnet add src/Services/AssessmentService/AssessmentService.Application package MediatR --version 13.1.0
+dotnet add src/Services/AssessmentService/AssessmentService.Application package Microsoft.EntityFrameworkCore --version 9.0.0
 
 
 - Domain
 
 - Infrastructure
-dotnet add src/Services/VirtualPatientService/VirtualPatientService.Infrastructure package Pomelo.EntityFrameworkCore.MySql --version 9.0.0
-dotnet add src/Services/VirtualPatientService/VirtualPatientService.Infrastructure package Microsoft.EntityFrameworkCore --version 9.0.0
-dotnet add src/Services/VirtualPatientService/VirtualPatientService.Infrastructure package Microsoft.EntityFrameworkCore.Design --version 9.0.0
-dotnet add src/Services/VirtualPatientService/VirtualPatientService.Infrastructure package Microsoft.EntityFrameworkCore.Tools --version 9.0.0
+dotnet add src/Services/AssessmentService/AssessmentService.Infrastructure package Pomelo.EntityFrameworkCore.MySql --version 9.0.0
+dotnet add src/Services/AssessmentService/AssessmentService.Infrastructure package Microsoft.EntityFrameworkCore --version 9.0.0
+dotnet add src/Services/AssessmentService/AssessmentService.Infrastructure package Microsoft.EntityFrameworkCore.Design --version 9.0.0
+dotnet add src/Services/AssessmentService/AssessmentService.Infrastructure package Microsoft.EntityFrameworkCore.Tools --version 9.0.0
 
 
 ### add .sln for detail service
-cd src/Services/VirtualPatientService
-dotnet new sln -n VirtualPatientService
+cd src/Services/AssessmentService
+dotnet new sln -n AssessmentService
 
 
 ### Build and run the project

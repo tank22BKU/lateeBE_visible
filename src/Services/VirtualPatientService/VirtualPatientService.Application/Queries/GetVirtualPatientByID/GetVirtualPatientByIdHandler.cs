@@ -27,7 +27,7 @@ public class GetVirtualPatientByIdHandler : IRequestHandler<GetVirtualPatientByI
             Age = x.Age,
             Gender = x.Gender,
             Occupation = x.Occupation,
-            Description = x.Description,
+            Descriptions = x.Descriptions,
             ChiefConcern = x.ChiefConcern,
             VitalSigns = string.IsNullOrEmpty(x.VitalSigns) ? null : JsonSerializer.Deserialize<object>(x.VitalSigns),
             Instructions = string.IsNullOrEmpty(x.Instructions) ? null : JsonSerializer.Deserialize<object>(x.Instructions),

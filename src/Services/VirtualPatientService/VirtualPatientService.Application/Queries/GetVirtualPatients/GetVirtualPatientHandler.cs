@@ -29,7 +29,7 @@ public class GetVirtualPatientsHandler : IRequestHandler<GetVirtualPatientQuery,
             Age = x.Age,
             Gender = x.Gender,
             Occupation = x.Occupation,
-            Description = x.Description,
+            Descriptions = x.Descriptions,
             ChiefConcern = x.ChiefConcern,
             
             VitalSigns = string.IsNullOrEmpty(x.VitalSigns) ? null : JsonSerializer.Deserialize<object>(x.VitalSigns),

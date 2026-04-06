@@ -32,7 +32,7 @@ public class VirtualPatientDbContext : DbContext
             entity.Property(x => x.Level).HasColumnName("level").HasMaxLength(20);
             entity.Property(x => x.TimeSetting).HasColumnName("time_setting").HasMaxLength(50);
             entity.Property(x => x.AvatarImg).HasColumnName("avatar_img").HasColumnType("TEXT");
-            entity.Property(x => x.Description).HasColumnName("description").HasColumnType("TEXT");
+            entity.Property(x => x.Descriptions).HasColumnName("descriptions").HasColumnType("TEXT");
             entity.Property(x => x.ChiefConcern).HasColumnName("chief_concern").HasColumnType("TEXT");
             
             entity.Property(x => x.VitalSigns).HasColumnName("vital_signs").HasColumnType("JSON");

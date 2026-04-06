@@ -7,7 +7,7 @@ public class ClinicalCase
 
     public string? Title { get; set; }
     public string? CaseType { get; set; }
-    public string? Description { get; set; }
+    public string? Descriptions { get; set; }
     public string? Symptom { get; set; }
     public string? MedicalHistory { get; set; }
     public string? Pe { get; set; }

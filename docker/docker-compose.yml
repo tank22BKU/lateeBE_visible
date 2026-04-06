@@ -26,10 +26,27 @@
       - mysql
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__ClinicalCaseDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      ConnectionStrings__ClinicalCaseDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
     networks:
       - latee-network
-
+  
+  assessment:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.Assessment
+    container_name: assessment-api
+    ports:
+      - "8004:8080"
+    depends_on:
+      - mysql
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Server=latee-mysql;Port=3306;Database=latee;Uid=user;Pwd=pass;AllowPublicKeyRetrieval=True"
+      GeminiAi__ApiKey: ${GEMINI_API_KEY} 
+    env_file:
+      - ../.env
+    networks:
+      - latee-network
   virtualpatient:
     build:
       context: ..
@@ -41,7 +58,7 @@
       - mysql
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__VirtualPatientDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      ConnectionStrings__VirtualPatientDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
     networks:
       - latee-network
 
@@ -216,6 +233,7 @@
       - clinicalcase
       - virtualpatient
       - ai-assistant
+      - assessment
     environment:
       ASPNETCORE_ENVIRONMENT: Development
     networks:
