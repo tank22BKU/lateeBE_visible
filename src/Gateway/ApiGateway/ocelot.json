@@ -37,6 +37,24 @@
             "SwaggerKey": "virtualpatient"
         },
         {
+            "DownstreamPathTemplate": "/api/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "roadmap",
+                    "Port": 8080
+                }
+            ],
+            "UpstreamPathTemplate": "/roadmap/api/{everything}",
+            "UpstreamHttpMethod": [
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE"
+            ],
+            "SwaggerKey": "roadmap"
+        },
+        {
             "DownstreamPathTemplate": "/swagger/{everything}",
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
@@ -60,6 +78,20 @@
                 }
             ],
             "UpstreamPathTemplate": "/virtual-patient/swagger/{everything}",
+            "UpstreamHttpMethod": [
+                "GET"
+            ]
+        },
+        {
+            "DownstreamPathTemplate": "/swagger/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "roadmap",
+                    "Port": 8080
+                }
+            ],
+            "UpstreamPathTemplate": "/roadmap/swagger/{everything}",
             "UpstreamHttpMethod": [
                 "GET"
             ]
@@ -132,6 +164,16 @@
                     "Name": "Virtual Patient API",
                     "Version": "v1",
                     "Url": "http://virtualpatient:8080/swagger/v1/swagger.json"
+                }
+            ]
+        },
+        {
+            "Key": "roadmap",
+            "Config": [
+                {
+                    "Name": "Roadmap API",
+                    "Version": "v1",
+                    "Url": "http://roadmap:8080/swagger/v1/swagger.json"
                 }
             ]
         },

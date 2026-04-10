@@ -50,6 +50,9 @@ dotnet add src/Services/AIAssistantService/AIAssistantService.Infrastructure pac
 cd src/Services/AIAssistantService
 dotnet new sln -n AIAssistantService
 
+### Gemini API 
+dotnet add package Google.GenAI
+
 
 ### Build and run the project
 - Build khi ở root

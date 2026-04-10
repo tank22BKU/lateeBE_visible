@@ -120,7 +120,7 @@
         condition: service_started
       ollama-warmup:
         condition: service_completed_successfully
-    command: uvicorn app:app --host 0.0.0.0 --port 8000 --workers 4
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --workers 2
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
       interval: 120s
@@ -131,6 +131,23 @@
       watch:
         - action: rebuild
           path: ../src/Services/AIAssistantService/python_api
+    networks:
+      - latee-network
+
+  roadmap:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.Roadmap
+    container_name: roadmap-api
+    ports:
+      - "8004:8080"
+    env_file:
+      - ../.env
+    depends_on:
+      - mysql
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__RoadmapDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
     networks:
       - latee-network
 
