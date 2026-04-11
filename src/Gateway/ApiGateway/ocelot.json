@@ -11,10 +11,7 @@
             ],
             "UpstreamPathTemplate": "/clinical-case/api/{everything}",
             "UpstreamHttpMethod": [
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE"
+                "GET", "POST", "PUT", "DELETE"
             ],
             "SwaggerKey": "clinicalcase"
         },
@@ -29,10 +26,7 @@
             ],
             "UpstreamPathTemplate": "/virtual-patient/api/{everything}",
             "UpstreamHttpMethod": [
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE"
+                "GET", "POST", "PUT", "DELETE"
             ],
             "SwaggerKey": "virtualpatient"
         },
@@ -101,15 +95,56 @@
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {
+                    "Host": "virtualpatient-python",
+                    "Port": 8080
+                }
+            ],
+            "UpstreamPathTemplate": "/virtual-patient/ai/{everything}",
+            "UpstreamHttpMethod": [
+                "GET", "POST", "OPTIONS"
+            ],
+            "SwaggerKey": "vppython"
+        },
+        {
+            "DownstreamPathTemplate": "/openapi.json",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "virtualpatient-python",
+                    "Port": 8080
+                }
+            ],
+            "UpstreamPathTemplate": "/virtual-patient/ai/openapi.json",
+            "UpstreamHttpMethod": [
+                "GET"
+            ]
+        },
+        {
+            "DownstreamPathTemplate": "/docs",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "virtualpatient-python",
+                    "Port": 8080
+                }
+            ],
+            "UpstreamPathTemplate": "/virtual-patient/ai/docs",
+            "UpstreamHttpMethod": [
+                "GET"
+            ]
+        },
+        {
+            "DownstreamPathTemplate": "/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
                     "Host": "ai-assistant",
                     "Port": 8000
                 }
             ],
             "UpstreamPathTemplate": "/ai-assistant/{everything}",
             "UpstreamHttpMethod": [
-                "GET",
-                "POST",
-                "PUT"
+                "GET", "POST", "OPTIONS"
             ],
             "SwaggerKey": "aiassistant",
             "Timeout": 300000
@@ -144,6 +179,36 @@
             "UpstreamHttpMethod": [
                 "GET"
             ]
+        },
+        {
+            "DownstreamPathTemplate": "/api/assessments",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                { "Host": "assessment", "Port": 8080 }
+            ],
+            "UpstreamPathTemplate": "/assessment/api/assessments",
+            "UpstreamHttpMethod": [ "GET", "POST" ],
+            "SwaggerKey": "assessment"
+        },
+        {
+            "DownstreamPathTemplate": "/api/assessments/{id}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                { "Host": "assessment", "Port": 8080 }
+            ],
+            "UpstreamPathTemplate": "/assessment/api/assessments/{id}",
+            "UpstreamHttpMethod": [ "GET", "PUT", "DELETE" ],
+            "SwaggerKey": "assessment"
+        },
+        {
+            "DownstreamPathTemplate": "/api/assessments/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                { "Host": "assessment", "Port": 8080 }
+            ],
+            "UpstreamPathTemplate": "/assessment/api/assessments/{everything}",
+            "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+            "SwaggerKey": "assessment"
         }
     ],
     "SwaggerEndPoints": [
@@ -154,6 +219,16 @@
                     "Name": "Clinical Case API",
                     "Version": "v1",
                     "Url": "http://clinicalcase:8080/swagger/v1/swagger.json"
+                }
+            ]
+        },
+        {
+            "Key": "assessment",
+            "Config": [
+                {
+                    "Name": "Assessment API",
+                    "Version": "v1",
+                    "Url": "http://assessment:8080/swagger/v1/swagger.json"
                 }
             ]
         },
@@ -174,6 +249,16 @@
                     "Name": "Roadmap API",
                     "Version": "v1",
                     "Url": "http://roadmap:8080/swagger/v1/swagger.json"
+                }
+            ]
+        },
+        {
+            "Key": "vppython",
+            "Config": [
+                {
+                    "Name": "Virtual Patient AI (Python) API",
+                    "Version": "v1",
+                    "Url": "http://vp-python-api:8080/openapi.json"
                 }
             ]
         },

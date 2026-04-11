@@ -46,8 +46,8 @@ public class ClinicalCaseDbContext : DbContext
                 .HasColumnName("type")
                 .HasMaxLength(50);
 
-            entity.Property(x => x.Description)
-                .HasColumnName("description")
+            entity.Property(x => x.Descriptions)
+                .HasColumnName("descriptions")
                 .HasColumnType("TEXT");
 
             entity.Property(x => x.Symptom)
@@ -107,8 +107,8 @@ public class ClinicalCaseDbContext : DbContext
                 .HasColumnName("behaviors")
                 .HasColumnType("TEXT");
 
-            entity.Property(x => x.Description)
-                .HasColumnName("description")
+            entity.Property(x => x.Descriptions)
+                .HasColumnName("descriptions")
                 .HasColumnType("TEXT");
 
             entity.Property(x => x.CreatedAt)

@@ -1,2009 +1,7589 @@
-﻿-- INSERT PATIENTS
+﻿-- Tắt kiểm tra khóa ngoại để tránh lỗi thứ tự chèn dữ liệu
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- 1. INSERT DỮ LIỆU BÀI KIỂM TRA (assessments)
+-- Đã thêm generation_prompt và bọc clinical_case_id trong dấu nháy đơn
+INSERT INTO assessments (
+    assessment_id, creator_id, clinical_case_id, course_id, module_id, 
+    specialty, topic, subtopic, difficulty_level, 
+    title, descriptions, goal, 
+    num_questions, time_limit_minutes, passing_score_percentage, max_attempts,
+    generation_prompt, -- Cột quan trọng để AI hoạt động
+    allowed_question_types, is_active
+) VALUES (
+    'AS2551236', 'DOC_9999', '27553284', 'MED301', 'MOD_DIGESTIVE',
+    'Gastroenterology', 'Peptic Ulcer Disease', 'Diagnosis & Management', 'Intermediate',
+    'Clinical Quiz: Management of Peptic Ulcer Disease', 
+    'A 15-minute clinical quiz based on the case of Charles Gonzalez.', 
+    'Evaluate the ability to recognize alarm symptoms and diagnostic strategies.',
+    3, 15, 80.00, 3,
+    'Hãy sinh các câu hỏi trắc nghiệm tập trung vào các tiêu chuẩn chẩn đoán H. pylori và các dấu hiệu cảnh báo cần nội soi dạ dày.', -- Giá trị mẫu
+    '["MultipleChoice", "MultipleResponse", "TrueFalse"]', TRUE
+);
+
+-- 2. INSERT CÂU HỎI (assessment_questions)
+INSERT INTO assessment_questions (
+    question_id, assessment_id, question_type, cognitive_level, 
+    content, options, explanation, points
+) VALUES (
+    'Q_GAS_001', 'AS2551236', 'MultipleChoice', 'Apply',
+    'A 45-year-old male presents with burning epigastric pain. Which initial test is most appropriate?',
+    '[{"id": "A", "text": "Endoscopy", "isCorrect": false}, {"id": "B", "text": "Urea breath test (UBT)", "isCorrect": true}]',
+    'UBT is a highly sensitive non-invasive test.',
+    1.00
+);
+
+INSERT INTO assessment_questions (
+    question_id, assessment_id, question_type, cognitive_level, 
+    content, options, explanation, points
+) VALUES (
+    'Q_GAS_003', 'AS2551236', 'TrueFalse', 'Remember',
+    'Patients should discontinue PPIs for 2 weeks before a UBT.',
+    '[{"id": "True", "text": "True", "isCorrect": true}, {"id": "False", "text": "False", "isCorrect": false}]',
+    'PPIs can cause false-negatives.',
+    1.00
+);
+
+-- 3. INSERT LƯỢT LÀM BÀI (assessment_attempts)
+INSERT INTO assessment_attempts (
+    attempt_id, assessment_id, user_id, 
+    start_time, end_time, score, is_passed, status
+) VALUES (
+    'ATT_001', 'AS2551236', 'STUDENT_123', 
+    '2026-04-04 08:00:00', '2026-04-04 08:12:35', 3.00, TRUE, 'Completed'
+);
+
+-- 4. INSERT CÂU TRẢ LỜI CHI TIẾT (attempt_answers)
+INSERT INTO attempt_answers (
+    answer_id, attempt_id, question_id, user_choice, is_correct, points_earned, is_flagged
+) VALUES (
+    'ANS_001', 'ATT_001', 'Q_GAS_001', '["B"]', TRUE, 1.00, FALSE
+);
+
+INSERT INTO attempt_answers (
+    answer_id, attempt_id, question_id, user_choice, is_correct, points_earned, is_flagged
+) VALUES (
+    'ANS_003', 'ATT_001', 'Q_GAS_003', '["True"]', TRUE, 1.00, FALSE
+);
+
+-- 5. INSERT BÁO CÁO LỖI (assessment_issues)
+INSERT INTO assessment_issues (
+    issue_id, question_id, reporter_id, label, descriptions, status
+) VALUES (
+    'ISS_001', 'Q_GAS_001', 'STUDENT_123', 'Typo / Spelling', 
+    'There is a spelling error in the explanation.',
+    'Open'
+);
+
+-- Bật lại kiểm tra khóa ngoại
+SET FOREIGN_KEY_CHECKS = 1;
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10013502', 'CASE_10013502', 'Joseph Thomas', 50, 'Male', 'he/him', 
+    'Caucasian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 50-year-old Man. Relevant behavioral factors include: high anxiety, low-fiber diet, delays seeking surgical consultation, regular medical checkups, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "126/73", "hr": 76, "spo2": 100, "rr": 19, "temp": "97.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10016673', 'CASE_10016673', 'Lisa Smith', 72, 'Female', 'she/her', 
+    'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 72-year-old Woman. Relevant behavioral factors include: depressive mood, former smoker, self-medication, non-compliant with dietary restriction, low socioeconomic status.',
+    'Intermittent abdominal pain',
+    '{"bp": "140/83", "hr": 65, "spo2": 96, "rr": 22, "temp": "98.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10022584', 'CASE_10022584', 'Charles Martin', 91, 'Male', 'he/him', 
+    'Caucasian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 91-year-old Man. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, self-medication, chronic alcohol consumption, high pain tolerance.',
+    'Chronic abdominal pain',
+    '{"bp": "143/92", "hr": 82, "spo2": 97, "rr": 18, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10025862', 'CASE_10025862', 'Jessica Smith', 61, 'Female', 'she/her', 
+    'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 61-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, poor medication adherence, heavy smoker, low pain tolerance.',
+    'Nausea and abdominal pain',
+    '{"bp": "112/81", "hr": 74, "spo2": 96, "rr": 18, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10031940', 'CASE_10031940', 'Mary Taylor', 58, 'Female', 'she/her', 
+    'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 58-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high-fat diet, self-medication, health anxiety, limited family support.',
+    'Severe abdominal pain',
+    '{"bp": "114/90", "hr": 68, "spo2": 98, "rr": 16, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10034272', 'CASE_10034272', 'Michael Miller', 69, 'Male', 'he/him', 
+    'Hispanic', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 69-year-old Man. Relevant behavioral factors include: high work-related stress, non-compliant with dietary restriction, high pain tolerance, delayed hospital presentation, social smoker.',
+    'Chronic abdominal pain',
+    '{"bp": "123/94", "hr": 65, "spo2": 98, "rr": 18, "temp": "99.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10040056', 'CASE_10040056', 'William Brown', 31, 'Male', 'he/him', 
+    'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 31-year-old Man. Relevant behavioral factors include: high work-related stress, depressive mood, good medication adherence, ignores early abdominal pain, low-fiber diet.',
+    'Intermittent abdominal pain',
+    '{"bp": "112/93", "hr": 76, "spo2": 100, "rr": 16, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10040626', 'CASE_10040626', 'Susan Thomas', 29, 'Female', 'she/her', 
+    'Caucasian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 29-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, high-fat diet, ignores early abdominal pain, health anxiety.',
+    'Intermittent abdominal pain',
+    '{"bp": "125/75", "hr": 92, "spo2": 98, "rr": 22, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10042037', 'CASE_10042037', 'Thomas Lopez', 55, 'Male', 'he/him', 
+    'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 55-year-old Man. Relevant behavioral factors include: physically demanding job, stress-related symptoms, delays seeking surgical consultation, physically active, regular medical checkups.',
+    'Chronic abdominal pain',
+    '{"bp": "112/94", "hr": 97, "spo2": 98, "rr": 18, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10046241', 'CASE_10046241', 'Michael Hernandez', 53, 'Male', 'he/him', 
+    'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 53-year-old Man. Relevant behavioral factors include: depressive mood, good medication adherence, limited access to healthcare, irregular meal patterns, non-compliant with dietary restriction.',
+    'Intermittent abdominal pain',
+    '{"bp": "133/93", "hr": 80, "spo2": 97, "rr": 19, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10052530', 'CASE_10052530', 'Daniel Thomas', 22, 'Male', 'he/him', 
+    'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 22-year-old Man. Relevant behavioral factors include: high anxiety, ignores early abdominal pain, irregular meal patterns, delayed hospital presentation, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "137/84", "hr": 89, "spo2": 97, "rr": 19, "temp": "97.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10056223', 'CASE_10056223', 'William Miller', 48, 'Male', 'he/him', 
+    'Unknown', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 48-year-old Man. Relevant behavioral factors include: high anxiety, good medication adherence, sedentary lifestyle, delays seeking surgical consultation, low socioeconomic status.',
+    'Chronic abdominal pain',
+    '{"bp": "114/84", "hr": 86, "spo2": 100, "rr": 20, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10058856', 'CASE_10058856', 'Emily Rodriguez', 73, 'Female', 'she/her', 
+    'African American', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 73-year-old Woman. Relevant behavioral factors include: high work-related stress, high-fat diet, delays seeking surgical consultation, low pain tolerance, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "120/93", "hr": 62, "spo2": 100, "rr": 16, "temp": "99.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10069551', 'CASE_10069551', 'Jessica Gonzalez', 33, 'Female', 'she/her', 
+    'Unknown', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 33-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, former smoker, health anxiety, frequent emergency department visits.',
+    'Nausea and abdominal pain',
+    '{"bp": "144/84", "hr": 78, "spo2": 98, "rr": 21, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10070247', 'CASE_10070247', 'Richard Anderson', 43, 'Male', 'he/him', 
+    'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 43-year-old Man. Relevant behavioral factors include: uses painkillers excessively, limited access to healthcare, irregular meal patterns, frequent emergency department visits, low pain tolerance.',
+    'Severe abdominal pain',
+    '{"bp": "114/91", "hr": 79, "spo2": 97, "rr": 21, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10071659', 'CASE_10071659', 'Matthew Jones', 34, 'Male', 'he/him', 
+    'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 34-year-old Man. Relevant behavioral factors include: avoids medical care, high anxiety, former smoker, ignores early abdominal pain, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "145/89", "hr": 74, "spo2": 100, "rr": 19, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10073256', 'CASE_10073256', 'Anthony Garcia', 68, 'Male', 'he/him', 
+    'Unknown', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 68-year-old Man. Relevant behavioral factors include: ignores early abdominal pain, chronic alcohol consumption, high pain tolerance, delayed hospital presentation, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "129/88", "hr": 85, "spo2": 96, "rr": 20, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10074010', 'CASE_10074010', 'Richard Davis', 65, 'Male', 'he/him', 
+    'African American', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 65-year-old Man. Relevant behavioral factors include: continues eating despite nausea, low socioeconomic status, poor medication adherence, binge drinking, low pain tolerance.',
+    'Nausea and abdominal pain',
+    '{"bp": "132/73", "hr": 80, "spo2": 97, "rr": 19, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10074282', 'CASE_10074282', 'Susan Williams', 82, 'Female', 'she/her', 
+    'Caucasian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 82-year-old Woman. Relevant behavioral factors include: lives alone, good medication adherence, chronic alcohol consumption, delays seeking surgical consultation, poor insight into illness.',
+    'Chronic abdominal pain',
+    '{"bp": "141/87", "hr": 87, "spo2": 99, "rr": 19, "temp": "99.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10076263', 'CASE_10076263', 'Margaret Taylor', 42, 'Female', 'she/her', 
+    'Caucasian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 42-year-old Woman. Relevant behavioral factors include: poor insight into illness, ignores early abdominal pain, self-medication, physically active, low socioeconomic status.',
+    'Intermittent abdominal pain',
+    '{"bp": "143/80", "hr": 99, "spo2": 99, "rr": 20, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10079467', 'CASE_10079467', 'Emily Jackson', 33, 'Female', 'she/her', 
+    'Asian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 33-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, frequent emergency department visits, heavy smoker, low pain tolerance.',
+    'Nausea and abdominal pain',
+    '{"bp": "116/79", "hr": 66, "spo2": 99, "rr": 17, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10080679', 'CASE_10080679', 'Richard Jackson', 28, 'Male', 'he/him', 
+    'Unknown', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 28-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, continues eating despite nausea, high anxiety, chronic alcohol consumption.',
+    'Nausea and abdominal pain',
+    '{"bp": "120/92", "hr": 84, "spo2": 98, "rr": 22, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10085111', 'CASE_10085111', 'Donald Rodriguez', 18, 'Male', 'he/him', 
+    'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 18-year-old Man. Relevant behavioral factors include: high work-related stress, high anxiety, irregular meal patterns, delays seeking surgical consultation, regular medical checkups.',
+    'Chronic abdominal pain',
+    '{"bp": "133/94", "hr": 92, "spo2": 97, "rr": 21, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10097289', 'CASE_10097289', 'William Moore', 38, 'Male', 'he/him', 
+    'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 38-year-old Man. Relevant behavioral factors include: limited access to healthcare, non-compliant with dietary restriction, frequent emergency department visits, heavy smoker, low pain tolerance.',
+    'Intermittent abdominal pain',
+    '{"bp": "145/78", "hr": 60, "spo2": 98, "rr": 21, "temp": "97.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10099750', 'CASE_10099750', 'Richard Lopez', 29, 'Male', 'he/him', 
+    'Asian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 29-year-old Man. Relevant behavioral factors include: continues eating despite nausea, high anxiety, binge drinking, low socioeconomic status, delayed hospital presentation.',
+    'Nausea and abdominal pain',
+    '{"bp": "140/80", "hr": 95, "spo2": 97, "rr": 20, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10101174', 'CASE_10101174', 'Ashley Wilson', 60, 'Female', 'she/her', 
+    'Hispanic', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 60-year-old Woman. Relevant behavioral factors include: self-medication, health anxiety, chronic alcohol consumption, delays seeking surgical consultation, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "137/72", "hr": 86, "spo2": 98, "rr": 16, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10104732', 'CASE_10104732', 'Robert Martin', 49, 'Male', 'he/him', 
+    'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 49-year-old Man. Relevant behavioral factors include: uses painkillers excessively, lives alone, good medication adherence, stress-related symptoms, chronic alcohol consumption.',
+    'Chronic abdominal pain',
+    '{"bp": "130/71", "hr": 74, "spo2": 97, "rr": 21, "temp": "99.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10108132', 'CASE_10108132', 'Mark Lopez', 28, 'Male', 'he/him', 
+    'Caucasian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 28-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, frequent emergency department visits, binge drinking, low pain tolerance.',
+    'Nausea and abdominal pain',
+    '{"bp": "130/81", "hr": 89, "spo2": 99, "rr": 19, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10119863', 'CASE_10119863', 'John Martin', 67, 'Male', 'he/him', 
+    'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 67-year-old Man. Relevant behavioral factors include: uses painkillers excessively, lives alone, high anxiety, good medication adherence, physically active.',
+    'Severe abdominal pain',
+    '{"bp": "119/90", "hr": 80, "spo2": 97, "rr": 21, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10120826', 'CASE_10120826', 'Charles Garcia', 80, 'Male', 'he/him', 
+    'African American', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 80-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, uses painkillers excessively, high anxiety, heavy smoker.',
+    'Severe abdominal pain',
+    '{"bp": "124/74", "hr": 85, "spo2": 96, "rr": 16, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10124189', 'CASE_10124189', 'Daniel Anderson', 18, 'Male', 'he/him', 
+    'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 18-year-old Man. Relevant behavioral factors include: depressive mood, sedentary lifestyle, delays seeking surgical consultation, low socioeconomic status, regular medical checkups.',
+    'Chronic abdominal pain',
+    '{"bp": "125/92", "hr": 75, "spo2": 100, "rr": 17, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10132759', 'CASE_10132759', 'Matthew Hernandez', 64, 'Male', 'he/him', 
+    'Asian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 64-year-old Man. Relevant behavioral factors include: continues eating despite nausea, poor insight into illness, good medication adherence, irregular meal patterns, low socioeconomic status.',
+    'Nausea and abdominal pain',
+    '{"bp": "126/71", "hr": 94, "spo2": 96, "rr": 19, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10139369', 'CASE_10139369', 'Richard Lopez', 22, 'Male', 'he/him', 
+    'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 22-year-old Man. Relevant behavioral factors include: avoids medical care, stress-related symptoms, limited access to healthcare, delays seeking surgical consultation, chronic alcohol consumption.',
+    'Chronic abdominal pain',
+    '{"bp": "134/75", "hr": 94, "spo2": 100, "rr": 17, "temp": "97.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10144406', 'CASE_10144406', 'David Hernandez', 65, 'Male', 'he/him', 
+    'Caucasian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 65-year-old Man. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, good medication adherence, heavy smoker, low pain tolerance.',
+    'Severe abdominal pain',
+    '{"bp": "146/73", "hr": 83, "spo2": 98, "rr": 22, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10149959', 'CASE_10149959', 'Susan Rodriguez', 73, 'Female', 'she/her', 
+    'Asian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 73-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, sedentary lifestyle, limited access to healthcare, frequent emergency department visits, low pain tolerance.',
+    'Nausea and abdominal pain',
+    '{"bp": "110/94", "hr": 75, "spo2": 98, "rr": 16, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10154376', 'CASE_10154376', 'Donna Davis', 19, 'Female', 'she/her', 
+    'Unknown', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 19-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, poor medication adherence, high pain tolerance, physically active, limited family support.',
+    'Severe abdominal pain',
+    '{"bp": "146/75", "hr": 81, "spo2": 97, "rr": 17, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10156068', 'CASE_10156068', 'William Martinez', 21, 'Male', 'he/him', 
+    'African American', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 21-year-old Man. Relevant behavioral factors include: avoids medical care, sedentary lifestyle, limited access to healthcare, delays seeking surgical consultation, poor insight into illness.',
+    'Chronic abdominal pain',
+    '{"bp": "137/70", "hr": 66, "spo2": 100, "rr": 22, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10158488', 'CASE_10158488', 'Nancy Johnson', 81, 'Female', 'she/her', 
+    'African American', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 81-year-old Woman. Relevant behavioral factors include: high work-related stress, irregular meal patterns, delays seeking surgical consultation, poor insight into illness, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "135/91", "hr": 85, "spo2": 99, "rr": 22, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10159832', 'CASE_10159832', 'Sarah Jones', 49, 'Female', 'she/her', 
+    'Asian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 49-year-old Woman. Relevant behavioral factors include: high work-related stress, stress-related symptoms, self-medication, delays seeking surgical consultation, physically active.',
+    'Chronic abdominal pain',
+    '{"bp": "111/70", "hr": 63, "spo2": 100, "rr": 17, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10165155', 'CASE_10165155', 'Anthony Rodriguez', 22, 'Male', 'he/him', 
+    'African American', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 22-year-old Man. Relevant behavioral factors include: low pain tolerance, ignores early abdominal pain, physically active, low socioeconomic status, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "140/70", "hr": 95, "spo2": 95, "rr": 22, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10174466', 'CASE_10174466', 'Robert Brown', 60, 'Male', 'he/him', 
+    'Caucasian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 60-year-old Man. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, high-fat diet, self-medication, high pain tolerance.',
+    'Severe abdominal pain',
+    '{"bp": "118/87", "hr": 99, "spo2": 96, "rr": 22, "temp": "98.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10176741', 'CASE_10176741', 'Anthony Brown', 71, 'Male', 'he/him', 
+    'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 71-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, ignores early abdominal pain, high pain tolerance, binge drinking.',
+    'Intermittent abdominal pain',
+    '{"bp": "127/85", "hr": 76, "spo2": 95, "rr": 17, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10182104', 'CASE_10182104', 'Matthew Jones', 72, 'Male', 'he/him', 
+    'Hispanic', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 72-year-old Man. Relevant behavioral factors include: high anxiety, irregular meal patterns, delays seeking surgical consultation, poor medication adherence, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "121/72", "hr": 89, "spo2": 98, "rr": 19, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10185476', 'CASE_10185476', 'Michael Smith', 40, 'Male', 'he/him', 
+    'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 40-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, high anxiety, self-medication, heavy smoker.',
+    'Nausea and abdominal pain',
+    '{"bp": "113/85", "hr": 80, "spo2": 98, "rr": 20, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10186201', 'CASE_10186201', 'Nancy Jackson', 91, 'Female', 'she/her', 
+    'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 91-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, stress-related symptoms, chronic alcohol consumption, frequent emergency department visits.',
+    'Nausea and abdominal pain',
+    '{"bp": "119/75", "hr": 66, "spo2": 96, "rr": 22, "temp": "99.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10189947', 'CASE_10189947', 'Ashley Martin', 32, 'Female', 'she/her', 
+    'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 32-year-old Woman. Relevant behavioral factors include: good medication adherence, stress-related symptoms, ignores early abdominal pain, limited access to healthcare, low-fiber diet.',
+    'Intermittent abdominal pain',
+    '{"bp": "130/70", "hr": 98, "spo2": 100, "rr": 21, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10205542', 'CASE_10205542', 'Sandra Jackson', 50, 'Female', 'she/her', 
+    'African American', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 50-year-old Woman. Relevant behavioral factors include: former smoker, limited access to healthcare, delays seeking surgical consultation, low pain tolerance, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "123/74", "hr": 93, "spo2": 98, "rr": 22, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10207476', 'CASE_10207476', 'Nancy Taylor', 63, 'Female', 'she/her', 
+    'Asian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 63-year-old Woman. Relevant behavioral factors include: avoids medical care, low pain tolerance, ignores early abdominal pain, low-fiber diet, low socioeconomic status.',
+    'Intermittent abdominal pain',
+    '{"bp": "146/72", "hr": 71, "spo2": 97, "rr": 17, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10208867', 'CASE_10208867', 'Kimberly Wilson', 32, 'Female', 'she/her', 
+    'African American', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 32-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, stress-related symptoms, low socioeconomic status, delayed hospital presentation, social smoker.',
+    'Chronic abdominal pain',
+    '{"bp": "129/94", "hr": 86, "spo2": 99, "rr": 22, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10217918', 'CASE_10217918', 'William Smith', 20, 'Male', 'he/him', 
+    'Hispanic', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 20-year-old Man. Relevant behavioral factors include: avoids medical care, physically demanding job, high anxiety, delays seeking surgical consultation, heavy smoker.',
+    'Chronic abdominal pain',
+    '{"bp": "137/86", "hr": 93, "spo2": 96, "rr": 17, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10229195', 'CASE_10229195', 'Daniel Martin', 36, 'Male', 'he/him', 
+    'Unknown', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 36-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, night shift worker, high anxiety, frequent emergency department visits.',
+    'Nausea and abdominal pain',
+    '{"bp": "112/72", "hr": 60, "spo2": 96, "rr": 17, "temp": "97.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10234917', 'CASE_10234917', 'Jessica Moore', 77, 'Female', 'she/her', 
+    'Asian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 77-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, night shift worker, depressive mood, good medication adherence, limited access to healthcare.',
+    'Severe abdominal pain',
+    '{"bp": "132/76", "hr": 85, "spo2": 97, "rr": 16, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10235987', 'CASE_10235987', 'Margaret Thomas', 46, 'Female', 'she/her', 
+    'African American', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 46-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, high anxiety, former smoker, regular medical checkups.',
+    'Nausea and abdominal pain',
+    '{"bp": "138/80", "hr": 80, "spo2": 96, "rr": 17, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10239566', 'CASE_10239566', 'Emily Martin', 62, 'Female', 'she/her', 
+    'Caucasian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 62-year-old Woman. Relevant behavioral factors include: stress-related symptoms, self-medication, delays seeking surgical consultation, low-fiber diet, low socioeconomic status.',
+    'Chronic abdominal pain',
+    '{"bp": "146/80", "hr": 66, "spo2": 100, "rr": 21, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10251549', 'CASE_10251549', 'Joseph Anderson', 91, 'Male', 'he/him', 
+    'Unknown', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 91-year-old Man. Relevant behavioral factors include: physically demanding job, high pain tolerance, non-compliant with dietary restriction, poor medication adherence, low-fiber diet.',
+    'Intermittent abdominal pain',
+    '{"bp": "133/73", "hr": 73, "spo2": 95, "rr": 17, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10253027', 'CASE_10253027', 'Daniel Gonzalez', 27, 'Male', 'he/him', 
+    'Hispanic', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 27-year-old Man. Relevant behavioral factors include: physically demanding job, night shift worker, high anxiety, good medication adherence, delays seeking surgical consultation.',
+    'Chronic abdominal pain',
+    '{"bp": "119/94", "hr": 99, "spo2": 100, "rr": 19, "temp": "98.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10260237', 'CASE_10260237', 'Emily Brown', 32, 'Female', 'she/her', 
+    'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 32-year-old Woman. Relevant behavioral factors include: physically demanding job, night shift worker, stress-related symptoms, self-medication, delays seeking surgical consultation.',
+    'Chronic abdominal pain',
+    '{"bp": "126/75", "hr": 74, "spo2": 99, "rr": 18, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10266394', 'CASE_10266394', 'John Anderson', 20, 'Male', 'he/him', 
+    'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 20-year-old Man. Relevant behavioral factors include: limited access to healthcare, health anxiety, delays seeking surgical consultation, frequent emergency department visits, social smoker.',
+    'Chronic abdominal pain',
+    '{"bp": "117/93", "hr": 65, "spo2": 98, "rr": 18, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10267238', 'CASE_10267238', 'Richard Miller', 33, 'Male', 'he/him', 
+    'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 33-year-old Man. Relevant behavioral factors include: good medication adherence, limited access to healthcare, delays seeking surgical consultation, physically active, poor insight into illness.',
+    'Chronic abdominal pain',
+    '{"bp": "117/89", "hr": 81, "spo2": 97, "rr": 17, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10276303', 'CASE_10276303', 'Kimberly Miller', 37, 'Female', 'she/her', 
+    'African American', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 37-year-old Woman. Relevant behavioral factors include: physically demanding job, high-fat diet, depressive mood, self-medication, non-compliant with dietary restriction.',
+    'Intermittent abdominal pain',
+    '{"bp": "141/83", "hr": 83, "spo2": 100, "rr": 21, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10279161', 'CASE_10279161', 'Anthony Moore', 48, 'Male', 'he/him', 
+    'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 48-year-old Man. Relevant behavioral factors include: physically demanding job, good medication adherence, non-compliant with dietary restriction, high pain tolerance, heavy smoker.',
+    'Intermittent abdominal pain',
+    '{"bp": "139/77", "hr": 69, "spo2": 99, "rr": 17, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10286771', 'CASE_10286771', 'Charles Thomas', 57, 'Male', 'he/him', 
+    'Unknown', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 57-year-old Man. Relevant behavioral factors include: continues eating despite nausea, poor medication adherence, health anxiety, low-fiber diet, limited family support.',
+    'Nausea and abdominal pain',
+    '{"bp": "121/78", "hr": 69, "spo2": 97, "rr": 22, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10287966', 'CASE_10287966', 'Lisa Wilson', 50, 'Female', 'she/her', 
+    'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 50-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, depressive mood, chronic alcohol consumption, low socioeconomic status, regular medical checkups.',
+    'Chronic abdominal pain',
+    '{"bp": "116/75", "hr": 63, "spo2": 98, "rr": 22, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10288579', 'CASE_10288579', 'Richard Martin', 22, 'Male', 'he/him', 
+    'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 22-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high anxiety, good medication adherence, chronic alcohol consumption, low socioeconomic status.',
+    'Chronic abdominal pain',
+    '{"bp": "146/75", "hr": 79, "spo2": 99, "rr": 16, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10288778', 'CASE_10288778', 'Jessica Hernandez', 65, 'Female', 'she/her', 
+    'Asian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 65-year-old Woman. Relevant behavioral factors include: avoids medical care, physically demanding job, non-compliant with dietary restriction, binge drinking, poor insight into illness.',
+    'Intermittent abdominal pain',
+    '{"bp": "150/86", "hr": 62, "spo2": 96, "rr": 20, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10297466', 'CASE_10297466', 'Donald Brown', 66, 'Male', 'he/him', 
+    'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 66-year-old Man. Relevant behavioral factors include: avoids medical care, physically demanding job, delays seeking surgical consultation, low-fiber diet, poor insight into illness.',
+    'Chronic abdominal pain',
+    '{"bp": "110/92", "hr": 75, "spo2": 95, "rr": 21, "temp": "99.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10298888', 'CASE_10298888', 'Lisa Lopez', 28, 'Female', 'she/her', 
+    'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 28-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, ignores early abdominal pain, low-fiber diet, low pain tolerance.',
+    'Intermittent abdominal pain',
+    '{"bp": "144/89", "hr": 60, "spo2": 97, "rr": 21, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10299002', 'CASE_10299002', 'Robert Hernandez', 69, 'Male', 'he/him', 
+    'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 69-year-old Man. Relevant behavioral factors include: high work-related stress, night shift worker, depressive mood, delays seeking surgical consultation, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "123/95", "hr": 60, "spo2": 98, "rr": 18, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10299815', 'CASE_10299815', 'Susan Williams', 59, 'Female', 'she/her', 
+    'Unknown', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 59-year-old Woman. Relevant behavioral factors include: high work-related stress, former smoker, non-compliant with dietary restriction, high pain tolerance, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "148/83", "hr": 62, "spo2": 95, "rr": 16, "temp": "99.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10304284', 'CASE_10304284', 'Jessica Rodriguez', 37, 'Female', 'she/her', 
+    'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 37-year-old Woman. Relevant behavioral factors include: lives alone, high anxiety, ignores early abdominal pain, low-fiber diet, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "136/80", "hr": 74, "spo2": 96, "rr": 21, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10305345', 'CASE_10305345', 'Mary Williams', 29, 'Female', 'she/her', 
+    'Unknown', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 29-year-old Woman. Relevant behavioral factors include: high anxiety, good medication adherence, non-compliant with dietary restriction, binge drinking, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "131/74", "hr": 93, "spo2": 99, "rr": 19, "temp": "99.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10305478', 'CASE_10305478', 'Christopher Moore', 54, 'Male', 'he/him', 
+    'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 54-year-old Man. Relevant behavioral factors include: physically demanding job, irregular meal patterns, delays seeking surgical consultation, high pain tolerance, frequent emergency department visits.',
+    'Chronic abdominal pain',
+    '{"bp": "128/80", "hr": 76, "spo2": 97, "rr": 16, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10306702', 'CASE_10306702', 'Mark Gonzalez', 86, 'Male', 'he/him', 
+    'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 86-year-old Man. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, physically demanding job, high anxiety, physically active.',
+    'Nausea and abdominal pain',
+    '{"bp": "119/71", "hr": 89, "spo2": 100, "rr": 20, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10313992', 'CASE_10313992', 'Lisa Rodriguez', 43, 'Female', 'she/her', 
+    'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 43-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, uses painkillers excessively, high anxiety, binge drinking.',
+    'Severe abdominal pain',
+    '{"bp": "120/77", "hr": 64, "spo2": 96, "rr": 18, "temp": "99.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10314106', 'CASE_10314106', 'Michael Davis', 54, 'Male', 'he/him', 
+    'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 54-year-old Man. Relevant behavioral factors include: physically demanding job, night shift worker, good medication adherence, delays seeking surgical consultation, low pain tolerance.',
+    'Chronic abdominal pain',
+    '{"bp": "137/83", "hr": 97, "spo2": 97, "rr": 19, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10314359', 'CASE_10314359', 'Michael Rodriguez', 27, 'Male', 'he/him', 
+    'Unknown', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 27-year-old Man. Relevant behavioral factors include: uses painkillers excessively, good medication adherence, limited access to healthcare, irregular meal patterns, high pain tolerance.',
+    'Severe abdominal pain',
+    '{"bp": "137/70", "hr": 98, "spo2": 99, "rr": 17, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10317029', 'CASE_10317029', 'Thomas Martinez', 26, 'Male', 'he/him', 
+    'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 26-year-old Man. Relevant behavioral factors include: uses painkillers excessively, night shift worker, high anxiety, frequent emergency department visits, low socioeconomic status.',
+    'Severe abdominal pain',
+    '{"bp": "137/71", "hr": 76, "spo2": 96, "rr": 20, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10317338', 'CASE_10317338', 'Ashley Garcia', 25, 'Female', 'she/her', 
+    'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 25-year-old Woman. Relevant behavioral factors include: ignores early abdominal pain, irregular meal patterns, high pain tolerance, regular medical checkups, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "111/82", "hr": 62, "spo2": 96, "rr": 22, "temp": "98.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10317946', 'CASE_10317946', 'Kimberly Jackson', 31, 'Female', 'she/her', 
+    'African American', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 31-year-old Woman. Relevant behavioral factors include: stress-related symptoms, ignores early abdominal pain, irregular meal patterns, low socioeconomic status, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "147/87", "hr": 94, "spo2": 98, "rr": 17, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10324282', 'CASE_10324282', 'Matthew Hernandez', 31, 'Male', 'he/him', 
+    'Asian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 31-year-old Man. Relevant behavioral factors include: physically demanding job, high anxiety, ignores early abdominal pain, poor medication adherence, binge drinking.',
+    'Intermittent abdominal pain',
+    '{"bp": "145/70", "hr": 74, "spo2": 98, "rr": 20, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10327710', 'CASE_10327710', 'Lisa Moore', 20, 'Female', 'she/her', 
+    'Asian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 20-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, high anxiety, limited access to healthcare, frequent emergency department visits, social smoker.',
+    'Nausea and abdominal pain',
+    '{"bp": "126/93", "hr": 82, "spo2": 99, "rr": 19, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10335293', 'CASE_10335293', 'Donna Lopez', 80, 'Female', 'she/her', 
+    'African American', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 80-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, limited access to healthcare, health anxiety, delayed hospital presentation, social smoker.',
+    'Chronic abdominal pain',
+    '{"bp": "115/79", "hr": 92, "spo2": 98, "rr": 22, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10347234', 'CASE_10347234', 'Ashley Moore', 91, 'Female', 'she/her', 
+    'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 91-year-old Woman. Relevant behavioral factors include: physically demanding job, good medication adherence, irregular meal patterns, delays seeking surgical consultation, low pain tolerance.',
+    'Chronic abdominal pain',
+    '{"bp": "134/73", "hr": 99, "spo2": 99, "rr": 18, "temp": "99.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10347411', 'CASE_10347411', 'Michael Johnson', 25, 'Male', 'he/him', 
+    'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 25-year-old Man. Relevant behavioral factors include: social smoker, ignores early abdominal pain, frequent emergency department visits, poor insight into illness, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "138/83", "hr": 79, "spo2": 99, "rr": 17, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10350771', 'CASE_10350771', 'Mary Anderson', 64, 'Female', 'she/her', 
+    'African American', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 64-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high anxiety, limited access to healthcare, low-fiber diet, frequent emergency department visits.',
+    'Severe abdominal pain',
+    '{"bp": "150/71", "hr": 66, "spo2": 96, "rr": 19, "temp": "98.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10354450', 'CASE_10354450', 'Mark Jackson', 30, 'Male', 'he/him', 
+    'Asian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 30-year-old Man. Relevant behavioral factors include: physically demanding job, stress-related symptoms, sedentary lifestyle, non-compliant with dietary restriction, poor medication adherence.',
+    'Intermittent abdominal pain',
+    '{"bp": "122/82", "hr": 83, "spo2": 98, "rr": 17, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10360554', 'CASE_10360554', 'Mary Wilson', 39, 'Female', 'she/her', 
+    'Asian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 39-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, chronic alcohol consumption, low pain tolerance, regular medical checkups, limited family support.',
+    'Nausea and abdominal pain',
+    '{"bp": "125/78", "hr": 100, "spo2": 98, "rr": 16, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10360824', 'CASE_10360824', 'Linda Hernandez', 20, 'Female', 'she/her', 
+    'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 20-year-old Woman. Relevant behavioral factors include: lives alone, depressive mood, ignores early abdominal pain, binge drinking, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "114/75", "hr": 97, "spo2": 96, "rr": 16, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10373195', 'CASE_10373195', 'Donna Wilson', 26, 'Female', 'she/her', 
+    'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 26-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, night shift worker, low pain tolerance, good medication adherence, low socioeconomic status.',
+    'Severe abdominal pain',
+    '{"bp": "126/81", "hr": 94, "spo2": 100, "rr": 18, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10374847', 'CASE_10374847', 'Matthew Moore', 79, 'Male', 'he/him', 
+    'African American', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 79-year-old Man. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, poor medication adherence, low pain tolerance, social smoker.',
+    'Nausea and abdominal pain',
+    '{"bp": "127/90", "hr": 84, "spo2": 95, "rr": 22, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10379372', 'CASE_10379372', 'William Smith', 22, 'Male', 'he/him', 
+    'Caucasian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 22-year-old Man. Relevant behavioral factors include: avoids medical care, high anxiety, lives alone, ignores early abdominal pain, binge drinking.',
+    'Intermittent abdominal pain',
+    '{"bp": "111/70", "hr": 99, "spo2": 99, "rr": 21, "temp": "99.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10381914', 'CASE_10381914', 'Michael Williams', 45, 'Male', 'he/him', 
+    'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 45-year-old Man. Relevant behavioral factors include: high pain tolerance, limited access to healthcare, delays seeking surgical consultation, chronic alcohol consumption, frequent emergency department visits.',
+    'Chronic abdominal pain',
+    '{"bp": "143/80", "hr": 96, "spo2": 96, "rr": 19, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10383228', 'CASE_10383228', 'Jessica Jones', 21, 'Female', 'she/her', 
+    'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 21-year-old Woman. Relevant behavioral factors include: physically demanding job, high-fat diet, good medication adherence, ignores early abdominal pain, high pain tolerance.',
+    'Intermittent abdominal pain',
+    '{"bp": "130/83", "hr": 79, "spo2": 100, "rr": 16, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10384457', 'CASE_10384457', 'Emily Smith', 18, 'Female', 'she/her', 
+    'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 18-year-old Woman. Relevant behavioral factors include: night shift worker, limited access to healthcare, delays seeking surgical consultation, frequent emergency department visits, low pain tolerance.',
+    'Chronic abdominal pain',
+    '{"bp": "124/73", "hr": 79, "spo2": 99, "rr": 18, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10392369', 'CASE_10392369', 'Donald Wilson', 77, 'Male', 'he/him', 
+    'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 77-year-old Man. Relevant behavioral factors include: high work-related stress, high anxiety, delays seeking surgical consultation, heavy smoker, regular medical checkups.',
+    'Chronic abdominal pain',
+    '{"bp": "116/88", "hr": 69, "spo2": 95, "rr": 18, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10395376', 'CASE_10395376', 'Charles Rodriguez', 45, 'Male', 'he/him', 
+    'Unknown', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 45-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, continues eating despite nausea, night shift worker, low pain tolerance.',
+    'Nausea and abdominal pain',
+    '{"bp": "147/70", "hr": 69, "spo2": 100, "rr": 22, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10395875', 'CASE_10395875', 'Emily Moore', 61, 'Female', 'she/her', 
+    'Unknown', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 61-year-old Woman. Relevant behavioral factors include: physically demanding job, high anxiety, former smoker, delays seeking surgical consultation, regular medical checkups.',
+    'Chronic abdominal pain',
+    '{"bp": "145/90", "hr": 97, "spo2": 96, "rr": 17, "temp": "99.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10396026', 'CASE_10396026', 'Mary Thomas', 25, 'Female', 'she/her', 
+    'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 25-year-old Woman. Relevant behavioral factors include: high work-related stress, non-compliant with dietary restriction, high pain tolerance, frequent emergency department visits, heavy smoker.',
+    'Intermittent abdominal pain',
+    '{"bp": "122/91", "hr": 67, "spo2": 96, "rr": 16, "temp": "97.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10400743', 'CASE_10400743', 'Dorothy Martinez', 76, 'Female', 'she/her', 
+    'African American', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 76-year-old Woman. Relevant behavioral factors include: high work-related stress, high anxiety, non-compliant with dietary restriction, frequent emergency department visits, heavy smoker.',
+    'Intermittent abdominal pain',
+    '{"bp": "148/78", "hr": 60, "spo2": 97, "rr": 20, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10406155', 'CASE_10406155', 'Margaret Martinez', 38, 'Female', 'she/her', 
+    'Asian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 38-year-old Woman. Relevant behavioral factors include: avoids medical care, high anxiety, high-fat diet, limited access to healthcare, delays seeking surgical consultation.',
+    'Chronic abdominal pain',
+    '{"bp": "142/91", "hr": 89, "spo2": 96, "rr": 18, "temp": "99.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10407324', 'CASE_10407324', 'Dorothy Rodriguez', 43, 'Female', 'she/her', 
+    'Asian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 43-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, high-fat diet, good medication adherence, low pain tolerance.',
+    'Nausea and abdominal pain',
+    '{"bp": "149/83", "hr": 90, "spo2": 99, "rr": 22, "temp": "99.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10411654', 'CASE_10411654', 'Margaret Martinez', 41, 'Female', 'she/her', 
+    'Asian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 41-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, irregular meal patterns, low pain tolerance, delayed hospital presentation.',
+    'Nausea and abdominal pain',
+    '{"bp": "143/78", "hr": 76, "spo2": 95, "rr": 22, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10414036', 'CASE_10414036', 'Margaret Moore', 63, 'Female', 'she/her', 
+    'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 63-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, former smoker, stress-related symptoms, regular medical checkups.',
+    'Nausea and abdominal pain',
+    '{"bp": "121/80", "hr": 83, "spo2": 96, "rr": 18, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10416197', 'CASE_10416197', 'Mark Thomas', 33, 'Male', 'he/him', 
+    'Asian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 33-year-old Man. Relevant behavioral factors include: uses painkillers excessively, night shift worker, stress-related symptoms, frequent emergency department visits, limited family support.',
+    'Severe abdominal pain',
+    '{"bp": "118/71", "hr": 90, "spo2": 99, "rr": 22, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10417473', 'CASE_10417473', 'Christopher Lopez', 23, 'Male', 'he/him', 
+    'Caucasian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 23-year-old Man. Relevant behavioral factors include: non-compliant with dietary restriction, low socioeconomic status, poor medication adherence, binge drinking, poor insight into illness.',
+    'Intermittent abdominal pain',
+    '{"bp": "112/90", "hr": 63, "spo2": 97, "rr": 18, "temp": "98.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10421990', 'CASE_10421990', 'Robert Wilson', 37, 'Male', 'he/him', 
+    'African American', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 37-year-old Man. Relevant behavioral factors include: avoids medical care, physically demanding job, former smoker, non-compliant with dietary restriction, poor insight into illness.',
+    'Intermittent abdominal pain',
+    '{"bp": "129/77", "hr": 67, "spo2": 100, "rr": 20, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10429123', 'CASE_10429123', 'Richard Brown', 34, 'Male', 'he/him', 
+    'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 34-year-old Man. Relevant behavioral factors include: uses painkillers excessively, good medication adherence, stress-related symptoms, irregular meal patterns, low socioeconomic status.',
+    'Severe abdominal pain',
+    '{"bp": "119/83", "hr": 62, "spo2": 95, "rr": 17, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10430976', 'CASE_10430976', 'Michael Anderson', 35, 'Male', 'he/him', 
+    'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 35-year-old Man. Relevant behavioral factors include: depressive mood, limited access to healthcare, non-compliant with dietary restriction, low-fiber diet, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "116/71", "hr": 99, "spo2": 96, "rr": 16, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10433146', 'CASE_10433146', 'Ashley Hernandez', 62, 'Female', 'she/her', 
+    'Asian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 62-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, frequent emergency department visits, poor insight into illness, social smoker.',
+    'Nausea and abdominal pain',
+    '{"bp": "147/74", "hr": 91, "spo2": 96, "rr": 19, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10441211', 'CASE_10441211', 'Mark Anderson', 37, 'Male', 'he/him', 
+    'Hispanic', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 37-year-old Man. Relevant behavioral factors include: continues eating despite nausea, lives alone, good medication adherence, heavy smoker, low pain tolerance.',
+    'Nausea and abdominal pain',
+    '{"bp": "120/85", "hr": 67, "spo2": 95, "rr": 16, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10441330', 'CASE_10441330', 'Ashley Davis', 36, 'Female', 'she/her', 
+    'African American', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 36-year-old Woman. Relevant behavioral factors include: ignores early abdominal pain, limited access to healthcare, binge drinking, low pain tolerance, regular medical checkups.',
+    'Intermittent abdominal pain',
+    '{"bp": "147/91", "hr": 66, "spo2": 98, "rr": 17, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10448910', 'CASE_10448910', 'Thomas Garcia', 80, 'Male', 'he/him', 
+    'African American', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 80-year-old Man. Relevant behavioral factors include: uses painkillers excessively, frequent emergency department visits, physically active, low pain tolerance, limited family support.',
+    'Severe abdominal pain',
+    '{"bp": "110/77", "hr": 76, "spo2": 96, "rr": 20, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10456934', 'CASE_10456934', 'Daniel Johnson', 39, 'Male', 'he/him', 
+    'African American', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 39-year-old Man. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, high-fat diet, self-medication, poor insight into illness.',
+    'Nausea and abdominal pain',
+    '{"bp": "132/90", "hr": 72, "spo2": 97, "rr": 16, "temp": "99.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10458345', 'CASE_10458345', 'Anthony Hernandez', 64, 'Male', 'he/him', 
+    'African American', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 64-year-old Man. Relevant behavioral factors include: high pain tolerance, ignores early abdominal pain, poor medication adherence, chronic alcohol consumption, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "144/94", "hr": 70, "spo2": 98, "rr": 21, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10469621', 'CASE_10469621', 'Donna Martin', 71, 'Female', 'she/her', 
+    'African American', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 71-year-old Woman. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, lives alone, health anxiety, physically active.',
+    'Severe abdominal pain',
+    '{"bp": "130/89", "hr": 95, "spo2": 100, "rr": 21, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10472364', 'CASE_10472364', 'Anthony Gonzalez', 51, 'Male', 'he/him', 
+    'Asian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 51-year-old Man. Relevant behavioral factors include: good medication adherence, non-compliant with dietary restriction, high pain tolerance, physically active, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "138/84", "hr": 85, "spo2": 99, "rr": 20, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10473631', 'CASE_10473631', 'Donald Lopez', 69, 'Male', 'he/him', 
+    'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 69-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, sedentary lifestyle, non-compliant with dietary restriction, low pain tolerance.',
+    'Intermittent abdominal pain',
+    '{"bp": "134/84", "hr": 94, "spo2": 97, "rr": 16, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10482767', 'CASE_10482767', 'Ashley Miller', 33, 'Female', 'she/her', 
+    'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 33-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, depressive mood, poor medication adherence, low-fiber diet, low socioeconomic status.',
+    'Nausea and abdominal pain',
+    '{"bp": "130/84", "hr": 86, "spo2": 97, "rr": 18, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10490439', 'CASE_10490439', 'Daniel Martin', 53, 'Male', 'he/him', 
+    'Hispanic', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 53-year-old Man. Relevant behavioral factors include: former smoker, self-medication, limited access to healthcare, delays seeking surgical consultation, low pain tolerance.',
+    'Chronic abdominal pain',
+    '{"bp": "132/81", "hr": 66, "spo2": 99, "rr": 20, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10511804', 'CASE_10511804', 'Christopher Johnson', 20, 'Male', 'he/him', 
+    'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 20-year-old Man. Relevant behavioral factors include: poor medication adherence, delays seeking surgical consultation, chronic alcohol consumption, poor insight into illness, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "132/74", "hr": 62, "spo2": 95, "rr": 21, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10522176', 'CASE_10522176', 'Nancy Davis', 54, 'Female', 'she/her', 
+    'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 54-year-old Woman. Relevant behavioral factors include: physically demanding job, stress-related symptoms, non-compliant with dietary restriction, frequent emergency department visits, binge drinking.',
+    'Intermittent abdominal pain',
+    '{"bp": "127/89", "hr": 86, "spo2": 99, "rr": 20, "temp": "98.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10523090', 'CASE_10523090', 'Emily Rodriguez', 49, 'Female', 'she/her', 
+    'Hispanic', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 49-year-old Woman. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, depressive mood, former smoker, limited family support.',
+    'Severe abdominal pain',
+    '{"bp": "123/85", "hr": 92, "spo2": 95, "rr": 18, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10544163', 'CASE_10544163', 'Daniel Anderson', 91, 'Male', 'he/him', 
+    'African American', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 91-year-old Man. Relevant behavioral factors include: avoids medical care, depressive mood, lives alone, former smoker, ignores early abdominal pain.',
+    'Intermittent abdominal pain',
+    '{"bp": "130/87", "hr": 73, "spo2": 96, "rr": 22, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10548551', 'CASE_10548551', 'Richard Gonzalez', 31, 'Male', 'he/him', 
+    'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 31-year-old Man. Relevant behavioral factors include: depressive mood, sedentary lifestyle, delays seeking surgical consultation, frequent emergency department visits, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "122/78", "hr": 68, "spo2": 100, "rr": 19, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10548564', 'CASE_10548564', 'Sarah Smith', 65, 'Female', 'she/her', 
+    'Unknown', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 65-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, stress-related symptoms, limited access to healthcare, low-fiber diet, regular medical checkups.',
+    'Severe abdominal pain',
+    '{"bp": "112/89", "hr": 94, "spo2": 99, "rr": 16, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10559181', 'CASE_10559181', 'Linda Jackson', 34, 'Female', 'she/her', 
+    'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 34-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, high anxiety, heavy smoker, regular medical checkups.',
+    'Nausea and abdominal pain',
+    '{"bp": "147/80", "hr": 77, "spo2": 96, "rr": 21, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10569306', 'CASE_10569306', 'Donna Moore', 65, 'Female', 'she/her', 
+    'Unknown', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 65-year-old Woman. Relevant behavioral factors include: lives alone, high anxiety, good medication adherence, ignores early abdominal pain, chronic alcohol consumption.',
+    'Chronic abdominal pain',
+    '{"bp": "139/75", "hr": 66, "spo2": 98, "rr": 19, "temp": "99.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10570419', 'CASE_10570419', 'Joseph Rodriguez', 54, 'Male', 'he/him', 
+    'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 54-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, irregular meal patterns, poor insight into illness, delayed hospital presentation.',
+    'Nausea and abdominal pain',
+    '{"bp": "114/83", "hr": 75, "spo2": 99, "rr": 19, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10583974', 'CASE_10583974', 'Charles Gonzalez', 21, 'Male', 'he/him', 
+    'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 21-year-old Man. Relevant behavioral factors include: good medication adherence, former smoker, ignores early abdominal pain, health anxiety, low socioeconomic status.',
+    'Intermittent abdominal pain',
+    '{"bp": "121/72", "hr": 95, "spo2": 99, "rr": 17, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10584867', 'CASE_10584867', 'Charles Lopez', 64, 'Male', 'he/him', 
+    'Caucasian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 64-year-old Man. Relevant behavioral factors include: physically demanding job, non-compliant with dietary restriction, irregular meal patterns, health anxiety, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "136/86", "hr": 62, "spo2": 100, "rr": 22, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10584942', 'CASE_10584942', 'Robert Miller', 70, 'Male', 'he/him', 
+    'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 70-year-old Man. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, night shift worker, health anxiety, low socioeconomic status.',
+    'Nausea and abdominal pain',
+    '{"bp": "111/91", "hr": 91, "spo2": 99, "rr": 17, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10588094', 'CASE_10588094', 'Donald Anderson', 66, 'Male', 'he/him', 
+    'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 66-year-old Man. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, former smoker, poor insight into illness, regular medical checkups.',
+    'Severe abdominal pain',
+    '{"bp": "110/91", "hr": 74, "spo2": 95, "rr": 16, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10590989', 'CASE_10590989', 'Nancy Martin', 22, 'Female', 'she/her', 
+    'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 22-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, stress-related symptoms, non-compliant with dietary restriction, heavy smoker.',
+    'Intermittent abdominal pain',
+    '{"bp": "139/85", "hr": 93, "spo2": 97, "rr": 21, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10592815', 'CASE_10592815', 'Donald Garcia', 63, 'Male', 'he/him', 
+    'African American', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 63-year-old Man. Relevant behavioral factors include: lives alone, ignores early abdominal pain, low-fiber diet, high pain tolerance, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "117/95", "hr": 84, "spo2": 98, "rr": 19, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10597796', 'CASE_10597796', 'Dorothy Jones', 33, 'Female', 'she/her', 
+    'Unknown', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 33-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, good medication adherence, former smoker, high pain tolerance.',
+    'Nausea and abdominal pain',
+    '{"bp": "139/88", "hr": 94, "spo2": 100, "rr": 20, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10598999', 'CASE_10598999', 'Richard Taylor', 48, 'Male', 'he/him', 
+    'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 48-year-old Man. Relevant behavioral factors include: high anxiety, non-compliant with dietary restriction, irregular meal patterns, regular medical checkups, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "122/72", "hr": 81, "spo2": 98, "rr": 16, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10601314', 'CASE_10601314', 'Emily Anderson', 36, 'Female', 'she/her', 
+    'African American', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 36-year-old Woman. Relevant behavioral factors include: low pain tolerance, ignores early abdominal pain, low socioeconomic status, regular medical checkups, social smoker.',
+    'Intermittent abdominal pain',
+    '{"bp": "122/71", "hr": 68, "spo2": 98, "rr": 17, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10610402', 'CASE_10610402', 'William Moore', 19, 'Male', 'he/him', 
+    'Unknown', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 19-year-old Man. Relevant behavioral factors include: continues eating despite nausea, former smoker, health anxiety, delayed hospital presentation, limited family support.',
+    'Nausea and abdominal pain',
+    '{"bp": "132/80", "hr": 89, "spo2": 100, "rr": 21, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10611684', 'CASE_10611684', 'Ashley Anderson', 30, 'Female', 'she/her', 
+    'Asian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 30-year-old Woman. Relevant behavioral factors include: high-fat diet, delays seeking surgical consultation, low pain tolerance, regular medical checkups, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "123/82", "hr": 86, "spo2": 98, "rr": 21, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10623883', 'CASE_10623883', 'Jessica Brown', 28, 'Female', 'she/her', 
+    'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 28-year-old Woman. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, physically demanding job, health anxiety, low-fiber diet.',
+    'Severe abdominal pain',
+    '{"bp": "133/92", "hr": 61, "spo2": 95, "rr": 22, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10624168', 'CASE_10624168', 'Ashley Martinez', 44, 'Female', 'she/her', 
+    'Asian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 44-year-old Woman. Relevant behavioral factors include: high-fat diet, limited access to healthcare, delays seeking surgical consultation, frequent emergency department visits, low pain tolerance.',
+    'Chronic abdominal pain',
+    '{"bp": "138/90", "hr": 75, "spo2": 98, "rr": 18, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10625923', 'CASE_10625923', 'Jessica Martinez', 69, 'Female', 'she/her', 
+    'Caucasian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 69-year-old Woman. Relevant behavioral factors include: high work-related stress, ignores early abdominal pain, chronic alcohol consumption, frequent emergency department visits, poor insight into illness.',
+    'Chronic abdominal pain',
+    '{"bp": "111/82", "hr": 84, "spo2": 98, "rr": 20, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10629801', 'CASE_10629801', 'Dorothy Johnson', 43, 'Female', 'she/her', 
+    'Asian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 43-year-old Woman. Relevant behavioral factors include: avoids medical care, depressive mood, non-compliant with dietary restriction, low-fiber diet, low socioeconomic status.',
+    'Intermittent abdominal pain',
+    '{"bp": "120/91", "hr": 87, "spo2": 100, "rr": 18, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10633573', 'CASE_10633573', 'Mary Gonzalez', 25, 'Female', 'she/her', 
+    'Hispanic', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 25-year-old Woman. Relevant behavioral factors include: lives alone, self-medication, non-compliant with dietary restriction, heavy smoker, low pain tolerance.',
+    'Intermittent abdominal pain',
+    '{"bp": "129/91", "hr": 90, "spo2": 97, "rr": 19, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10648030', 'CASE_10648030', 'Emily Taylor', 41, 'Female', 'she/her', 
+    'African American', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 41-year-old Woman. Relevant behavioral factors include: high anxiety, sedentary lifestyle, limited access to healthcare, delays seeking surgical consultation, regular medical checkups.',
+    'Chronic abdominal pain',
+    '{"bp": "140/94", "hr": 89, "spo2": 97, "rr": 18, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10652831', 'CASE_10652831', 'Dorothy Jones', 19, 'Female', 'she/her', 
+    'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 19-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, binge drinking, low pain tolerance, limited family support.',
+    'Nausea and abdominal pain',
+    '{"bp": "143/84", "hr": 97, "spo2": 96, "rr": 21, "temp": "98.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10653798', 'CASE_10653798', 'John Wilson', 76, 'Male', 'he/him', 
+    'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 76-year-old Man. Relevant behavioral factors include: poor insight into illness, good medication adherence, former smoker, ignores early abdominal pain, low socioeconomic status.',
+    'Intermittent abdominal pain',
+    '{"bp": "132/80", "hr": 63, "spo2": 98, "rr": 19, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10653951', 'CASE_10653951', 'Charles Lopez', 29, 'Male', 'he/him', 
+    'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 29-year-old Man. Relevant behavioral factors include: good medication adherence, stress-related symptoms, delays seeking surgical consultation, binge drinking, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "131/70", "hr": 68, "spo2": 98, "rr": 17, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10656270', 'CASE_10656270', 'John Jackson', 66, 'Male', 'he/him', 
+    'African American', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 66-year-old Man. Relevant behavioral factors include: high work-related stress, ignores early abdominal pain, irregular meal patterns, poor insight into illness, regular medical checkups.',
+    'Intermittent abdominal pain',
+    '{"bp": "113/86", "hr": 65, "spo2": 99, "rr": 20, "temp": "99.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10666123', 'CASE_10666123', 'Lisa Martinez', 49, 'Female', 'she/her', 
+    'African American', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 49-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, stress-related symptoms, irregular meal patterns, poor medication adherence.',
+    'Nausea and abdominal pain',
+    '{"bp": "134/74", "hr": 94, "spo2": 100, "rr": 20, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10669036', 'CASE_10669036', 'Emily Wilson', 65, 'Female', 'she/her', 
+    'Asian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 65-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, lives alone, sedentary lifestyle, low pain tolerance.',
+    'Nausea and abdominal pain',
+    '{"bp": "119/76", "hr": 79, "spo2": 95, "rr": 16, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10669544', 'CASE_10669544', 'Daniel Taylor', 19, 'Male', 'he/him', 
+    'Caucasian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 19-year-old Man. Relevant behavioral factors include: avoids medical care, ignores early abdominal pain, limited access to healthcare, irregular meal patterns, low pain tolerance.',
+    'Intermittent abdominal pain',
+    '{"bp": "141/80", "hr": 90, "spo2": 97, "rr": 19, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10670966', 'CASE_10670966', 'Linda Gonzalez', 46, 'Female', 'she/her', 
+    'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 46-year-old Woman. Relevant behavioral factors include: physically demanding job, delays seeking surgical consultation, high pain tolerance, binge drinking, regular medical checkups.',
+    'Chronic abdominal pain',
+    '{"bp": "122/74", "hr": 64, "spo2": 95, "rr": 22, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10676503', 'CASE_10676503', 'Kimberly Lopez', 25, 'Female', 'she/her', 
+    'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 25-year-old Woman. Relevant behavioral factors include: former smoker, ignores early abdominal pain, high pain tolerance, regular medical checkups, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "121/87", "hr": 62, "spo2": 97, "rr": 17, "temp": "99.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10677644', 'CASE_10677644', 'Thomas Taylor', 54, 'Male', 'he/him', 
+    'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 54-year-old Man. Relevant behavioral factors include: high anxiety, sedentary lifestyle, non-compliant with dietary restriction, delayed hospital presentation, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "114/78", "hr": 92, "spo2": 98, "rr": 20, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10681550', 'CASE_10681550', 'Mary Taylor', 68, 'Female', 'she/her', 
+    'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 68-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, depressive mood, good medication adherence, chronic alcohol consumption.',
+    'Nausea and abdominal pain',
+    '{"bp": "124/87", "hr": 80, "spo2": 100, "rr": 22, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10683389', 'CASE_10683389', 'Margaret Martin', 61, 'Female', 'she/her', 
+    'Unknown', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 61-year-old Woman. Relevant behavioral factors include: high work-related stress, depressive mood, irregular meal patterns, delays seeking surgical consultation, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "118/86", "hr": 77, "spo2": 97, "rr": 22, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10687335', 'CASE_10687335', 'Charles Rodriguez', 45, 'Male', 'he/him', 
+    'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 45-year-old Man. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, high anxiety, physically active, limited family support.',
+    'Severe abdominal pain',
+    '{"bp": "143/72", "hr": 82, "spo2": 97, "rr": 17, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10689830', 'CASE_10689830', 'Thomas Taylor', 69, 'Male', 'he/him', 
+    'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 69-year-old Man. Relevant behavioral factors include: high-fat diet, ignores early abdominal pain, low socioeconomic status, frequent emergency department visits, low pain tolerance.',
+    'Intermittent abdominal pain',
+    '{"bp": "115/72", "hr": 91, "spo2": 98, "rr": 18, "temp": "99.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10694432', 'CASE_10694432', 'Daniel Lopez', 21, 'Male', 'he/him', 
+    'Caucasian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 21-year-old Man. Relevant behavioral factors include: high pain tolerance, delays seeking surgical consultation, low-fiber diet, frequent emergency department visits, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "146/75", "hr": 91, "spo2": 99, "rr": 17, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10699377', 'CASE_10699377', 'Joseph Wilson', 75, 'Male', 'he/him', 
+    'Asian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 75-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high-fat diet, limited access to healthcare, health anxiety, regular medical checkups.',
+    'Severe abdominal pain',
+    '{"bp": "110/74", "hr": 95, "spo2": 97, "rr": 18, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10700979', 'CASE_10700979', 'Thomas Garcia', 19, 'Male', 'he/him', 
+    'Unknown', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 19-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, high-fat diet, poor medication adherence, poor insight into illness.',
+    'Nausea and abdominal pain',
+    '{"bp": "132/89", "hr": 99, "spo2": 96, "rr": 19, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10703209', 'CASE_10703209', 'Jessica Johnson', 21, 'Female', 'she/her', 
+    'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 21-year-old Woman. Relevant behavioral factors include: good medication adherence, ignores early abdominal pain, limited access to healthcare, chronic alcohol consumption, high pain tolerance.',
+    'Chronic abdominal pain',
+    '{"bp": "148/95", "hr": 67, "spo2": 100, "rr": 21, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10703784', 'CASE_10703784', 'Anthony Brown', 88, 'Male', 'he/him', 
+    'Asian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 88-year-old Man. Relevant behavioral factors include: avoids medical care, physically demanding job, high anxiety, ignores early abdominal pain, heavy smoker.',
+    'Intermittent abdominal pain',
+    '{"bp": "127/84", "hr": 67, "spo2": 100, "rr": 21, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10707726', 'CASE_10707726', 'Joseph Jackson', 28, 'Male', 'he/him', 
+    'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 28-year-old Man. Relevant behavioral factors include: avoids medical care, night shift worker, ignores early abdominal pain, health anxiety, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "142/91", "hr": 78, "spo2": 95, "rr": 18, "temp": "97.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10711330', 'CASE_10711330', 'William Garcia', 40, 'Male', 'he/him', 
+    'Asian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 40-year-old Man. Relevant behavioral factors include: avoids medical care, high-fat diet, stress-related symptoms, non-compliant with dietary restriction, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "136/70", "hr": 88, "spo2": 98, "rr": 17, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10717708', 'CASE_10717708', 'Thomas Williams', 42, 'Male', 'he/him', 
+    'Caucasian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 42-year-old Man. Relevant behavioral factors include: uses painkillers excessively, lives alone, good medication adherence, stress-related symptoms, chronic alcohol consumption.',
+    'Chronic abdominal pain',
+    '{"bp": "117/82", "hr": 74, "spo2": 98, "rr": 17, "temp": "97.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10723288', 'CASE_10723288', 'Susan Wilson', 22, 'Female', 'she/her', 
+    'Caucasian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 22-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, irregular meal patterns, health anxiety, poor medication adherence.',
+    'Nausea and abdominal pain',
+    '{"bp": "121/94", "hr": 91, "spo2": 100, "rr": 16, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10727986', 'CASE_10727986', 'Richard Martin', 58, 'Male', 'he/him', 
+    'Asian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 58-year-old Man. Relevant behavioral factors include: continues eating despite nausea, health anxiety, low-fiber diet, low socioeconomic status, delayed hospital presentation.',
+    'Nausea and abdominal pain',
+    '{"bp": "146/77", "hr": 65, "spo2": 99, "rr": 19, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10734159', 'CASE_10734159', 'Dorothy Wilson', 86, 'Female', 'she/her', 
+    'Asian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 86-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, high anxiety, low socioeconomic status, social smoker.',
+    'Nausea and abdominal pain',
+    '{"bp": "144/74", "hr": 63, "spo2": 99, "rr": 18, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10736128', 'CASE_10736128', 'Linda Johnson', 33, 'Female', 'she/her', 
+    'Asian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 33-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, physically demanding job, chronic alcohol consumption, poor insight into illness.',
+    'Nausea and abdominal pain',
+    '{"bp": "111/71", "hr": 74, "spo2": 96, "rr": 18, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10738224', 'CASE_10738224', 'Emily Johnson', 42, 'Female', 'she/her', 
+    'Asian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 42-year-old Woman. Relevant behavioral factors include: stress-related symptoms, limited access to healthcare, irregular meal patterns, non-compliant with dietary restriction, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "137/76", "hr": 62, "spo2": 98, "rr": 21, "temp": "98.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10743310', 'CASE_10743310', 'Ashley Garcia', 39, 'Female', 'she/her', 
+    'African American', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 39-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, self-medication, high pain tolerance, physically active, limited family support.',
+    'Severe abdominal pain',
+    '{"bp": "145/73", "hr": 62, "spo2": 96, "rr": 19, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10743605', 'CASE_10743605', 'Jessica Miller', 45, 'Female', 'she/her', 
+    'Caucasian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 45-year-old Woman. Relevant behavioral factors include: avoids medical care, depressive mood, ignores early abdominal pain, limited access to healthcare, binge drinking.',
+    'Intermittent abdominal pain',
+    '{"bp": "140/83", "hr": 95, "spo2": 99, "rr": 19, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10745469', 'CASE_10745469', 'Thomas Brown', 65, 'Male', 'he/him', 
+    'Caucasian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 65-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high pain tolerance, frequent emergency department visits, physically active, low socioeconomic status.',
+    'Severe abdominal pain',
+    '{"bp": "129/80", "hr": 76, "spo2": 97, "rr": 18, "temp": "97.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10748922', 'CASE_10748922', 'Daniel Hernandez', 34, 'Male', 'he/him', 
+    'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 34-year-old Man. Relevant behavioral factors include: poor insight into illness, high-fat diet, ignores early abdominal pain, low socioeconomic status, regular medical checkups.',
+    'Intermittent abdominal pain',
+    '{"bp": "139/77", "hr": 72, "spo2": 95, "rr": 17, "temp": "99.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10748951', 'CASE_10748951', 'Susan Thomas', 62, 'Female', 'she/her', 
+    'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 62-year-old Woman. Relevant behavioral factors include: high anxiety, good medication adherence, irregular meal patterns, delays seeking surgical consultation, low socioeconomic status.',
+    'Chronic abdominal pain',
+    '{"bp": "110/70", "hr": 78, "spo2": 98, "rr": 19, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10749568', 'CASE_10749568', 'Robert Miller', 59, 'Male', 'he/him', 
+    'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 59-year-old Man. Relevant behavioral factors include: good medication adherence, limited access to healthcare, delays seeking surgical consultation, high pain tolerance, heavy smoker.',
+    'Chronic abdominal pain',
+    '{"bp": "123/82", "hr": 91, "spo2": 100, "rr": 20, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10754113', 'CASE_10754113', 'Joseph Jackson', 37, 'Male', 'he/him', 
+    'African American', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 37-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high anxiety, self-medication, limited access to healthcare, physically active.',
+    'Severe abdominal pain',
+    '{"bp": "126/86", "hr": 98, "spo2": 95, "rr": 22, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10756982', 'CASE_10756982', 'Richard Davis', 37, 'Male', 'he/him', 
+    'Unknown', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 37-year-old Man. Relevant behavioral factors include: avoids medical care, sedentary lifestyle, health anxiety, delays seeking surgical consultation, low socioeconomic status.',
+    'Chronic abdominal pain',
+    '{"bp": "139/70", "hr": 87, "spo2": 95, "rr": 21, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10758777', 'CASE_10758777', 'Margaret Johnson', 72, 'Female', 'she/her', 
+    'African American', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 72-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, limited access to healthcare, health anxiety, low-fiber diet, frequent emergency department visits.',
+    'Severe abdominal pain',
+    '{"bp": "116/85", "hr": 73, "spo2": 95, "rr": 18, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10760019', 'CASE_10760019', 'Emily Jones', 19, 'Female', 'she/her', 
+    'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 19-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, high anxiety, high-fat diet, poor medication adherence.',
+    'Severe abdominal pain',
+    '{"bp": "146/82", "hr": 71, "spo2": 99, "rr": 21, "temp": "99.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10762875', 'CASE_10762875', 'Christopher Hernandez', 47, 'Male', 'he/him', 
+    'Caucasian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 47-year-old Man. Relevant behavioral factors include: uses painkillers excessively, poor insight into illness, sedentary lifestyle, self-medication, low socioeconomic status.',
+    'Severe abdominal pain',
+    '{"bp": "150/81", "hr": 63, "spo2": 95, "rr": 19, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10769030', 'CASE_10769030', 'Dorothy Thomas', 61, 'Female', 'she/her', 
+    'African American', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 61-year-old Woman. Relevant behavioral factors include: former smoker, health anxiety, delays seeking surgical consultation, delayed hospital presentation, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "149/83", "hr": 81, "spo2": 95, "rr": 18, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10778867', 'CASE_10778867', 'Joseph Wilson', 52, 'Male', 'he/him', 
+    'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 52-year-old Man. Relevant behavioral factors include: physically demanding job, delays seeking surgical consultation, high pain tolerance, frequent emergency department visits, binge drinking.',
+    'Chronic abdominal pain',
+    '{"bp": "150/81", "hr": 73, "spo2": 97, "rr": 22, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10781847', 'CASE_10781847', 'Michael Wilson', 30, 'Male', 'he/him', 
+    'Hispanic', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 30-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high-fat diet, low socioeconomic status, poor medication adherence, poor insight into illness.',
+    'Severe abdominal pain',
+    '{"bp": "144/74", "hr": 72, "spo2": 95, "rr": 16, "temp": "99.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10783366', 'CASE_10783366', 'Sandra Jones', 43, 'Female', 'she/her', 
+    'African American', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 43-year-old Woman. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, physically demanding job, depressive mood, physically active.',
+    'Severe abdominal pain',
+    '{"bp": "126/82", "hr": 74, "spo2": 99, "rr": 20, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10785348', 'CASE_10785348', 'Margaret Brown', 33, 'Female', 'she/her', 
+    'Unknown', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 33-year-old Woman. Relevant behavioral factors include: sedentary lifestyle, ignores early abdominal pain, high pain tolerance, low socioeconomic status, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "146/90", "hr": 64, "spo2": 98, "rr": 16, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10786656', 'CASE_10786656', 'Susan Thomas', 75, 'Female', 'she/her', 
+    'African American', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 75-year-old Woman. Relevant behavioral factors include: stress-related symptoms, ignores early abdominal pain, self-medication, chronic alcohol consumption, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "139/92", "hr": 68, "spo2": 98, "rr": 19, "temp": "97.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10797056', 'CASE_10797056', 'Margaret Martin', 53, 'Female', 'she/her', 
+    'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 53-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, high anxiety, chronic alcohol consumption, low socioeconomic status.',
+    'Nausea and abdominal pain',
+    '{"bp": "135/91", "hr": 61, "spo2": 98, "rr": 22, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10798215', 'CASE_10798215', 'Lisa Thomas', 36, 'Female', 'she/her', 
+    'African American', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 36-year-old Woman. Relevant behavioral factors include: high work-related stress, ignores early abdominal pain, self-medication, physically active, poor insight into illness.',
+    'Intermittent abdominal pain',
+    '{"bp": "131/93", "hr": 74, "spo2": 95, "rr": 16, "temp": "99.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10811759', 'CASE_10811759', 'Mark Anderson', 31, 'Male', 'he/him', 
+    'Caucasian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 31-year-old Man. Relevant behavioral factors include: continues eating despite nausea, lives alone, poor medication adherence, physically active, low pain tolerance.',
+    'Nausea and abdominal pain',
+    '{"bp": "139/83", "hr": 67, "spo2": 95, "rr": 22, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10819799', 'CASE_10819799', 'William Davis', 76, 'Male', 'he/him', 
+    'Caucasian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 76-year-old Man. Relevant behavioral factors include: lives alone, depressive mood, self-medication, non-compliant with dietary restriction, heavy smoker.',
+    'Intermittent abdominal pain',
+    '{"bp": "110/87", "hr": 68, "spo2": 100, "rr": 17, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10822797', 'CASE_10822797', 'Dorothy Jones', 71, 'Female', 'she/her', 
+    'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 71-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, poor insight into illness, physically active, low socioeconomic status, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "141/95", "hr": 98, "spo2": 100, "rr": 19, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10823946', 'CASE_10823946', 'Karen Anderson', 86, 'Female', 'she/her', 
+    'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 86-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, low pain tolerance, irregular meal patterns, low socioeconomic status, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "116/85", "hr": 91, "spo2": 95, "rr": 17, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10825180', 'CASE_10825180', 'Christopher Lopez', 67, 'Male', 'he/him', 
+    'Asian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 67-year-old Man. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, frequent emergency department visits, heavy smoker, low pain tolerance.',
+    'Severe abdominal pain',
+    '{"bp": "110/95", "hr": 60, "spo2": 96, "rr": 20, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10829493', 'CASE_10829493', 'Matthew Smith', 72, 'Male', 'he/him', 
+    'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 72-year-old Man. Relevant behavioral factors include: lives alone, depressive mood, ignores early abdominal pain, poor medication adherence, heavy smoker.',
+    'Intermittent abdominal pain',
+    '{"bp": "122/70", "hr": 87, "spo2": 99, "rr": 22, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10830214', 'CASE_10830214', 'Mark Garcia', 58, 'Male', 'he/him', 
+    'Asian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 58-year-old Man. Relevant behavioral factors include: high-fat diet, limited access to healthcare, non-compliant with dietary restriction, frequent emergency department visits, poor insight into illness.',
+    'Intermittent abdominal pain',
+    '{"bp": "111/72", "hr": 84, "spo2": 100, "rr": 20, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10830359', 'CASE_10830359', 'Emily Martinez', 53, 'Female', 'she/her', 
+    'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 53-year-old Woman. Relevant behavioral factors include: physically demanding job, sedentary lifestyle, self-medication, non-compliant with dietary restriction, low pain tolerance.',
+    'Intermittent abdominal pain',
+    '{"bp": "140/74", "hr": 69, "spo2": 100, "rr": 22, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10833304', 'CASE_10833304', 'Ashley Wilson', 62, 'Female', 'she/her', 
+    'Caucasian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 62-year-old Woman. Relevant behavioral factors include: lives alone, ignores early abdominal pain, high pain tolerance, frequent emergency department visits, binge drinking.',
+    'Intermittent abdominal pain',
+    '{"bp": "120/77", "hr": 93, "spo2": 96, "rr": 17, "temp": "97.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10833331', 'CASE_10833331', 'Christopher Moore', 20, 'Male', 'he/him', 
+    'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 20-year-old Man. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, night shift worker, poor insight into illness, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "146/81", "hr": 80, "spo2": 99, "rr": 16, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10835235', 'CASE_10835235', 'Lisa Garcia', 43, 'Female', 'she/her', 
+    'Caucasian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 43-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, poor insight into illness, regular medical checkups, social smoker.',
+    'Nausea and abdominal pain',
+    '{"bp": "150/82", "hr": 100, "spo2": 98, "rr": 19, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10836349', 'CASE_10836349', 'Emily Brown', 43, 'Female', 'she/her', 
+    'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 43-year-old Woman. Relevant behavioral factors include: physically demanding job, self-medication, irregular meal patterns, non-compliant with dietary restriction, poor insight into illness.',
+    'Intermittent abdominal pain',
+    '{"bp": "122/75", "hr": 79, "spo2": 99, "rr": 16, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10840520', 'CASE_10840520', 'Michael Garcia', 40, 'Male', 'he/him', 
+    'Asian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 40-year-old Man. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, former smoker, high pain tolerance, limited family support.',
+    'Severe abdominal pain',
+    '{"bp": "132/95", "hr": 71, "spo2": 96, "rr": 18, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10859519', 'CASE_10859519', 'Michael Brown', 40, 'Male', 'he/him', 
+    'Caucasian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 40-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, high anxiety, former smoker, self-medication.',
+    'Nausea and abdominal pain',
+    '{"bp": "116/84", "hr": 74, "spo2": 100, "rr": 21, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10864816', 'CASE_10864816', 'Christopher Gonzalez', 46, 'Male', 'he/him', 
+    'Caucasian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 46-year-old Man. Relevant behavioral factors include: physically demanding job, non-compliant with dietary restriction, high pain tolerance, binge drinking, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "139/81", "hr": 62, "spo2": 97, "rr": 16, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10874066', 'CASE_10874066', 'Karen Martinez', 53, 'Female', 'she/her', 
+    'Caucasian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 53-year-old Woman. Relevant behavioral factors include: physically demanding job, non-compliant with dietary restriction, high pain tolerance, regular medical checkups, social smoker.',
+    'Intermittent abdominal pain',
+    '{"bp": "140/95", "hr": 80, "spo2": 95, "rr": 22, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10875474', 'CASE_10875474', 'Dorothy Anderson', 23, 'Female', 'she/her', 
+    'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 23-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, night shift worker, high pain tolerance, frequent emergency department visits, limited family support.',
+    'Severe abdominal pain',
+    '{"bp": "139/95", "hr": 64, "spo2": 97, "rr": 16, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10875567', 'CASE_10875567', 'Sandra Davis', 38, 'Female', 'she/her', 
+    'African American', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 38-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, uses painkillers excessively, depressive mood, social smoker.',
+    'Severe abdominal pain',
+    '{"bp": "134/77", "hr": 69, "spo2": 96, "rr": 18, "temp": "99.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10877914', 'CASE_10877914', 'Sandra Smith', 65, 'Female', 'she/her', 
+    'Caucasian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 65-year-old Woman. Relevant behavioral factors include: poor insight into illness, sedentary lifestyle, self-medication, non-compliant with dietary restriction, low socioeconomic status.',
+    'Intermittent abdominal pain',
+    '{"bp": "122/82", "hr": 89, "spo2": 100, "rr": 22, "temp": "99.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10880579', 'CASE_10880579', 'Linda Miller', 57, 'Female', 'she/her', 
+    'Unknown', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 57-year-old Woman. Relevant behavioral factors include: high anxiety, lives alone, sedentary lifestyle, self-medication, non-compliant with dietary restriction.',
+    'Intermittent abdominal pain',
+    '{"bp": "146/70", "hr": 94, "spo2": 99, "rr": 17, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10881070', 'CASE_10881070', 'Sandra Martin', 37, 'Female', 'she/her', 
+    'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 37-year-old Woman. Relevant behavioral factors include: stress-related symptoms, ignores early abdominal pain, physically active, low socioeconomic status, regular medical checkups.',
+    'Intermittent abdominal pain',
+    '{"bp": "146/84", "hr": 72, "spo2": 99, "rr": 17, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10885949', 'CASE_10885949', 'David Rodriguez', 29, 'Male', 'he/him', 
+    'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 29-year-old Man. Relevant behavioral factors include: non-compliant with dietary restriction, irregular meal patterns, health anxiety, frequent emergency department visits, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "121/90", "hr": 75, "spo2": 95, "rr": 18, "temp": "98.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10888963', 'CASE_10888963', 'Linda Taylor', 59, 'Female', 'she/her', 
+    'Caucasian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 59-year-old Woman. Relevant behavioral factors include: stress-related symptoms, sedentary lifestyle, limited access to healthcare, delays seeking surgical consultation, frequent emergency department visits.',
+    'Chronic abdominal pain',
+    '{"bp": "116/75", "hr": 83, "spo2": 97, "rr": 19, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10892159', 'CASE_10892159', 'Mary Jones', 61, 'Female', 'she/her', 
+    'Unknown', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 61-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, depressive mood, poor medication adherence, low socioeconomic status, social smoker.',
+    'Severe abdominal pain',
+    '{"bp": "115/77", "hr": 79, "spo2": 95, "rr": 22, "temp": "99.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10895299', 'CASE_10895299', 'Jessica Rodriguez', 53, 'Female', 'she/her', 
+    'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 53-year-old Woman. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, night shift worker, lives alone, health anxiety.',
+    'Severe abdominal pain',
+    '{"bp": "130/84", "hr": 96, "spo2": 99, "rr": 22, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10898075', 'CASE_10898075', 'Richard Martin', 47, 'Male', 'he/him', 
+    'African American', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 47-year-old Man. Relevant behavioral factors include: stress-related symptoms, non-compliant with dietary restriction, physically active, low socioeconomic status, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "113/71", "hr": 80, "spo2": 96, "rr": 22, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10902160', 'CASE_10902160', 'Mary Johnson', 64, 'Female', 'she/her', 
+    'Caucasian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 64-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high-fat diet, depressive mood, frequent emergency department visits, limited family support.',
+    'Severe abdominal pain',
+    '{"bp": "131/81", "hr": 68, "spo2": 97, "rr": 22, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10904016', 'CASE_10904016', 'Richard Martin', 60, 'Male', 'he/him', 
+    'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 60-year-old Man. Relevant behavioral factors include: high-fat diet, stress-related symptoms, ignores early abdominal pain, limited access to healthcare, regular medical checkups.',
+    'Intermittent abdominal pain',
+    '{"bp": "140/95", "hr": 79, "spo2": 96, "rr": 21, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10905906', 'CASE_10905906', 'William Anderson', 78, 'Male', 'he/him', 
+    'Unknown', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 78-year-old Man. Relevant behavioral factors include: lives alone, depressive mood, good medication adherence, irregular meal patterns, non-compliant with dietary restriction.',
+    'Intermittent abdominal pain',
+    '{"bp": "136/70", "hr": 94, "spo2": 99, "rr": 21, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10922167', 'CASE_10922167', 'Emily Jackson', 30, 'Female', 'she/her', 
+    'Asian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 30-year-old Woman. Relevant behavioral factors include: lives alone, depressive mood, poor medication adherence, delays seeking surgical consultation, low-fiber diet.',
+    'Chronic abdominal pain',
+    '{"bp": "129/71", "hr": 82, "spo2": 98, "rr": 16, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10926193', 'CASE_10926193', 'Sandra Taylor', 42, 'Female', 'she/her', 
+    'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 42-year-old Woman. Relevant behavioral factors include: lives alone, non-compliant with dietary restriction, frequent emergency department visits, binge drinking, poor insight into illness.',
+    'Intermittent abdominal pain',
+    '{"bp": "138/86", "hr": 96, "spo2": 95, "rr": 18, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10943161', 'CASE_10943161', 'Karen Davis', 22, 'Female', 'she/her', 
+    'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 22-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, health anxiety, chronic alcohol consumption, frequent emergency department visits.',
+    'Nausea and abdominal pain',
+    '{"bp": "132/89", "hr": 84, "spo2": 96, "rr": 18, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10956159', 'CASE_10956159', 'Sarah Thomas', 27, 'Female', 'she/her', 
+    'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 27-year-old Woman. Relevant behavioral factors include: limited access to healthcare, health anxiety, delays seeking surgical consultation, heavy smoker, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "121/74", "hr": 93, "spo2": 100, "rr": 16, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10958256', 'CASE_10958256', 'Donna Smith', 43, 'Female', 'she/her', 
+    'Asian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 43-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, stress-related symptoms, chronic alcohol consumption, delayed hospital presentation, limited family support.',
+    'Nausea and abdominal pain',
+    '{"bp": "148/78", "hr": 95, "spo2": 96, "rr": 19, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10958320', 'CASE_10958320', 'Linda Martinez', 20, 'Female', 'she/her', 
+    'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 20-year-old Woman. Relevant behavioral factors include: avoids medical care, depressive mood, limited access to healthcare, non-compliant with dietary restriction, chronic alcohol consumption.',
+    'Chronic abdominal pain',
+    '{"bp": "139/71", "hr": 99, "spo2": 96, "rr": 21, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10963257', 'CASE_10963257', 'Kimberly Miller', 50, 'Female', 'she/her', 
+    'Asian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 50-year-old Woman. Relevant behavioral factors include: high work-related stress, depressive mood, poor medication adherence, delays seeking surgical consultation, low-fiber diet.',
+    'Chronic abdominal pain',
+    '{"bp": "149/78", "hr": 99, "spo2": 99, "rr": 17, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10964841', 'CASE_10964841', 'Susan Miller', 28, 'Female', 'she/her', 
+    'Hispanic', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 28-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, non-compliant with dietary restriction, high pain tolerance, binge drinking.',
+    'Intermittent abdominal pain',
+    '{"bp": "112/81", "hr": 76, "spo2": 96, "rr": 20, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10965294', 'CASE_10965294', 'Thomas Smith', 21, 'Male', 'he/him', 
+    'Unknown', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 21-year-old Man. Relevant behavioral factors include: lives alone, ignores early abdominal pain, poor medication adherence, health anxiety, chronic alcohol consumption.',
+    'Chronic abdominal pain',
+    '{"bp": "134/86", "hr": 90, "spo2": 97, "rr": 22, "temp": "99.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10965345', 'CASE_10965345', 'Robert Brown', 51, 'Male', 'he/him', 
+    'Asian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 51-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, uses painkillers excessively, depressive mood, heavy smoker.',
+    'Severe abdominal pain',
+    '{"bp": "121/75", "hr": 80, "spo2": 100, "rr": 21, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10968286', 'CASE_10968286', 'John Martinez', 50, 'Male', 'he/him', 
+    'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 50-year-old Man. Relevant behavioral factors include: high anxiety, self-medication, delays seeking surgical consultation, heavy smoker, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "149/76", "hr": 98, "spo2": 96, "rr": 21, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10983866', 'CASE_10983866', 'Robert Brown', 79, 'Male', 'he/him', 
+    'Hispanic', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 79-year-old Man. Relevant behavioral factors include: high work-related stress, depressive mood, ignores early abdominal pain, self-medication, chronic alcohol consumption.',
+    'Chronic abdominal pain',
+    '{"bp": "148/91", "hr": 69, "spo2": 97, "rr": 17, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10984267', 'CASE_10984267', 'Lisa Davis', 28, 'Female', 'she/her', 
+    'Hispanic', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 28-year-old Woman. Relevant behavioral factors include: physically demanding job, ignores early abdominal pain, high pain tolerance, binge drinking, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "117/77", "hr": 79, "spo2": 98, "rr": 21, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10986405', 'CASE_10986405', 'Susan Jones', 29, 'Female', 'she/her', 
+    'Asian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 29-year-old Woman. Relevant behavioral factors include: high anxiety, lives alone, good medication adherence, former smoker, delays seeking surgical consultation.',
+    'Chronic abdominal pain',
+    '{"bp": "139/74", "hr": 64, "spo2": 95, "rr": 17, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10994390', 'CASE_10994390', 'Linda Wilson', 24, 'Female', 'she/her', 
+    'Unknown', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 24-year-old Woman. Relevant behavioral factors include: high work-related stress, former smoker, stress-related symptoms, non-compliant with dietary restriction, frequent emergency department visits.',
+    'Intermittent abdominal pain',
+    '{"bp": "137/86", "hr": 86, "spo2": 95, "rr": 18, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10997457', 'CASE_10997457', 'Charles Hernandez', 23, 'Male', 'he/him', 
+    'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 23-year-old Man. Relevant behavioral factors include: high work-related stress, high-fat diet, non-compliant with dietary restriction, frequent emergency department visits, poor insight into illness.',
+    'Intermittent abdominal pain',
+    '{"bp": "130/88", "hr": 66, "spo2": 97, "rr": 19, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '10998589', 'CASE_10998589', 'Daniel Taylor', 59, 'Male', 'he/him', 
+    'Unknown', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 59-year-old Man. Relevant behavioral factors include: low pain tolerance, good medication adherence, ignores early abdominal pain, low socioeconomic status, social smoker.',
+    'Intermittent abdominal pain',
+    '{"bp": "146/77", "hr": 95, "spo2": 99, "rr": 21, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11000997', 'CASE_11000997', 'David Moore', 33, 'Male', 'he/him', 
+    'Hispanic', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 33-year-old Man. Relevant behavioral factors include: good medication adherence, limited access to healthcare, non-compliant with dietary restriction, binge drinking, poor insight into illness.',
+    'Intermittent abdominal pain',
+    '{"bp": "138/72", "hr": 64, "spo2": 96, "rr": 19, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11004072', 'CASE_11004072', 'Anthony Lopez', 53, 'Male', 'he/him', 
+    'Asian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 53-year-old Man. Relevant behavioral factors include: high work-related stress, night shift worker, high anxiety, ignores early abdominal pain, regular medical checkups.',
+    'Intermittent abdominal pain',
+    '{"bp": "122/93", "hr": 78, "spo2": 97, "rr": 16, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11012637', 'CASE_11012637', 'Anthony Wilson', 46, 'Male', 'he/him', 
+    'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 46-year-old Man. Relevant behavioral factors include: high anxiety, non-compliant with dietary restriction, low-fiber diet, regular medical checkups, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "118/81", "hr": 88, "spo2": 99, "rr": 19, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11012879', 'CASE_11012879', 'John Davis', 54, 'Male', 'he/him', 
+    'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 54-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high-fat diet, low socioeconomic status, poor medication adherence, low pain tolerance.',
+    'Severe abdominal pain',
+    '{"bp": "126/94", "hr": 99, "spo2": 97, "rr": 21, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11031190', 'CASE_11031190', 'David Taylor', 25, 'Male', 'he/him', 
+    'Caucasian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 25-year-old Man. Relevant behavioral factors include: avoids medical care, high-fat diet, depressive mood, limited access to healthcare, non-compliant with dietary restriction.',
+    'Intermittent abdominal pain',
+    '{"bp": "141/88", "hr": 96, "spo2": 95, "rr": 18, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11039753', 'CASE_11039753', 'Karen Rodriguez', 59, 'Female', 'she/her', 
+    'Caucasian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 59-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, high-fat diet, self-medication, poor insight into illness.',
+    'Nausea and abdominal pain',
+    '{"bp": "148/84", "hr": 71, "spo2": 95, "rr": 19, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11041085', 'CASE_11041085', 'Michael Williams', 53, 'Male', 'he/him', 
+    'Hispanic', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 53-year-old Man. Relevant behavioral factors include: physically demanding job, self-medication, delays seeking surgical consultation, health anxiety, chronic alcohol consumption.',
+    'Chronic abdominal pain',
+    '{"bp": "123/89", "hr": 65, "spo2": 95, "rr": 17, "temp": "99.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11044320', 'CASE_11044320', 'Richard Williams', 65, 'Male', 'he/him', 
+    'Asian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 65-year-old Man. Relevant behavioral factors include: uses painkillers excessively, limited access to healthcare, poor medication adherence, physically active, low pain tolerance.',
+    'Severe abdominal pain',
+    '{"bp": "133/82", "hr": 69, "spo2": 95, "rr": 21, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11052273', 'CASE_11052273', 'Jessica Moore', 74, 'Female', 'she/her', 
+    'Asian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 74-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, physically demanding job, depressive mood, sedentary lifestyle.',
+    'Nausea and abdominal pain',
+    '{"bp": "126/92", "hr": 95, "spo2": 98, "rr": 21, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11059708', 'CASE_11059708', 'Michael Taylor', 21, 'Male', 'he/him', 
+    'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 21-year-old Man. Relevant behavioral factors include: night shift worker, non-compliant with dietary restriction, health anxiety, delayed hospital presentation, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "138/75", "hr": 64, "spo2": 99, "rr": 16, "temp": "99.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11063807', 'CASE_11063807', 'Margaret Lopez', 48, 'Female', 'she/her', 
+    'Caucasian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 48-year-old Woman. Relevant behavioral factors include: depressive mood, non-compliant with dietary restriction, poor medication adherence, low-fiber diet, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "118/70", "hr": 88, "spo2": 96, "rr": 21, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11065944', 'CASE_11065944', 'Michael Martin', 49, 'Male', 'he/him', 
+    'Unknown', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 49-year-old Man. Relevant behavioral factors include: physically demanding job, depressive mood, good medication adherence, delays seeking surgical consultation, low-fiber diet.',
+    'Chronic abdominal pain',
+    '{"bp": "143/81", "hr": 96, "spo2": 99, "rr": 19, "temp": "97.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11066902', 'CASE_11066902', 'Lisa Gonzalez', 35, 'Female', 'she/her', 
+    'Unknown', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 35-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, lives alone, chronic alcohol consumption, high pain tolerance, frequent emergency department visits.',
+    'Chronic abdominal pain',
+    '{"bp": "144/94", "hr": 91, "spo2": 99, "rr": 16, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11072749', 'CASE_11072749', 'Nancy Miller', 72, 'Female', 'she/her', 
+    'Unknown', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 72-year-old Woman. Relevant behavioral factors include: physically demanding job, high-fat diet, depressive mood, self-medication, non-compliant with dietary restriction.',
+    'Intermittent abdominal pain',
+    '{"bp": "124/94", "hr": 80, "spo2": 95, "rr": 19, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11087612', 'CASE_11087612', 'Robert Taylor', 54, 'Male', 'he/him', 
+    'Unknown', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 54-year-old Man. Relevant behavioral factors include: depressive mood, good medication adherence, delays seeking surgical consultation, heavy smoker, low socioeconomic status.',
+    'Chronic abdominal pain',
+    '{"bp": "131/83", "hr": 71, "spo2": 96, "rr": 18, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11095671', 'CASE_11095671', 'Linda Anderson', 27, 'Female', 'she/her', 
+    'Caucasian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 27-year-old Woman. Relevant behavioral factors include: ignores early abdominal pain, chronic alcohol consumption, frequent emergency department visits, poor insight into illness, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "146/93", "hr": 63, "spo2": 99, "rr": 17, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11112100', 'CASE_11112100', 'Donald Johnson', 58, 'Male', 'he/him', 
+    'African American', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 58-year-old Man. Relevant behavioral factors include: high work-related stress, night shift worker, non-compliant with dietary restriction, poor medication adherence, high pain tolerance.',
+    'Intermittent abdominal pain',
+    '{"bp": "145/83", "hr": 98, "spo2": 97, "rr": 22, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11130122', 'CASE_11130122', 'Matthew Brown', 48, 'Male', 'he/him', 
+    'Unknown', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 48-year-old Man. Relevant behavioral factors include: avoids medical care, high-fat diet, lives alone, delays seeking surgical consultation, low pain tolerance.',
+    'Chronic abdominal pain',
+    '{"bp": "113/71", "hr": 89, "spo2": 95, "rr": 20, "temp": "99.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11130436', 'CASE_11130436', 'Joseph Smith', 24, 'Male', 'he/him', 
+    'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 24-year-old Man. Relevant behavioral factors include: non-compliant with dietary restriction, irregular meal patterns, poor medication adherence, poor insight into illness, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "114/81", "hr": 68, "spo2": 99, "rr": 17, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11132868', 'CASE_11132868', 'Donald Miller', 44, 'Male', 'he/him', 
+    'African American', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 44-year-old Man. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, night shift worker, low pain tolerance, regular medical checkups.',
+    'Nausea and abdominal pain',
+    '{"bp": "145/73", "hr": 71, "spo2": 96, "rr": 20, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11133934', 'CASE_11133934', 'Daniel Gonzalez', 34, 'Male', 'he/him', 
+    'Unknown', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 34-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, stress-related symptoms, ignores early abdominal pain, low-fiber diet.',
+    'Intermittent abdominal pain',
+    '{"bp": "142/86", "hr": 88, "spo2": 95, "rr": 21, "temp": "99.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11133971', 'CASE_11133971', 'Nancy Smith', 83, 'Female', 'she/her', 
+    'Caucasian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 83-year-old Woman. Relevant behavioral factors include: lives alone, sedentary lifestyle, non-compliant with dietary restriction, health anxiety, poor medication adherence.',
+    'Intermittent abdominal pain',
+    '{"bp": "142/73", "hr": 65, "spo2": 96, "rr": 22, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11137177', 'CASE_11137177', 'Joseph Anderson', 66, 'Male', 'he/him', 
+    'African American', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 66-year-old Man. Relevant behavioral factors include: high work-related stress, depressive mood, delays seeking surgical consultation, heavy smoker, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "128/75", "hr": 75, "spo2": 95, "rr": 21, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11151591', 'CASE_11151591', 'Dorothy Jackson', 55, 'Female', 'she/her', 
+    'African American', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 55-year-old Woman. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, high anxiety, poor medication adherence, chronic alcohol consumption.',
+    'Chronic abdominal pain',
+    '{"bp": "148/89", "hr": 70, "spo2": 96, "rr": 21, "temp": "98.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11154626', 'CASE_11154626', 'Richard Lopez', 74, 'Male', 'he/him', 
+    'Caucasian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 74-year-old Man. Relevant behavioral factors include: lives alone, sedentary lifestyle, self-medication, ignores early abdominal pain, low pain tolerance.',
+    'Intermittent abdominal pain',
+    '{"bp": "117/90", "hr": 88, "spo2": 100, "rr": 22, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11161405', 'CASE_11161405', 'Emily Smith', 55, 'Female', 'she/her', 
+    'Caucasian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 55-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, high anxiety, delays seeking surgical consultation, social smoker.',
+    'Chronic abdominal pain',
+    '{"bp": "131/72", "hr": 79, "spo2": 98, "rr": 17, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11164899', 'CASE_11164899', 'David Taylor', 72, 'Male', 'he/him', 
+    'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 72-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, night shift worker, frequent emergency department visits, low pain tolerance.',
+    'Nausea and abdominal pain',
+    '{"bp": "144/81", "hr": 75, "spo2": 96, "rr": 22, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11165476', 'CASE_11165476', 'Jessica Taylor', 45, 'Female', 'she/her', 
+    'African American', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 45-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high anxiety, self-medication, low socioeconomic status, social smoker.',
+    'Severe abdominal pain',
+    '{"bp": "119/92", "hr": 81, "spo2": 97, "rr": 19, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11168764', 'CASE_11168764', 'Mary Anderson', 22, 'Female', 'she/her', 
+    'Unknown', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 22-year-old Woman. Relevant behavioral factors include: stress-related symptoms, non-compliant with dietary restriction, physically active, low socioeconomic status, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "150/70", "hr": 66, "spo2": 97, "rr": 20, "temp": "99.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11169343', 'CASE_11169343', 'Sandra Taylor', 21, 'Female', 'she/her', 
+    'Unknown', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 21-year-old Woman. Relevant behavioral factors include: sedentary lifestyle, ignores early abdominal pain, health anxiety, poor medication adherence, low socioeconomic status.',
+    'Intermittent abdominal pain',
+    '{"bp": "139/89", "hr": 80, "spo2": 96, "rr": 19, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11171757', 'CASE_11171757', 'Mary Moore', 91, 'Female', 'she/her', 
+    'Asian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 91-year-old Woman. Relevant behavioral factors include: physically demanding job, sedentary lifestyle, ignores early abdominal pain, high pain tolerance, regular medical checkups.',
+    'Intermittent abdominal pain',
+    '{"bp": "131/92", "hr": 78, "spo2": 95, "rr": 20, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11174184', 'CASE_11174184', 'David Rodriguez', 83, 'Male', 'he/him', 
+    'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 83-year-old Man. Relevant behavioral factors include: ignores early abdominal pain, self-medication, heavy smoker, poor insight into illness, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "132/93", "hr": 60, "spo2": 99, "rr": 20, "temp": "99.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11174340', 'CASE_11174340', 'Sarah Miller', 79, 'Female', 'she/her', 
+    'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 79-year-old Woman. Relevant behavioral factors include: avoids medical care, physically demanding job, depressive mood, delays seeking surgical consultation, chronic alcohol consumption.',
+    'Chronic abdominal pain',
+    '{"bp": "113/71", "hr": 95, "spo2": 95, "rr": 21, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11174843', 'CASE_11174843', 'Donald Williams', 26, 'Male', 'he/him', 
+    'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 26-year-old Man. Relevant behavioral factors include: uses painkillers excessively, lives alone, health anxiety, low-fiber diet, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "134/82", "hr": 64, "spo2": 96, "rr": 22, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11181505', 'CASE_11181505', 'John Moore', 32, 'Male', 'he/him', 
+    'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 32-year-old Man. Relevant behavioral factors include: high work-related stress, non-compliant with dietary restriction, health anxiety, low-fiber diet, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "127/92", "hr": 90, "spo2": 100, "rr": 21, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11182240', 'CASE_11182240', 'Margaret Hernandez', 67, 'Female', 'she/her', 
+    'African American', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 67-year-old Woman. Relevant behavioral factors include: high work-related stress, irregular meal patterns, non-compliant with dietary restriction, low pain tolerance, regular medical checkups.',
+    'Intermittent abdominal pain',
+    '{"bp": "126/74", "hr": 78, "spo2": 99, "rr": 16, "temp": "99.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11185210', 'CASE_11185210', 'Linda Wilson', 88, 'Female', 'she/her', 
+    'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 88-year-old Woman. Relevant behavioral factors include: stress-related symptoms, limited access to healthcare, delays seeking surgical consultation, heavy smoker, regular medical checkups.',
+    'Chronic abdominal pain',
+    '{"bp": "140/94", "hr": 73, "spo2": 95, "rr": 16, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11185241', 'CASE_11185241', 'Kimberly Martinez', 45, 'Female', 'she/her', 
+    'Caucasian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 45-year-old Woman. Relevant behavioral factors include: delays seeking surgical consultation, poor medication adherence, binge drinking, poor insight into illness, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "116/71", "hr": 98, "spo2": 99, "rr": 21, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11190494', 'CASE_11190494', 'Daniel Thomas', 41, 'Male', 'he/him', 
+    'Hispanic', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 41-year-old Man. Relevant behavioral factors include: continues eating despite nausea, high pain tolerance, heavy smoker, low socioeconomic status, regular medical checkups.',
+    'Nausea and abdominal pain',
+    '{"bp": "143/82", "hr": 85, "spo2": 97, "rr": 19, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11190737', 'CASE_11190737', 'Emily Brown', 52, 'Female', 'she/her', 
+    'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 52-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, high anxiety, poor medication adherence, binge drinking.',
+    'Nausea and abdominal pain',
+    '{"bp": "129/81", "hr": 73, "spo2": 96, "rr": 16, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11197798', 'CASE_11197798', 'Nancy Jackson', 68, 'Female', 'she/her', 
+    'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 68-year-old Woman. Relevant behavioral factors include: social smoker, uses painkillers excessively, good medication adherence, high pain tolerance, limited family support.',
+    'Severe abdominal pain',
+    '{"bp": "131/83", "hr": 85, "spo2": 96, "rr": 19, "temp": "98.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11199428', 'CASE_11199428', 'Linda Rodriguez', 53, 'Female', 'she/her', 
+    'Caucasian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 53-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, lives alone, stress-related symptoms, chronic alcohol consumption, frequent emergency department visits.',
+    'Chronic abdominal pain',
+    '{"bp": "113/72", "hr": 94, "spo2": 95, "rr": 18, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11204526', 'CASE_11204526', 'Nancy Martinez', 60, 'Female', 'she/her', 
+    'Unknown', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 60-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, stress-related symptoms, sedentary lifestyle, limited access to healthcare, regular medical checkups.',
+    'Nausea and abdominal pain',
+    '{"bp": "117/77", "hr": 96, "spo2": 98, "rr": 17, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11213607', 'CASE_11213607', 'Thomas Anderson', 89, 'Male', 'he/him', 
+    'African American', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 89-year-old Man. Relevant behavioral factors include: depressive mood, ignores early abdominal pain, irregular meal patterns, low socioeconomic status, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "137/70", "hr": 63, "spo2": 98, "rr": 18, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11214417', 'CASE_11214417', 'Donald Taylor', 32, 'Male', 'he/him', 
+    'African American', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 32-year-old Man. Relevant behavioral factors include: irregular meal patterns, delays seeking surgical consultation, health anxiety, frequent emergency department visits, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "125/89", "hr": 68, "spo2": 96, "rr": 17, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11215260', 'CASE_11215260', 'Daniel Martin', 39, 'Male', 'he/him', 
+    'Asian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 39-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, sedentary lifestyle, high pain tolerance, frequent emergency department visits.',
+    'Nausea and abdominal pain',
+    '{"bp": "148/75", "hr": 93, "spo2": 100, "rr": 18, "temp": "98.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11227282', 'CASE_11227282', 'Margaret Rodriguez', 24, 'Female', 'she/her', 
+    'African American', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 24-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, irregular meal patterns, poor insight into illness, regular medical checkups.',
+    'Nausea and abdominal pain',
+    '{"bp": "147/81", "hr": 75, "spo2": 95, "rr": 20, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11230823', 'CASE_11230823', 'Mary Martinez', 89, 'Female', 'she/her', 
+    'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 89-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high pain tolerance, poor medication adherence, low-fiber diet, low socioeconomic status.',
+    'Severe abdominal pain',
+    '{"bp": "113/82", "hr": 72, "spo2": 96, "rr": 16, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11231379', 'CASE_11231379', 'Thomas Davis', 69, 'Male', 'he/him', 
+    'Unknown', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 69-year-old Man. Relevant behavioral factors include: depressive mood, sedentary lifestyle, ignores early abdominal pain, frequent emergency department visits, low socioeconomic status.',
+    'Intermittent abdominal pain',
+    '{"bp": "117/95", "hr": 96, "spo2": 98, "rr": 16, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11235666', 'CASE_11235666', 'Charles Thomas', 49, 'Male', 'he/him', 
+    'Unknown', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 49-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, self-medication, heavy smoker, poor insight into illness.',
+    'Nausea and abdominal pain',
+    '{"bp": "146/90", "hr": 79, "spo2": 100, "rr": 20, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11241609', 'CASE_11241609', 'Joseph Gonzalez', 54, 'Male', 'he/him', 
+    'Unknown', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 54-year-old Man. Relevant behavioral factors include: uses painkillers excessively, lives alone, high anxiety, poor medication adherence, binge drinking.',
+    'Severe abdominal pain',
+    '{"bp": "111/95", "hr": 66, "spo2": 95, "rr": 17, "temp": "99.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11242610', 'CASE_11242610', 'Linda Jones', 18, 'Female', 'she/her', 
+    'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 18-year-old Woman. Relevant behavioral factors include: former smoker, self-medication, health anxiety, delays seeking surgical consultation, low socioeconomic status.',
+    'Chronic abdominal pain',
+    '{"bp": "133/70", "hr": 89, "spo2": 96, "rr": 19, "temp": "98.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11248793', 'CASE_11248793', 'Sandra Lopez', 57, 'Female', 'she/her', 
+    'Asian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 57-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, high anxiety, ignores early abdominal pain, irregular meal patterns.',
+    'Intermittent abdominal pain',
+    '{"bp": "121/75", "hr": 99, "spo2": 97, "rr": 17, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11251623', 'CASE_11251623', 'Anthony Jackson', 56, 'Male', 'he/him', 
+    'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 56-year-old Man. Relevant behavioral factors include: physically demanding job, non-compliant with dietary restriction, poor medication adherence, physically active, poor insight into illness.',
+    'Intermittent abdominal pain',
+    '{"bp": "146/82", "hr": 61, "spo2": 97, "rr": 19, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11258087', 'CASE_11258087', 'Margaret Lopez', 38, 'Female', 'she/her', 
+    'Asian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 38-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, limited access to healthcare, health anxiety, delayed hospital presentation, social smoker.',
+    'Chronic abdominal pain',
+    '{"bp": "121/79", "hr": 95, "spo2": 98, "rr": 16, "temp": "97.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11269082', 'CASE_11269082', 'Karen Jackson', 24, 'Female', 'she/her', 
+    'Hispanic', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 24-year-old Woman. Relevant behavioral factors include: non-compliant with dietary restriction, low-fiber diet, high pain tolerance, frequent emergency department visits, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "126/90", "hr": 68, "spo2": 96, "rr": 19, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11271666', 'CASE_11271666', 'Lisa Taylor', 26, 'Female', 'she/her', 
+    'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 26-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, limited access to healthcare, health anxiety, chronic alcohol consumption.',
+    'Nausea and abdominal pain',
+    '{"bp": "116/93", "hr": 98, "spo2": 100, "rr": 16, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11275704', 'CASE_11275704', 'Karen Lopez', 75, 'Female', 'she/her', 
+    'Caucasian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 75-year-old Woman. Relevant behavioral factors include: high work-related stress, depressive mood, non-compliant with dietary restriction, physically active, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "130/90", "hr": 60, "spo2": 99, "rr": 20, "temp": "99.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11277832', 'CASE_11277832', 'Daniel Taylor', 39, 'Male', 'he/him', 
+    'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 39-year-old Man. Relevant behavioral factors include: uses painkillers excessively, stress-related symptoms, self-medication, limited access to healthcare, physically active.',
+    'Severe abdominal pain',
+    '{"bp": "142/94", "hr": 87, "spo2": 99, "rr": 17, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11289333', 'CASE_11289333', 'Sarah Thomas', 39, 'Female', 'she/her', 
+    'African American', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 39-year-old Woman. Relevant behavioral factors include: high work-related stress, ignores early abdominal pain, self-medication, health anxiety, heavy smoker.',
+    'Intermittent abdominal pain',
+    '{"bp": "128/93", "hr": 65, "spo2": 96, "rr": 22, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11303674', 'CASE_11303674', 'Jessica Garcia', 46, 'Female', 'she/her', 
+    'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 46-year-old Woman. Relevant behavioral factors include: high anxiety, limited access to healthcare, non-compliant with dietary restriction, chronic alcohol consumption, regular medical checkups.',
+    'Chronic abdominal pain',
+    '{"bp": "119/72", "hr": 65, "spo2": 100, "rr": 19, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11306665', 'CASE_11306665', 'Jessica Martinez', 62, 'Female', 'she/her', 
+    'African American', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 62-year-old Woman. Relevant behavioral factors include: lives alone, high anxiety, ignores early abdominal pain, self-medication, chronic alcohol consumption.',
+    'Chronic abdominal pain',
+    '{"bp": "127/81", "hr": 87, "spo2": 99, "rr": 22, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11309272', 'CASE_11309272', 'David Brown', 35, 'Male', 'he/him', 
+    'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 35-year-old Man. Relevant behavioral factors include: avoids medical care, depressive mood, ignores early abdominal pain, limited access to healthcare, social smoker.',
+    'Intermittent abdominal pain',
+    '{"bp": "148/77", "hr": 72, "spo2": 95, "rr": 17, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11309808', 'CASE_11309808', 'Susan Martin', 54, 'Female', 'she/her', 
+    'Caucasian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 54-year-old Woman. Relevant behavioral factors include: physically demanding job, delays seeking surgical consultation, heavy smoker, low pain tolerance, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "110/94", "hr": 79, "spo2": 95, "rr": 16, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11313489', 'CASE_11313489', 'Ashley Miller', 68, 'Female', 'she/her', 
+    'Caucasian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 68-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, high anxiety, sedentary lifestyle, poor medication adherence.',
+    'Nausea and abdominal pain',
+    '{"bp": "110/85", "hr": 62, "spo2": 96, "rr": 18, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11324378', 'CASE_11324378', 'Sandra Anderson', 71, 'Female', 'she/her', 
+    'Unknown', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 71-year-old Woman. Relevant behavioral factors include: depressive mood, former smoker, self-medication, non-compliant with dietary restriction, low socioeconomic status.',
+    'Intermittent abdominal pain',
+    '{"bp": "134/95", "hr": 76, "spo2": 100, "rr": 20, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11325145', 'CASE_11325145', 'Linda Rodriguez', 31, 'Female', 'she/her', 
+    'Hispanic', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 31-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, self-medication, health anxiety, physically active.',
+    'Severe abdominal pain',
+    '{"bp": "146/92", "hr": 85, "spo2": 96, "rr": 18, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11325242', 'CASE_11325242', 'Richard Wilson', 61, 'Male', 'he/him', 
+    'Unknown', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 61-year-old Man. Relevant behavioral factors include: continues eating despite nausea, stress-related symptoms, chronic alcohol consumption, low socioeconomic status, regular medical checkups.',
+    'Nausea and abdominal pain',
+    '{"bp": "127/89", "hr": 90, "spo2": 98, "rr": 16, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11333221', 'CASE_11333221', 'Emily Thomas', 91, 'Female', 'she/her', 
+    'Hispanic', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 91-year-old Woman. Relevant behavioral factors include: low pain tolerance, good medication adherence, former smoker, ignores early abdominal pain, low socioeconomic status.',
+    'Intermittent abdominal pain',
+    '{"bp": "116/80", "hr": 97, "spo2": 99, "rr": 19, "temp": "98.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11337676', 'CASE_11337676', 'Ashley Johnson', 49, 'Female', 'she/her', 
+    'African American', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 49-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, good medication adherence, health anxiety, physically active.',
+    'Nausea and abdominal pain',
+    '{"bp": "110/72", "hr": 78, "spo2": 96, "rr": 17, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11341524', 'CASE_11341524', 'Nancy Wilson', 74, 'Female', 'she/her', 
+    'African American', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 74-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, night shift worker, health anxiety, poor medication adherence, limited family support.',
+    'Severe abdominal pain',
+    '{"bp": "110/72", "hr": 73, "spo2": 97, "rr": 19, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11345822', 'CASE_11345822', 'William Taylor', 59, 'Male', 'he/him', 
+    'Hispanic', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 59-year-old Man. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, chronic alcohol consumption, frequent emergency department visits, poor insight into illness.',
+    'Nausea and abdominal pain',
+    '{"bp": "132/78", "hr": 94, "spo2": 96, "rr": 20, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11353978', 'CASE_11353978', 'Sandra Lopez', 67, 'Female', 'she/her', 
+    'African American', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 67-year-old Woman. Relevant behavioral factors include: limited access to healthcare, delays seeking surgical consultation, poor medication adherence, physically active, low pain tolerance.',
+    'Chronic abdominal pain',
+    '{"bp": "129/89", "hr": 80, "spo2": 98, "rr": 21, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11354070', 'CASE_11354070', 'Dorothy Wilson', 41, 'Female', 'she/her', 
+    'African American', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 41-year-old Woman. Relevant behavioral factors include: high work-related stress, depressive mood, non-compliant with dietary restriction, chronic alcohol consumption, regular medical checkups.',
+    'Chronic abdominal pain',
+    '{"bp": "133/70", "hr": 96, "spo2": 95, "rr": 16, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11361559', 'CASE_11361559', 'Robert Rodriguez', 51, 'Male', 'he/him', 
+    'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 51-year-old Man. Relevant behavioral factors include: night shift worker, lives alone, good medication adherence, non-compliant with dietary restriction, high pain tolerance.',
+    'Intermittent abdominal pain',
+    '{"bp": "139/80", "hr": 86, "spo2": 98, "rr": 19, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11364335', 'CASE_11364335', 'Daniel Rodriguez', 41, 'Male', 'he/him', 
+    'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 41-year-old Man. Relevant behavioral factors include: continues eating despite nausea, sedentary lifestyle, limited access to healthcare, low pain tolerance, regular medical checkups.',
+    'Nausea and abdominal pain',
+    '{"bp": "137/81", "hr": 74, "spo2": 100, "rr": 22, "temp": "97.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11364933', 'CASE_11364933', 'Margaret Jones', 57, 'Female', 'she/her', 
+    'Unknown', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 57-year-old Woman. Relevant behavioral factors include: high-fat diet, ignores early abdominal pain, high pain tolerance, delayed hospital presentation, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "143/90", "hr": 91, "spo2": 97, "rr": 20, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11365171', 'CASE_11365171', 'Linda Hernandez', 20, 'Female', 'she/her', 
+    'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 20-year-old Woman. Relevant behavioral factors include: high work-related stress, self-medication, irregular meal patterns, non-compliant with dietary restriction, poor insight into illness.',
+    'Intermittent abdominal pain',
+    '{"bp": "142/93", "hr": 82, "spo2": 100, "rr": 21, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11377991', 'CASE_11377991', 'Ashley Jones', 31, 'Female', 'she/her', 
+    'Unknown', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 31-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, stress-related symptoms, frequent emergency department visits, heavy smoker, low socioeconomic status.',
+    'Nausea and abdominal pain',
+    '{"bp": "147/75", "hr": 95, "spo2": 99, "rr": 18, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11381948', 'CASE_11381948', 'Lisa Garcia', 21, 'Female', 'she/her', 
+    'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 21-year-old Woman. Relevant behavioral factors include: lives alone, stress-related symptoms, sedentary lifestyle, non-compliant with dietary restriction, frequent emergency department visits.',
+    'Intermittent abdominal pain',
+    '{"bp": "119/83", "hr": 66, "spo2": 97, "rr": 21, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11382387', 'CASE_11382387', 'Robert Gonzalez', 51, 'Male', 'he/him', 
+    'African American', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 51-year-old Man. Relevant behavioral factors include: high work-related stress, depressive mood, self-medication, non-compliant with dietary restriction, binge drinking.',
+    'Intermittent abdominal pain',
+    '{"bp": "124/94", "hr": 94, "spo2": 100, "rr": 19, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11397896', 'CASE_11397896', 'Emily Rodriguez', 57, 'Female', 'she/her', 
+    'Caucasian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 57-year-old Woman. Relevant behavioral factors include: lives alone, good medication adherence, delays seeking surgical consultation, high pain tolerance, social smoker.',
+    'Chronic abdominal pain',
+    '{"bp": "123/90", "hr": 91, "spo2": 98, "rr": 22, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11404878', 'CASE_11404878', 'Anthony Brown', 55, 'Male', 'he/him', 
+    'Unknown', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 55-year-old Man. Relevant behavioral factors include: physically demanding job, delays seeking surgical consultation, high pain tolerance, physically active, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "130/80", "hr": 99, "spo2": 95, "rr": 18, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11407165', 'CASE_11407165', 'Matthew Rodriguez', 33, 'Male', 'he/him', 
+    'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 33-year-old Man. Relevant behavioral factors include: avoids medical care, health anxiety, delays seeking surgical consultation, chronic alcohol consumption, low socioeconomic status.',
+    'Chronic abdominal pain',
+    '{"bp": "111/77", "hr": 69, "spo2": 95, "rr": 20, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11407563', 'CASE_11407563', 'Jessica Martin', 39, 'Female', 'she/her', 
+    'African American', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 39-year-old Woman. Relevant behavioral factors include: avoids medical care, ignores early abdominal pain, binge drinking, low pain tolerance, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "139/82", "hr": 81, "spo2": 97, "rr": 19, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11415267', 'CASE_11415267', 'Dorothy Martin', 70, 'Female', 'she/her', 
+    'Unknown', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 70-year-old Woman. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, physically demanding job, depressive mood, binge drinking.',
+    'Severe abdominal pain',
+    '{"bp": "140/80", "hr": 88, "spo2": 97, "rr": 16, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11418296', 'CASE_11418296', 'Daniel Taylor', 27, 'Male', 'he/him', 
+    'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 27-year-old Man. Relevant behavioral factors include: high anxiety, good medication adherence, ignores early abdominal pain, chronic alcohol consumption, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "146/84", "hr": 95, "spo2": 97, "rr": 18, "temp": "97.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11419902', 'CASE_11419902', 'Anthony Martinez', 26, 'Male', 'he/him', 
+    'Unknown', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 26-year-old Man. Relevant behavioral factors include: high work-related stress, non-compliant with dietary restriction, low-fiber diet, poor insight into illness, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "118/84", "hr": 75, "spo2": 97, "rr": 17, "temp": "97.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11426173', 'CASE_11426173', 'David Garcia', 34, 'Male', 'he/him', 
+    'Hispanic', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 34-year-old Man. Relevant behavioral factors include: low socioeconomic status, poor medication adherence, delays seeking surgical consultation, heavy smoker, poor insight into illness.',
+    'Chronic abdominal pain',
+    '{"bp": "128/75", "hr": 65, "spo2": 100, "rr": 22, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11427738', 'CASE_11427738', 'Susan Taylor', 50, 'Female', 'she/her', 
+    'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 50-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high-fat diet, limited access to healthcare, health anxiety, regular medical checkups.',
+    'Severe abdominal pain',
+    '{"bp": "112/88", "hr": 98, "spo2": 99, "rr": 20, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11432522', 'CASE_11432522', 'Linda Davis', 45, 'Female', 'she/her', 
+    'Caucasian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 45-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, irregular meal patterns, poor insight into illness, delayed hospital presentation, limited family support.',
+    'Nausea and abdominal pain',
+    '{"bp": "114/94", "hr": 76, "spo2": 96, "rr": 22, "temp": "99.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11432819', 'CASE_11432819', 'Kimberly Miller', 25, 'Female', 'she/her', 
+    'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 25-year-old Woman. Relevant behavioral factors include: ignores early abdominal pain, self-medication, low-fiber diet, high pain tolerance, low socioeconomic status.',
+    'Intermittent abdominal pain',
+    '{"bp": "115/74", "hr": 67, "spo2": 96, "rr": 16, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11436948', 'CASE_11436948', 'Lisa Taylor', 21, 'Female', 'she/her', 
+    'Unknown', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 21-year-old Woman. Relevant behavioral factors include: high work-related stress, high-fat diet, ignores early abdominal pain, self-medication, poor insight into illness.',
+    'Intermittent abdominal pain',
+    '{"bp": "126/73", "hr": 97, "spo2": 97, "rr": 21, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11437257', 'CASE_11437257', 'Sandra Williams', 75, 'Female', 'she/her', 
+    'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 75-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, night shift worker, poor medication adherence, low pain tolerance, limited family support.',
+    'Nausea and abdominal pain',
+    '{"bp": "136/87", "hr": 74, "spo2": 100, "rr": 20, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11438173', 'CASE_11438173', 'William Brown', 84, 'Male', 'he/him', 
+    'African American', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 84-year-old Man. Relevant behavioral factors include: physically demanding job, high anxiety, good medication adherence, non-compliant with dietary restriction, heavy smoker.',
+    'Intermittent abdominal pain',
+    '{"bp": "117/76", "hr": 61, "spo2": 100, "rr": 17, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11441212', 'CASE_11441212', 'Lisa Anderson', 31, 'Female', 'she/her', 
+    'Asian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 31-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, health anxiety, regular medical checkups, social smoker.',
+    'Nausea and abdominal pain',
+    '{"bp": "137/70", "hr": 86, "spo2": 98, "rr": 20, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11441483', 'CASE_11441483', 'Sandra Hernandez', 66, 'Female', 'she/her', 
+    'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 66-year-old Woman. Relevant behavioral factors include: high work-related stress, former smoker, ignores early abdominal pain, self-medication, low pain tolerance.',
+    'Intermittent abdominal pain',
+    '{"bp": "141/82", "hr": 69, "spo2": 95, "rr": 18, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11450072', 'CASE_11450072', 'Daniel Wilson', 22, 'Male', 'he/him', 
+    'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 22-year-old Man. Relevant behavioral factors include: continues eating despite nausea, good medication adherence, stress-related symptoms, low-fiber diet, limited family support.',
+    'Nausea and abdominal pain',
+    '{"bp": "135/88", "hr": 67, "spo2": 97, "rr": 21, "temp": "99.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11458481', 'CASE_11458481', 'Sandra Jones', 23, 'Female', 'she/her', 
+    'Unknown', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 23-year-old Woman. Relevant behavioral factors include: depressive mood, poor medication adherence, delays seeking surgical consultation, heavy smoker, low socioeconomic status.',
+    'Chronic abdominal pain',
+    '{"bp": "124/93", "hr": 75, "spo2": 96, "rr": 19, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11461906', 'CASE_11461906', 'Anthony Anderson', 62, 'Male', 'he/him', 
+    'Caucasian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 62-year-old Man. Relevant behavioral factors include: stress-related symptoms, ignores early abdominal pain, low-fiber diet, frequent emergency department visits, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "123/76", "hr": 94, "spo2": 96, "rr": 17, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11463611', 'CASE_11463611', 'Michael Garcia', 54, 'Male', 'he/him', 
+    'Unknown', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 54-year-old Man. Relevant behavioral factors include: uses painkillers excessively, irregular meal patterns, poor insight into illness, delayed hospital presentation, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "131/85", "hr": 91, "spo2": 97, "rr": 22, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11469232', 'CASE_11469232', 'Emily Anderson', 32, 'Female', 'she/her', 
+    'Unknown', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 32-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, stress-related symptoms, limited access to healthcare, poor medication adherence, binge drinking.',
+    'Severe abdominal pain',
+    '{"bp": "132/82", "hr": 99, "spo2": 96, "rr": 17, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11470408', 'CASE_11470408', 'Mark Smith', 68, 'Male', 'he/him', 
+    'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 68-year-old Man. Relevant behavioral factors include: avoids medical care, high-fat diet, stress-related symptoms, ignores early abdominal pain, low socioeconomic status.',
+    'Intermittent abdominal pain',
+    '{"bp": "140/78", "hr": 88, "spo2": 95, "rr": 22, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11474392', 'CASE_11474392', 'Margaret Gonzalez', 82, 'Female', 'she/her', 
+    'African American', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 82-year-old Woman. Relevant behavioral factors include: physically demanding job, high anxiety, good medication adherence, non-compliant with dietary restriction, chronic alcohol consumption.',
+    'Chronic abdominal pain',
+    '{"bp": "120/71", "hr": 89, "spo2": 98, "rr": 19, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11475386', 'CASE_11475386', 'Karen Hernandez', 63, 'Female', 'she/her', 
+    'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 63-year-old Woman. Relevant behavioral factors include: sedentary lifestyle, ignores early abdominal pain, poor medication adherence, low pain tolerance, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "138/80", "hr": 97, "spo2": 99, "rr": 19, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11482361', 'CASE_11482361', 'Linda Thomas', 65, 'Female', 'she/her', 
+    'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 65-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, good medication adherence, stress-related symptoms, limited access to healthcare, social smoker.',
+    'Nausea and abdominal pain',
+    '{"bp": "148/85", "hr": 77, "spo2": 99, "rr": 20, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11483477', 'CASE_11483477', 'Karen Moore', 45, 'Female', 'she/her', 
+    'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 45-year-old Woman. Relevant behavioral factors include: physically demanding job, high anxiety, irregular meal patterns, non-compliant with dietary restriction, regular medical checkups.',
+    'Intermittent abdominal pain',
+    '{"bp": "121/83", "hr": 77, "spo2": 98, "rr": 19, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11487947', 'CASE_11487947', 'Sarah Anderson', 50, 'Female', 'she/her', 
+    'Unknown', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 50-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, uses painkillers excessively, depressive mood, social smoker.',
+    'Severe abdominal pain',
+    '{"bp": "138/77", "hr": 74, "spo2": 97, "rr": 21, "temp": "99.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11488639', 'CASE_11488639', 'Jessica Davis', 26, 'Female', 'she/her', 
+    'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 26-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, good medication adherence, stress-related symptoms, sedentary lifestyle, limited access to healthcare.',
+    'Nausea and abdominal pain',
+    '{"bp": "122/83", "hr": 74, "spo2": 95, "rr": 18, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11489960', 'CASE_11489960', 'Matthew Williams', 22, 'Male', 'he/him', 
+    'Asian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 22-year-old Man. Relevant behavioral factors include: social smoker, self-medication, non-compliant with dietary restriction, low pain tolerance, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "117/71", "hr": 87, "spo2": 96, "rr": 20, "temp": "97.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11490406', 'CASE_11490406', 'Emily Rodriguez', 79, 'Female', 'she/her', 
+    'Caucasian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 79-year-old Woman. Relevant behavioral factors include: lives alone, delays seeking surgical consultation, high pain tolerance, heavy smoker, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "134/85", "hr": 66, "spo2": 95, "rr": 22, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11494934', 'CASE_11494934', 'Robert Martinez', 77, 'Male', 'he/him', 
+    'Hispanic', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 77-year-old Man. Relevant behavioral factors include: continues eating despite nausea, good medication adherence, sedentary lifestyle, poor insight into illness, limited family support.',
+    'Nausea and abdominal pain',
+    '{"bp": "137/72", "hr": 62, "spo2": 100, "rr": 16, "temp": "97.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11508666', 'CASE_11508666', 'Richard Gonzalez', 34, 'Male', 'he/him', 
+    'Unknown', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 34-year-old Man. Relevant behavioral factors include: uses painkillers excessively, limited access to healthcare, health anxiety, frequent emergency department visits, social smoker.',
+    'Severe abdominal pain',
+    '{"bp": "128/73", "hr": 89, "spo2": 99, "rr": 18, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11512324', 'CASE_11512324', 'Lisa Brown', 24, 'Female', 'she/her', 
+    'Unknown', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 24-year-old Woman. Relevant behavioral factors include: high-fat diet, low socioeconomic status, poor medication adherence, delays seeking surgical consultation, low pain tolerance.',
+    'Chronic abdominal pain',
+    '{"bp": "134/81", "hr": 62, "spo2": 100, "rr": 22, "temp": "97.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11518710', 'CASE_11518710', 'William Thomas', 63, 'Male', 'he/him', 
+    'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 63-year-old Man. Relevant behavioral factors include: social smoker, self-medication, delays seeking surgical consultation, high pain tolerance, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "144/84", "hr": 100, "spo2": 97, "rr": 17, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11520582', 'CASE_11520582', 'Michael Wilson', 19, 'Male', 'he/him', 
+    'Caucasian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 19-year-old Man. Relevant behavioral factors include: avoids medical care, depressive mood, ignores early abdominal pain, low-fiber diet, low socioeconomic status.',
+    'Intermittent abdominal pain',
+    '{"bp": "139/85", "hr": 96, "spo2": 95, "rr": 21, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11526031', 'CASE_11526031', 'Margaret Thomas', 63, 'Female', 'she/her', 
+    'Unknown', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 63-year-old Woman. Relevant behavioral factors include: depressive mood, former smoker, ignores early abdominal pain, limited access to healthcare, regular medical checkups.',
+    'Intermittent abdominal pain',
+    '{"bp": "144/79", "hr": 89, "spo2": 99, "rr": 22, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11532659', 'CASE_11532659', 'Kimberly Martinez', 59, 'Female', 'she/her', 
+    'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 59-year-old Woman. Relevant behavioral factors include: lives alone, high anxiety, former smoker, non-compliant with dietary restriction, poor medication adherence.',
+    'Intermittent abdominal pain',
+    '{"bp": "126/95", "hr": 96, "spo2": 97, "rr": 17, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11532808', 'CASE_11532808', 'Daniel Martinez', 54, 'Male', 'he/him', 
+    'Hispanic', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 54-year-old Man. Relevant behavioral factors include: depressive mood, lives alone, ignores early abdominal pain, frequent emergency department visits, binge drinking.',
+    'Intermittent abdominal pain',
+    '{"bp": "125/70", "hr": 69, "spo2": 97, "rr": 21, "temp": "99.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11533366', 'CASE_11533366', 'Dorothy Martinez', 60, 'Female', 'she/her', 
+    'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 60-year-old Woman. Relevant behavioral factors include: high anxiety, good medication adherence, ignores early abdominal pain, heavy smoker, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "136/86", "hr": 88, "spo2": 97, "rr": 19, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11542488', 'CASE_11542488', 'Mary Martinez', 64, 'Female', 'she/her', 
+    'Caucasian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 64-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, good medication adherence, low-fiber diet, high pain tolerance, low socioeconomic status.',
+    'Nausea and abdominal pain',
+    '{"bp": "111/75", "hr": 97, "spo2": 99, "rr": 16, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11545313', 'CASE_11545313', 'Lisa Lopez', 91, 'Female', 'she/her', 
+    'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 91-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, depressive mood, chronic alcohol consumption, frequent emergency department visits, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "149/86", "hr": 65, "spo2": 100, "rr": 19, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11547436', 'CASE_11547436', 'Lisa Miller', 30, 'Female', 'she/her', 
+    'Unknown', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 30-year-old Woman. Relevant behavioral factors include: physically demanding job, high-fat diet, stress-related symptoms, ignores early abdominal pain, poor medication adherence.',
+    'Intermittent abdominal pain',
+    '{"bp": "127/92", "hr": 92, "spo2": 98, "rr": 16, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11552008', 'CASE_11552008', 'Ashley Rodriguez', 33, 'Female', 'she/her', 
+    'African American', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 33-year-old Woman. Relevant behavioral factors include: former smoker, delays seeking surgical consultation, low pain tolerance, delayed hospital presentation, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "110/79", "hr": 64, "spo2": 98, "rr": 20, "temp": "99.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11553781', 'CASE_11553781', 'Donald Thomas', 31, 'Male', 'he/him', 
+    'African American', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 31-year-old Man. Relevant behavioral factors include: avoids medical care, night shift worker, delays seeking surgical consultation, poor insight into illness, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "144/92", "hr": 71, "spo2": 99, "rr": 20, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11554504', 'CASE_11554504', 'Nancy Martin', 59, 'Female', 'she/her', 
+    'Asian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 59-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, lives alone, sedentary lifestyle, health anxiety, frequent emergency department visits.',
+    'Severe abdominal pain',
+    '{"bp": "119/71", "hr": 69, "spo2": 96, "rr": 22, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11557394', 'CASE_11557394', 'Mary Jackson', 20, 'Female', 'she/her', 
+    'Hispanic', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 20-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, self-medication, health anxiety, heavy smoker.',
+    'Severe abdominal pain',
+    '{"bp": "138/83", "hr": 61, "spo2": 99, "rr": 22, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11558244', 'CASE_11558244', 'Lisa Williams', 34, 'Female', 'she/her', 
+    'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 34-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, former smoker, high pain tolerance, delayed hospital presentation, limited family support.',
+    'Nausea and abdominal pain',
+    '{"bp": "133/75", "hr": 90, "spo2": 100, "rr": 22, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11559338', 'CASE_11559338', 'Lisa Gonzalez', 81, 'Female', 'she/her', 
+    'Caucasian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 81-year-old Woman. Relevant behavioral factors include: lives alone, high anxiety, self-medication, non-compliant with dietary restriction, heavy smoker.',
+    'Intermittent abdominal pain',
+    '{"bp": "120/75", "hr": 69, "spo2": 98, "rr": 18, "temp": "97.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11564165', 'CASE_11564165', 'Ashley Miller', 28, 'Female', 'she/her', 
+    'Hispanic', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 28-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, night shift worker, high anxiety, regular medical checkups.',
+    'Severe abdominal pain',
+    '{"bp": "120/85", "hr": 99, "spo2": 99, "rr": 19, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11573961', 'CASE_11573961', 'Dorothy Moore', 84, 'Female', 'she/her', 
+    'Hispanic', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 84-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, sedentary lifestyle, limited access to healthcare, low pain tolerance, regular medical checkups.',
+    'Severe abdominal pain',
+    '{"bp": "126/72", "hr": 72, "spo2": 98, "rr": 16, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11574089', 'CASE_11574089', 'Mary Gonzalez', 75, 'Female', 'she/her', 
+    'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 75-year-old Woman. Relevant behavioral factors include: physically demanding job, depressive mood, delays seeking surgical consultation, heavy smoker, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "150/92", "hr": 64, "spo2": 98, "rr": 21, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11585572', 'CASE_11585572', 'Donald Miller', 49, 'Male', 'he/him', 
+    'African American', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 49-year-old Man. Relevant behavioral factors include: physically demanding job, sedentary lifestyle, self-medication, ignores early abdominal pain, poor insight into illness.',
+    'Intermittent abdominal pain',
+    '{"bp": "144/83", "hr": 64, "spo2": 99, "rr": 18, "temp": "99.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11585755', 'CASE_11585755', 'Sandra Rodriguez', 24, 'Female', 'she/her', 
+    'African American', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 24-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high anxiety, self-medication, irregular meal patterns, limited family support.',
+    'Severe abdominal pain',
+    '{"bp": "146/93", "hr": 89, "spo2": 95, "rr": 19, "temp": "97.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11589051', 'CASE_11589051', 'Donna Thomas', 30, 'Female', 'she/her', 
+    'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 30-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, binge drinking, poor insight into illness, regular medical checkups, limited family support.',
+    'Nausea and abdominal pain',
+    '{"bp": "135/75", "hr": 98, "spo2": 100, "rr": 17, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11593760', 'CASE_11593760', 'Nancy Johnson', 85, 'Female', 'she/her', 
+    'Asian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 85-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, self-medication, limited access to healthcare, heavy smoker, poor insight into illness.',
+    'Nausea and abdominal pain',
+    '{"bp": "128/93", "hr": 99, "spo2": 99, "rr": 16, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11595084', 'CASE_11595084', 'Michael Jackson', 64, 'Male', 'he/him', 
+    'Unknown', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 64-year-old Man. Relevant behavioral factors include: physically demanding job, depressive mood, good medication adherence, sedentary lifestyle, ignores early abdominal pain.',
+    'Intermittent abdominal pain',
+    '{"bp": "112/80", "hr": 64, "spo2": 97, "rr": 20, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11597556', 'CASE_11597556', 'Richard Moore', 31, 'Male', 'he/him', 
+    'Caucasian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 31-year-old Man. Relevant behavioral factors include: continues eating despite nausea, night shift worker, low pain tolerance, low socioeconomic status, delayed hospital presentation.',
+    'Nausea and abdominal pain',
+    '{"bp": "111/71", "hr": 96, "spo2": 95, "rr": 22, "temp": "98.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11603188', 'CASE_11603188', 'Nancy Wilson', 45, 'Female', 'she/her', 
+    'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 45-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, high pain tolerance, frequent emergency department visits, heavy smoker, limited family support.',
+    'Nausea and abdominal pain',
+    '{"bp": "150/89", "hr": 87, "spo2": 97, "rr": 19, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11613173', 'CASE_11613173', 'Matthew Wilson', 40, 'Male', 'he/him', 
+    'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 40-year-old Man. Relevant behavioral factors include: high work-related stress, high anxiety, sedentary lifestyle, self-medication, delays seeking surgical consultation.',
+    'Chronic abdominal pain',
+    '{"bp": "116/89", "hr": 65, "spo2": 97, "rr": 17, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11613566', 'CASE_11613566', 'Emily Moore', 53, 'Female', 'she/her', 
+    'African American', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 53-year-old Woman. Relevant behavioral factors include: night shift worker, lives alone, non-compliant with dietary restriction, low pain tolerance, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "129/88", "hr": 99, "spo2": 95, "rr": 19, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11614115', 'CASE_11614115', 'David Lopez', 69, 'Male', 'he/him', 
+    'Unknown', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 69-year-old Man. Relevant behavioral factors include: high-fat diet, self-medication, delays seeking surgical consultation, high pain tolerance, low socioeconomic status.',
+    'Chronic abdominal pain',
+    '{"bp": "131/77", "hr": 95, "spo2": 96, "rr": 17, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11617428', 'CASE_11617428', 'Thomas Martinez', 22, 'Male', 'he/him', 
+    'Unknown', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 22-year-old Man. Relevant behavioral factors include: stress-related symptoms, sedentary lifestyle, non-compliant with dietary restriction, delayed hospital presentation, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "135/71", "hr": 82, "spo2": 98, "rr": 21, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11620485', 'CASE_11620485', 'Susan Martinez', 70, 'Female', 'she/her', 
+    'Unknown', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 70-year-old Woman. Relevant behavioral factors include: lives alone, stress-related symptoms, ignores early abdominal pain, irregular meal patterns, frequent emergency department visits.',
+    'Intermittent abdominal pain',
+    '{"bp": "132/72", "hr": 84, "spo2": 100, "rr": 20, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11622905', 'CASE_11622905', 'Dorothy Brown', 58, 'Female', 'she/her', 
+    'Hispanic', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 58-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, lives alone, self-medication, health anxiety, low-fiber diet.',
+    'Severe abdominal pain',
+    '{"bp": "142/73", "hr": 69, "spo2": 96, "rr": 20, "temp": "98.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11644013', 'CASE_11644013', 'Linda Davis', 72, 'Female', 'she/her', 
+    'Hispanic', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 72-year-old Woman. Relevant behavioral factors include: social smoker, high pain tolerance, poor medication adherence, delays seeking surgical consultation, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "145/95", "hr": 72, "spo2": 96, "rr": 20, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11654859', 'CASE_11654859', 'Emily Davis', 18, 'Female', 'she/her', 
+    'Unknown', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 18-year-old Woman. Relevant behavioral factors include: high work-related stress, depressive mood, poor medication adherence, delays seeking surgical consultation, chronic alcohol consumption.',
+    'Chronic abdominal pain',
+    '{"bp": "149/71", "hr": 64, "spo2": 95, "rr": 21, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11658175', 'CASE_11658175', 'Jessica Martin', 55, 'Female', 'she/her', 
+    'Hispanic', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 55-year-old Woman. Relevant behavioral factors include: high anxiety, self-medication, delays seeking surgical consultation, chronic alcohol consumption, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "110/95", "hr": 75, "spo2": 98, "rr": 21, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11662214', 'CASE_11662214', 'Margaret Martinez', 86, 'Female', 'she/her', 
+    'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 86-year-old Woman. Relevant behavioral factors include: high work-related stress, good medication adherence, ignores early abdominal pain, chronic alcohol consumption, poor insight into illness.',
+    'Chronic abdominal pain',
+    '{"bp": "138/89", "hr": 82, "spo2": 96, "rr": 19, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11666439', 'CASE_11666439', 'Lisa Martin', 44, 'Female', 'she/her', 
+    'Hispanic', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 44-year-old Woman. Relevant behavioral factors include: avoids medical care, stress-related symptoms, ignores early abdominal pain, irregular meal patterns, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "139/72", "hr": 60, "spo2": 97, "rr": 18, "temp": "99.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11667451', 'CASE_11667451', 'William Brown', 71, 'Male', 'he/him', 
+    'Unknown', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 71-year-old Man. Relevant behavioral factors include: stress-related symptoms, ignores early abdominal pain, irregular meal patterns, frequent emergency department visits, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "148/73", "hr": 63, "spo2": 99, "rr": 22, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11676740', 'CASE_11676740', 'Daniel Smith', 64, 'Male', 'he/him', 
+    'Unknown', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 64-year-old Man. Relevant behavioral factors include: physically demanding job, sedentary lifestyle, non-compliant with dietary restriction, health anxiety, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "131/87", "hr": 97, "spo2": 97, "rr": 17, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11684586', 'CASE_11684586', 'Ashley Davis', 19, 'Female', 'she/her', 
+    'Unknown', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 19-year-old Woman. Relevant behavioral factors include: depressive mood, lives alone, sedentary lifestyle, self-medication, non-compliant with dietary restriction.',
+    'Intermittent abdominal pain',
+    '{"bp": "134/86", "hr": 91, "spo2": 98, "rr": 19, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11686464', 'CASE_11686464', 'Michael Moore', 84, 'Male', 'he/him', 
+    'African American', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 84-year-old Man. Relevant behavioral factors include: poor insight into illness, good medication adherence, sedentary lifestyle, ignores early abdominal pain, low socioeconomic status.',
+    'Intermittent abdominal pain',
+    '{"bp": "116/74", "hr": 62, "spo2": 98, "rr": 16, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11689448', 'CASE_11689448', 'Mark Lopez', 67, 'Male', 'he/him', 
+    'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 67-year-old Man. Relevant behavioral factors include: stress-related symptoms, irregular meal patterns, delays seeking surgical consultation, low socioeconomic status, regular medical checkups.',
+    'Chronic abdominal pain',
+    '{"bp": "141/74", "hr": 85, "spo2": 97, "rr": 17, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11690136', 'CASE_11690136', 'Donna Gonzalez', 77, 'Female', 'she/her', 
+    'Unknown', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 77-year-old Woman. Relevant behavioral factors include: high anxiety, ignores early abdominal pain, low socioeconomic status, poor medication adherence, binge drinking.',
+    'Intermittent abdominal pain',
+    '{"bp": "139/90", "hr": 99, "spo2": 95, "rr": 17, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11693488', 'CASE_11693488', 'Jessica Jackson', 40, 'Female', 'she/her', 
+    'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 40-year-old Woman. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, poor medication adherence, binge drinking, poor insight into illness.',
+    'Severe abdominal pain',
+    '{"bp": "112/77", "hr": 83, "spo2": 99, "rr": 21, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11694247', 'CASE_11694247', 'Charles Jones', 20, 'Male', 'he/him', 
+    'African American', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 20-year-old Man. Relevant behavioral factors include: continues eating despite nausea, lives alone, high anxiety, former smoker, poor medication adherence.',
+    'Nausea and abdominal pain',
+    '{"bp": "136/70", "hr": 66, "spo2": 96, "rr": 19, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11695033', 'CASE_11695033', 'Anthony Jones', 23, 'Male', 'he/him', 
+    'Asian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 23-year-old Man. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, heavy smoker, poor insight into illness, delayed hospital presentation.',
+    'Nausea and abdominal pain',
+    '{"bp": "129/75", "hr": 99, "spo2": 95, "rr": 21, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11705734', 'CASE_11705734', 'Charles Williams', 80, 'Male', 'he/him', 
+    'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 80-year-old Man. Relevant behavioral factors include: physically demanding job, ignores early abdominal pain, self-medication, low-fiber diet, high pain tolerance.',
+    'Intermittent abdominal pain',
+    '{"bp": "128/71", "hr": 93, "spo2": 95, "rr": 16, "temp": "99.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11712125', 'CASE_11712125', 'Susan Martin', 28, 'Female', 'she/her', 
+    'African American', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 28-year-old Woman. Relevant behavioral factors include: physically demanding job, irregular meal patterns, delays seeking surgical consultation, poor insight into illness, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "138/74", "hr": 61, "spo2": 96, "rr": 16, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11715648', 'CASE_11715648', 'Linda Thomas', 53, 'Female', 'she/her', 
+    'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 53-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, stress-related symptoms, poor medication adherence, binge drinking.',
+    'Nausea and abdominal pain',
+    '{"bp": "143/92", "hr": 99, "spo2": 97, "rr": 17, "temp": "99.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11719981', 'CASE_11719981', 'Emily Moore', 59, 'Female', 'she/her', 
+    'Caucasian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 59-year-old Woman. Relevant behavioral factors include: stress-related symptoms, limited access to healthcare, irregular meal patterns, delays seeking surgical consultation, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "126/86", "hr": 89, "spo2": 98, "rr": 18, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11724488', 'CASE_11724488', 'Donald Garcia', 82, 'Male', 'he/him', 
+    'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 82-year-old Man. Relevant behavioral factors include: continues eating despite nausea, lives alone, stress-related symptoms, poor medication adherence, heavy smoker.',
+    'Nausea and abdominal pain',
+    '{"bp": "138/78", "hr": 84, "spo2": 98, "rr": 22, "temp": "97.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11725523', 'CASE_11725523', 'Joseph Hernandez', 56, 'Male', 'he/him', 
+    'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 56-year-old Man. Relevant behavioral factors include: physically demanding job, self-medication, non-compliant with dietary restriction, high pain tolerance, physically active.',
+    'Intermittent abdominal pain',
+    '{"bp": "125/78", "hr": 63, "spo2": 95, "rr": 20, "temp": "99.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11726724', 'CASE_11726724', 'Linda Thomas', 79, 'Female', 'she/her', 
+    'Hispanic', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 79-year-old Woman. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, night shift worker, high pain tolerance, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "145/75", "hr": 88, "spo2": 95, "rr": 21, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11728555', 'CASE_11728555', 'Lisa Jackson', 52, 'Female', 'she/her', 
+    'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 52-year-old Woman. Relevant behavioral factors include: self-medication, irregular meal patterns, non-compliant with dietary restriction, high pain tolerance, low socioeconomic status.',
+    'Intermittent abdominal pain',
+    '{"bp": "127/71", "hr": 60, "spo2": 95, "rr": 18, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11728692', 'CASE_11728692', 'Karen Hernandez', 28, 'Female', 'she/her', 
+    'Unknown', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 28-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, night shift worker, lives alone, good medication adherence, poor insight into illness.',
+    'Severe abdominal pain',
+    '{"bp": "145/72", "hr": 65, "spo2": 96, "rr": 17, "temp": "98.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11737161', 'CASE_11737161', 'Mark Lopez', 52, 'Male', 'he/him', 
+    'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 52-year-old Man. Relevant behavioral factors include: high anxiety, non-compliant with dietary restriction, low socioeconomic status, poor medication adherence, binge drinking.',
+    'Intermittent abdominal pain',
+    '{"bp": "148/79", "hr": 60, "spo2": 96, "rr": 19, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11739512', 'CASE_11739512', 'Christopher Garcia', 83, 'Male', 'he/him', 
+    'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 83-year-old Man. Relevant behavioral factors include: uses painkillers excessively, lives alone, self-medication, binge drinking, low pain tolerance.',
+    'Severe abdominal pain',
+    '{"bp": "140/70", "hr": 83, "spo2": 95, "rr": 20, "temp": "99.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11740714', 'CASE_11740714', 'Mark Davis', 34, 'Male', 'he/him', 
+    'Hispanic', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 34-year-old Man. Relevant behavioral factors include: uses painkillers excessively, poor insight into illness, sedentary lifestyle, low socioeconomic status, regular medical checkups.',
+    'Severe abdominal pain',
+    '{"bp": "137/83", "hr": 91, "spo2": 97, "rr": 22, "temp": "98.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11742206', 'CASE_11742206', 'Lisa Brown', 50, 'Female', 'she/her', 
+    'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 50-year-old Woman. Relevant behavioral factors include: avoids medical care, high anxiety, lives alone, former smoker, ignores early abdominal pain.',
+    'Intermittent abdominal pain',
+    '{"bp": "148/81", "hr": 79, "spo2": 98, "rr": 20, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11744921', 'CASE_11744921', 'Linda Martin', 64, 'Female', 'she/her', 
+    'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 64-year-old Woman. Relevant behavioral factors include: high work-related stress, high-fat diet, depressive mood, self-medication, delays seeking surgical consultation.',
+    'Chronic abdominal pain',
+    '{"bp": "140/77", "hr": 95, "spo2": 99, "rr": 18, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11746236', 'CASE_11746236', 'Emily Martin', 19, 'Female', 'she/her', 
+    'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 19-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high anxiety, heavy smoker, delayed hospital presentation, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "143/77", "hr": 76, "spo2": 98, "rr": 17, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11756787', 'CASE_11756787', 'Matthew Smith', 23, 'Male', 'he/him', 
+    'Hispanic', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 23-year-old Man. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, high-fat diet, lives alone, poor insight into illness.',
+    'Nausea and abdominal pain',
+    '{"bp": "128/92", "hr": 95, "spo2": 99, "rr": 19, "temp": "97.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11761621', 'CASE_11761621', 'Thomas Martinez', 44, 'Male', 'he/him', 
+    'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 44-year-old Man. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, limited access to healthcare, health anxiety, physically active.',
+    'Nausea and abdominal pain',
+    '{"bp": "122/89", "hr": 63, "spo2": 99, "rr": 20, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11761802', 'CASE_11761802', 'Lisa Lopez', 48, 'Female', 'she/her', 
+    'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 48-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, high anxiety, binge drinking, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "144/76", "hr": 80, "spo2": 100, "rr": 20, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11765822', 'CASE_11765822', 'Ashley Thomas', 45, 'Female', 'she/her', 
+    'Asian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 45-year-old Woman. Relevant behavioral factors include: avoids medical care, ignores early abdominal pain, limited access to healthcare, heavy smoker, low pain tolerance.',
+    'Intermittent abdominal pain',
+    '{"bp": "150/79", "hr": 85, "spo2": 100, "rr": 22, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11783205', 'CASE_11783205', 'Richard Jones', 32, 'Male', 'he/him', 
+    'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 32-year-old Man. Relevant behavioral factors include: former smoker, self-medication, non-compliant with dietary restriction, health anxiety, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "130/77", "hr": 62, "spo2": 96, "rr": 21, "temp": "99.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11795159', 'CASE_11795159', 'Margaret Thomas', 53, 'Female', 'she/her', 
+    'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 53-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, sedentary lifestyle, poor insight into illness, delayed hospital presentation, limited family support.',
+    'Nausea and abdominal pain',
+    '{"bp": "119/82", "hr": 93, "spo2": 97, "rr": 16, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11801645', 'CASE_11801645', 'Thomas Martin', 33, 'Male', 'he/him', 
+    'African American', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 33-year-old Man. Relevant behavioral factors include: depressive mood, ignores early abdominal pain, low-fiber diet, low socioeconomic status, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "123/78", "hr": 61, "spo2": 95, "rr": 17, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11802081', 'CASE_11802081', 'John Wilson', 35, 'Male', 'he/him', 
+    'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 35-year-old Man. Relevant behavioral factors include: physically demanding job, ignores early abdominal pain, self-medication, high pain tolerance, heavy smoker.',
+    'Intermittent abdominal pain',
+    '{"bp": "128/73", "hr": 61, "spo2": 100, "rr": 19, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11803545', 'CASE_11803545', 'Kimberly Wilson', 31, 'Female', 'she/her', 
+    'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 31-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, good medication adherence, binge drinking, low pain tolerance.',
+    'Nausea and abdominal pain',
+    '{"bp": "141/81", "hr": 78, "spo2": 99, "rr": 18, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11804069', 'CASE_11804069', 'Margaret Smith', 50, 'Female', 'she/her', 
+    'Caucasian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 50-year-old Woman. Relevant behavioral factors include: high work-related stress, poor medication adherence, delays seeking surgical consultation, low-fiber diet, low pain tolerance.',
+    'Chronic abdominal pain',
+    '{"bp": "126/72", "hr": 63, "spo2": 96, "rr": 18, "temp": "97.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11808155', 'CASE_11808155', 'Jessica Davis', 85, 'Female', 'she/her', 
+    'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 85-year-old Woman. Relevant behavioral factors include: lives alone, high anxiety, delays seeking surgical consultation, binge drinking, regular medical checkups.',
+    'Chronic abdominal pain',
+    '{"bp": "128/87", "hr": 68, "spo2": 98, "rr": 16, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11808233', 'CASE_11808233', 'Margaret Taylor', 22, 'Female', 'she/her', 
+    'Unknown', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 22-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, lives alone, high anxiety, high-fat diet, poor medication adherence.',
+    'Severe abdominal pain',
+    '{"bp": "136/92", "hr": 69, "spo2": 98, "rr": 16, "temp": "97.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11815391', 'CASE_11815391', 'Joseph Jones', 19, 'Male', 'he/him', 
+    'Caucasian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 19-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, former smoker, health anxiety, delays seeking surgical consultation.',
+    'Chronic abdominal pain',
+    '{"bp": "139/71", "hr": 85, "spo2": 97, "rr": 21, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11815394', 'CASE_11815394', 'Mark Lopez', 45, 'Male', 'he/him', 
+    'Caucasian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 45-year-old Man. Relevant behavioral factors include: social smoker, continues eating despite nausea, high anxiety, regular medical checkups, limited family support.',
+    'Nausea and abdominal pain',
+    '{"bp": "138/78", "hr": 69, "spo2": 99, "rr": 21, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11816365', 'CASE_11816365', 'Michael Taylor', 56, 'Male', 'he/him', 
+    'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 56-year-old Man. Relevant behavioral factors include: good medication adherence, non-compliant with dietary restriction, health anxiety, chronic alcohol consumption, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "143/84", "hr": 90, "spo2": 95, "rr": 18, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11817384', 'CASE_11817384', 'Nancy Moore', 55, 'Female', 'she/her', 
+    'Caucasian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 55-year-old Woman. Relevant behavioral factors include: night shift worker, non-compliant with dietary restriction, health anxiety, low socioeconomic status, regular medical checkups.',
+    'Intermittent abdominal pain',
+    '{"bp": "133/80", "hr": 71, "spo2": 98, "rr": 22, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11825167', 'CASE_11825167', 'John Williams', 54, 'Male', 'he/him', 
+    'Unknown', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 54-year-old Man. Relevant behavioral factors include: night shift worker, ignores early abdominal pain, high pain tolerance, delayed hospital presentation, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "127/91", "hr": 99, "spo2": 95, "rr": 19, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11828074', 'CASE_11828074', 'David Rodriguez', 59, 'Male', 'he/him', 
+    'Hispanic', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 59-year-old Man. Relevant behavioral factors include: sedentary lifestyle, non-compliant with dietary restriction, health anxiety, poor medication adherence, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "133/77", "hr": 60, "spo2": 99, "rr": 21, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11829290', 'CASE_11829290', 'Nancy Miller', 20, 'Female', 'she/her', 
+    'African American', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 20-year-old Woman. Relevant behavioral factors include: physically demanding job, self-medication, non-compliant with dietary restriction, low-fiber diet, high pain tolerance.',
+    'Intermittent abdominal pain',
+    '{"bp": "130/80", "hr": 88, "spo2": 95, "rr": 19, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11829995', 'CASE_11829995', 'Christopher Jackson', 22, 'Male', 'he/him', 
+    'Hispanic', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 22-year-old Man. Relevant behavioral factors include: depressive mood, sedentary lifestyle, self-medication, ignores early abdominal pain, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "110/80", "hr": 75, "spo2": 99, "rr": 16, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11833713', 'CASE_11833713', 'Donna Martin', 70, 'Female', 'she/her', 
+    'Hispanic', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 70-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, health anxiety, heavy smoker, delayed hospital presentation.',
+    'Nausea and abdominal pain',
+    '{"bp": "147/72", "hr": 67, "spo2": 100, "rr": 21, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11853064', 'CASE_11853064', 'Linda Davis', 29, 'Female', 'she/her', 
+    'Unknown', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 29-year-old Woman. Relevant behavioral factors include: low pain tolerance, good medication adherence, ignores early abdominal pain, chronic alcohol consumption, low socioeconomic status.',
+    'Chronic abdominal pain',
+    '{"bp": "121/95", "hr": 62, "spo2": 99, "rr": 20, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11853603', 'CASE_11853603', 'Jessica Rodriguez', 60, 'Female', 'she/her', 
+    'Asian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 60-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, depressive mood, low-fiber diet, delayed hospital presentation, limited family support.',
+    'Nausea and abdominal pain',
+    '{"bp": "140/81", "hr": 67, "spo2": 98, "rr": 19, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11861225', 'CASE_11861225', 'Joseph Thomas', 41, 'Male', 'he/him', 
+    'Asian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 41-year-old Man. Relevant behavioral factors include: ignores early abdominal pain, self-medication, limited access to healthcare, high pain tolerance, binge drinking.',
+    'Intermittent abdominal pain',
+    '{"bp": "133/88", "hr": 80, "spo2": 96, "rr": 20, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11864955', 'CASE_11864955', 'Ashley Jackson', 28, 'Female', 'she/her', 
+    'African American', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 28-year-old Woman. Relevant behavioral factors include: avoids medical care, high anxiety, non-compliant with dietary restriction, low socioeconomic status, social smoker.',
+    'Intermittent abdominal pain',
+    '{"bp": "137/85", "hr": 72, "spo2": 96, "rr": 20, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11865685', 'CASE_11865685', 'Michael Anderson', 84, 'Male', 'he/him', 
+    'Hispanic', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 84-year-old Man. Relevant behavioral factors include: avoids medical care, lives alone, delays seeking surgical consultation, low-fiber diet, low pain tolerance.',
+    'Chronic abdominal pain',
+    '{"bp": "130/85", "hr": 94, "spo2": 97, "rr": 18, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11871323', 'CASE_11871323', 'Michael Davis', 28, 'Male', 'he/him', 
+    'Unknown', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 28-year-old Man. Relevant behavioral factors include: uses painkillers excessively, night shift worker, good medication adherence, stress-related symptoms, low socioeconomic status.',
+    'Severe abdominal pain',
+    '{"bp": "121/74", "hr": 81, "spo2": 98, "rr": 17, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11874388', 'CASE_11874388', 'Matthew Jackson', 28, 'Male', 'he/him', 
+    'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 28-year-old Man. Relevant behavioral factors include: high anxiety, high-fat diet, limited access to healthcare, non-compliant with dietary restriction, frequent emergency department visits.',
+    'Intermittent abdominal pain',
+    '{"bp": "135/71", "hr": 67, "spo2": 96, "rr": 16, "temp": "99.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11875279', 'CASE_11875279', 'Donna Thomas', 33, 'Female', 'she/her', 
+    'African American', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 33-year-old Woman. Relevant behavioral factors include: physically demanding job, ignores early abdominal pain, irregular meal patterns, high pain tolerance, frequent emergency department visits.',
+    'Intermittent abdominal pain',
+    '{"bp": "143/79", "hr": 76, "spo2": 98, "rr": 17, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11876479', 'CASE_11876479', 'Susan Johnson', 42, 'Female', 'she/her', 
+    'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 42-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, limited access to healthcare, health anxiety, frequent emergency department visits, binge drinking.',
+    'Severe abdominal pain',
+    '{"bp": "115/73", "hr": 87, "spo2": 99, "rr": 19, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11887722', 'CASE_11887722', 'Margaret Taylor', 44, 'Female', 'she/her', 
+    'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 44-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, irregular meal patterns, high pain tolerance, delayed hospital presentation.',
+    'Nausea and abdominal pain',
+    '{"bp": "110/75", "hr": 81, "spo2": 98, "rr": 16, "temp": "97.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11889430', 'CASE_11889430', 'Daniel Williams', 23, 'Male', 'he/him', 
+    'Asian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 23-year-old Man. Relevant behavioral factors include: physically demanding job, ignores early abdominal pain, poor medication adherence, high pain tolerance, heavy smoker.',
+    'Intermittent abdominal pain',
+    '{"bp": "125/71", "hr": 85, "spo2": 100, "rr": 17, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11891669', 'CASE_11891669', 'Sarah Hernandez', 75, 'Female', 'she/her', 
+    'African American', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 75-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, depressive mood, binge drinking, low socioeconomic status, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "142/88", "hr": 73, "spo2": 96, "rr": 16, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11897016', 'CASE_11897016', 'Susan Garcia', 47, 'Female', 'she/her', 
+    'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 47-year-old Woman. Relevant behavioral factors include: high anxiety, ignores early abdominal pain, frequent emergency department visits, heavy smoker, low socioeconomic status.',
+    'Intermittent abdominal pain',
+    '{"bp": "144/70", "hr": 93, "spo2": 97, "rr": 19, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11902171', 'CASE_11902171', 'David Wilson', 45, 'Male', 'he/him', 
+    'Hispanic', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 45-year-old Man. Relevant behavioral factors include: physically demanding job, ignores early abdominal pain, irregular meal patterns, health anxiety, frequent emergency department visits.',
+    'Intermittent abdominal pain',
+    '{"bp": "145/77", "hr": 73, "spo2": 96, "rr": 17, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11905418', 'CASE_11905418', 'Susan Lopez', 63, 'Female', 'she/her', 
+    'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 63-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, poor medication adherence, health anxiety, social smoker.',
+    'Nausea and abdominal pain',
+    '{"bp": "115/85", "hr": 89, "spo2": 96, "rr": 16, "temp": "99.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11909152', 'CASE_11909152', 'Dorothy Garcia', 30, 'Female', 'she/her', 
+    'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 30-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, sedentary lifestyle, self-medication, health anxiety.',
+    'Nausea and abdominal pain',
+    '{"bp": "127/85", "hr": 91, "spo2": 99, "rr": 20, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11912384', 'CASE_11912384', 'Christopher Martinez', 22, 'Male', 'he/him', 
+    'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 22-year-old Man. Relevant behavioral factors include: ignores early abdominal pain, high pain tolerance, frequent emergency department visits, binge drinking, low socioeconomic status.',
+    'Intermittent abdominal pain',
+    '{"bp": "114/91", "hr": 89, "spo2": 98, "rr": 21, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11914761', 'CASE_11914761', 'Linda Thomas', 31, 'Female', 'she/her', 
+    'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 31-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high anxiety, limited access to healthcare, frequent emergency department visits, heavy smoker.',
+    'Severe abdominal pain',
+    '{"bp": "113/78", "hr": 63, "spo2": 97, "rr": 22, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11916405', 'CASE_11916405', 'Richard Williams', 59, 'Male', 'he/him', 
+    'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 59-year-old Man. Relevant behavioral factors include: delays seeking surgical consultation, heavy smoker, poor insight into illness, delayed hospital presentation, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "116/76", "hr": 85, "spo2": 95, "rr": 17, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11925563', 'CASE_11925563', 'Kimberly Taylor', 60, 'Female', 'she/her', 
+    'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 60-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, high anxiety, former smoker, low socioeconomic status, regular medical checkups.',
+    'Nausea and abdominal pain',
+    '{"bp": "149/86", "hr": 93, "spo2": 95, "rr": 18, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11936168', 'CASE_11936168', 'Christopher Williams', 32, 'Male', 'he/him', 
+    'Caucasian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 32-year-old Man. Relevant behavioral factors include: lives alone, high-fat diet, ignores early abdominal pain, health anxiety, regular medical checkups.',
+    'Intermittent abdominal pain',
+    '{"bp": "117/86", "hr": 77, "spo2": 99, "rr": 21, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11945588', 'CASE_11945588', 'John Moore', 53, 'Male', 'he/him', 
+    'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 53-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high anxiety, sedentary lifestyle, delayed hospital presentation, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "144/78", "hr": 70, "spo2": 97, "rr": 18, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11950373', 'CASE_11950373', 'Sandra Taylor', 79, 'Female', 'she/her', 
+    'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 79-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, sedentary lifestyle, health anxiety, delayed hospital presentation, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "114/78", "hr": 82, "spo2": 98, "rr": 18, "temp": "97.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11951469', 'CASE_11951469', 'Ashley Martin', 42, 'Female', 'she/her', 
+    'Unknown', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 42-year-old Woman. Relevant behavioral factors include: self-medication, limited access to healthcare, delays seeking surgical consultation, chronic alcohol consumption, poor insight into illness.',
+    'Chronic abdominal pain',
+    '{"bp": "148/82", "hr": 69, "spo2": 100, "rr": 18, "temp": "97.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11953203', 'CASE_11953203', 'Christopher Taylor', 19, 'Male', 'he/him', 
+    'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 19-year-old Man. Relevant behavioral factors include: uses painkillers excessively, lives alone, irregular meal patterns, frequent emergency department visits, low pain tolerance.',
+    'Severe abdominal pain',
+    '{"bp": "113/80", "hr": 77, "spo2": 97, "rr": 22, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11953944', 'CASE_11953944', 'Mark Wilson', 41, 'Male', 'he/him', 
+    'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 41-year-old Man. Relevant behavioral factors include: high anxiety, ignores early abdominal pain, limited access to healthcare, chronic alcohol consumption, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "133/71", "hr": 96, "spo2": 96, "rr": 16, "temp": "97.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11954434', 'CASE_11954434', 'David Taylor', 42, 'Male', 'he/him', 
+    'Hispanic', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 42-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, uses painkillers excessively, health anxiety, physically active.',
+    'Severe abdominal pain',
+    '{"bp": "112/94", "hr": 91, "spo2": 98, "rr": 20, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11956695', 'CASE_11956695', 'Mary Johnson', 31, 'Female', 'she/her', 
+    'Asian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 31-year-old Woman. Relevant behavioral factors include: lives alone, ignores early abdominal pain, irregular meal patterns, poor medication adherence, poor insight into illness.',
+    'Intermittent abdominal pain',
+    '{"bp": "135/90", "hr": 86, "spo2": 100, "rr": 18, "temp": "98.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11963670', 'CASE_11963670', 'Emily Rodriguez', 48, 'Female', 'she/her', 
+    'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 48-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, depressive mood, low-fiber diet, frequent emergency department visits.',
+    'Nausea and abdominal pain',
+    '{"bp": "142/78", "hr": 60, "spo2": 99, "rr": 21, "temp": "99.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11965254', 'CASE_11965254', 'Kimberly Wilson', 24, 'Female', 'she/her', 
+    'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 24-year-old Woman. Relevant behavioral factors include: lives alone, high anxiety, self-medication, irregular meal patterns, delays seeking surgical consultation.',
+    'Chronic abdominal pain',
+    '{"bp": "138/79", "hr": 67, "spo2": 97, "rr": 17, "temp": "99.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11969588', 'CASE_11969588', 'Karen Gonzalez', 32, 'Female', 'she/her', 
+    'Caucasian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 32-year-old Woman. Relevant behavioral factors include: social smoker, high anxiety, delays seeking surgical consultation, delayed hospital presentation, limited family support.',
+    'Chronic abdominal pain',
+    '{"bp": "120/83", "hr": 72, "spo2": 100, "rr": 21, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11969872', 'CASE_11969872', 'Charles Gonzalez', 49, 'Male', 'he/him', 
+    'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 49-year-old Man. Relevant behavioral factors include: continues eating despite nausea, lives alone, stress-related symptoms, self-medication, binge drinking.',
+    'Nausea and abdominal pain',
+    '{"bp": "118/80", "hr": 79, "spo2": 99, "rr": 17, "temp": "99.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11972669', 'CASE_11972669', 'John Martinez', 46, 'Male', 'he/him', 
+    'Unknown', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 46-year-old Man. Relevant behavioral factors include: former smoker, non-compliant with dietary restriction, health anxiety, poor medication adherence, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "123/88", "hr": 67, "spo2": 96, "rr": 17, "temp": "97.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11975241', 'CASE_11975241', 'John Taylor', 34, 'Male', 'he/him', 
+    'Asian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 34-year-old Man. Relevant behavioral factors include: continues eating despite nausea, depressive mood, former smoker, frequent emergency department visits, limited family support.',
+    'Nausea and abdominal pain',
+    '{"bp": "131/81", "hr": 76, "spo2": 96, "rr": 20, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11977174', 'CASE_11977174', 'Jessica Jackson', 26, 'Female', 'she/her', 
+    'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 26-year-old Woman. Relevant behavioral factors include: avoids medical care, physically demanding job, high anxiety, delays seeking surgical consultation, physically active.',
+    'Chronic abdominal pain',
+    '{"bp": "110/77", "hr": 64, "spo2": 96, "rr": 16, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11981239', 'CASE_11981239', 'Charles Moore', 60, 'Male', 'he/him', 
+    'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 60-year-old Man. Relevant behavioral factors include: depressive mood, non-compliant with dietary restriction, heavy smoker, low socioeconomic status, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "131/93", "hr": 64, "spo2": 99, "rr": 22, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11982995', 'CASE_11982995', 'Matthew Wilson', 77, 'Male', 'he/him', 
+    'African American', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 77-year-old Man. Relevant behavioral factors include: physically demanding job, ignores early abdominal pain, self-medication, health anxiety, physically active.',
+    'Intermittent abdominal pain',
+    '{"bp": "121/78", "hr": 89, "spo2": 98, "rr": 16, "temp": "98.6 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11984520', 'CASE_11984520', 'Sandra Brown', 50, 'Female', 'she/her', 
+    'Unknown', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 50-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, lives alone, good medication adherence, sedentary lifestyle, low pain tolerance.',
+    'Severe abdominal pain',
+    '{"bp": "127/74", "hr": 64, "spo2": 97, "rr": 16, "temp": "98.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11986246', 'CASE_11986246', 'Susan Williams', 84, 'Female', 'she/her', 
+    'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 84-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, stress-related symptoms, limited access to healthcare, low-fiber diet, regular medical checkups.',
+    'Nausea and abdominal pain',
+    '{"bp": "136/85", "hr": 95, "spo2": 98, "rr": 22, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11990136', 'CASE_11990136', 'Susan Williams', 83, 'Female', 'she/her', 
+    'African American', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 83-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, frequent emergency department visits, binge drinking, low pain tolerance.',
+    'Nausea and abdominal pain',
+    '{"bp": "124/74", "hr": 90, "spo2": 98, "rr": 19, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11991721', 'CASE_11991721', 'Linda Moore', 35, 'Female', 'she/her', 
+    'Caucasian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 35-year-old Woman. Relevant behavioral factors include: high work-related stress, high anxiety, non-compliant with dietary restriction, regular medical checkups, social smoker.',
+    'Intermittent abdominal pain',
+    '{"bp": "112/94", "hr": 60, "spo2": 97, "rr": 19, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11992252', 'CASE_11992252', 'Michael Wilson', 70, 'Male', 'he/him', 
+    'Hispanic', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 70-year-old Man. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, low-fiber diet, high pain tolerance, frequent emergency department visits.',
+    'Severe abdominal pain',
+    '{"bp": "144/89", "hr": 76, "spo2": 100, "rr": 20, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '11998037', 'CASE_11998037', 'Richard Davis', 66, 'Male', 'he/him', 
+    'Hispanic', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 66-year-old Man. Relevant behavioral factors include: high anxiety, lives alone, ignores early abdominal pain, frequent emergency department visits, heavy smoker.',
+    'Intermittent abdominal pain',
+    '{"bp": "121/92", "hr": 60, "spo2": 97, "rr": 17, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12001650', 'CASE_12001650', 'Emily Gonzalez', 41, 'Female', 'she/her', 
+    'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 41-year-old Woman. Relevant behavioral factors include: ignores early abdominal pain, poor medication adherence, heavy smoker, poor insight into illness, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "130/82", "hr": 80, "spo2": 100, "rr": 16, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12004475', 'CASE_12004475', 'Christopher Garcia', 54, 'Male', 'he/him', 
+    'Asian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 54-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high-fat diet, lives alone, health anxiety, frequent emergency department visits.',
+    'Severe abdominal pain',
+    '{"bp": "128/72", "hr": 76, "spo2": 97, "rr": 21, "temp": "97.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12008843', 'CASE_12008843', 'Robert Moore', 49, 'Male', 'he/him', 
+    'Caucasian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 49-year-old Man. Relevant behavioral factors include: night shift worker, limited access to healthcare, non-compliant with dietary restriction, health anxiety, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "134/71", "hr": 87, "spo2": 95, "rr": 16, "temp": "98.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12017101', 'CASE_12017101', 'Sarah Lopez', 58, 'Female', 'she/her', 
+    'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 58-year-old Woman. Relevant behavioral factors include: high work-related stress, ignores early abdominal pain, binge drinking, low pain tolerance, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "144/93", "hr": 78, "spo2": 100, "rr": 18, "temp": "98.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12017780', 'CASE_12017780', 'Sarah Rodriguez', 87, 'Female', 'she/her', 
+    'Caucasian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 87-year-old Woman. Relevant behavioral factors include: sedentary lifestyle, delays seeking surgical consultation, high pain tolerance, low socioeconomic status, regular medical checkups.',
+    'Chronic abdominal pain',
+    '{"bp": "135/88", "hr": 86, "spo2": 99, "rr": 18, "temp": "98.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12027666', 'CASE_12027666', 'Jessica Lopez', 82, 'Female', 'she/her', 
+    'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 82-year-old Woman. Relevant behavioral factors include: high-fat diet, depressive mood, limited access to healthcare, delays seeking surgical consultation, regular medical checkups.',
+    'Chronic abdominal pain',
+    '{"bp": "114/76", "hr": 99, "spo2": 99, "rr": 19, "temp": "99.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12029076', 'CASE_12029076', 'Donna Davis', 23, 'Female', 'she/her', 
+    'Hispanic', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 23-year-old Woman. Relevant behavioral factors include: high pain tolerance, delays seeking surgical consultation, low-fiber diet, low socioeconomic status, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "133/84", "hr": 86, "spo2": 97, "rr": 16, "temp": "97.5 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12035989', 'CASE_12035989', 'Nancy Anderson', 67, 'Female', 'she/her', 
+    'African American', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 67-year-old Woman. Relevant behavioral factors include: stress-related symptoms, ignores early abdominal pain, binge drinking, regular medical checkups, limited family support.',
+    'Intermittent abdominal pain',
+    '{"bp": "115/91", "hr": 88, "spo2": 95, "rr": 17, "temp": "99.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12037237', 'CASE_12037237', 'Sandra Taylor', 79, 'Female', 'she/her', 
+    'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 79-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, low pain tolerance, low socioeconomic status, regular medical checkups, social smoker.',
+    'Severe abdominal pain',
+    '{"bp": "118/72", "hr": 61, "spo2": 95, "rr": 21, "temp": "98.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12042083', 'CASE_12042083', 'Richard Williams', 26, 'Male', 'he/him', 
+    'Hispanic', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 26-year-old Man. Relevant behavioral factors include: depressive mood, ignores early abdominal pain, self-medication, limited access to healthcare, chronic alcohol consumption.',
+    'Chronic abdominal pain',
+    '{"bp": "140/88", "hr": 92, "spo2": 95, "rr": 18, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12043129', 'CASE_12043129', 'Ashley Wilson', 32, 'Female', 'she/her', 
+    'Hispanic', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 32-year-old Woman. Relevant behavioral factors include: physically demanding job, night shift worker, stress-related symptoms, non-compliant with dietary restriction, frequent emergency department visits.',
+    'Intermittent abdominal pain',
+    '{"bp": "141/85", "hr": 75, "spo2": 97, "rr": 18, "temp": "99.1 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12044563', 'CASE_12044563', 'Christopher Wilson', 47, 'Male', 'he/him', 
+    'African American', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 47-year-old Man. Relevant behavioral factors include: lives alone, irregular meal patterns, delays seeking surgical consultation, high pain tolerance, frequent emergency department visits.',
+    'Chronic abdominal pain',
+    '{"bp": "127/88", "hr": 90, "spo2": 98, "rr": 20, "temp": "98.9 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12045374', 'CASE_12045374', 'Susan Thomas', 21, 'Female', 'she/her', 
+    'Unknown', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 21-year-old Woman. Relevant behavioral factors include: lives alone, low-fiber diet, delays seeking surgical consultation, poor insight into illness, regular medical checkups.',
+    'Chronic abdominal pain',
+    '{"bp": "127/73", "hr": 84, "spo2": 99, "rr": 20, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12058276', 'CASE_12058276', 'Christopher Rodriguez', 41, 'Male', 'he/him', 
+    'Unknown', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 41-year-old Man. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, night shift worker, good medication adherence, health anxiety.',
+    'Severe abdominal pain',
+    '{"bp": "111/76", "hr": 67, "spo2": 99, "rr": 21, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12059015', 'CASE_12059015', 'John Martin', 24, 'Male', 'he/him', 
+    'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 24-year-old Man. Relevant behavioral factors include: continues eating despite nausea, health anxiety, chronic alcohol consumption, frequent emergency department visits, limited family support.',
+    'Nausea and abdominal pain',
+    '{"bp": "135/89", "hr": 90, "spo2": 95, "rr": 18, "temp": "98.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12069125', 'CASE_12069125', 'Nancy Moore', 55, 'Female', 'she/her', 
+    'African American', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 55-year-old Woman. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, poor insight into illness, night shift worker, low socioeconomic status.',
+    'Severe abdominal pain',
+    '{"bp": "112/73", "hr": 75, "spo2": 97, "rr": 20, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12069169', 'CASE_12069169', 'Lisa Wilson', 37, 'Female', 'she/her', 
+    'African American', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 37-year-old Woman. Relevant behavioral factors include: lives alone, non-compliant with dietary restriction, poor medication adherence, poor insight into illness, social smoker.',
+    'Intermittent abdominal pain',
+    '{"bp": "145/75", "hr": 95, "spo2": 98, "rr": 22, "temp": "98.3 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12069691', 'CASE_12069691', 'Lisa Martinez', 26, 'Female', 'she/her', 
+    'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 26-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, stress-related symptoms, poor medication adherence, low-fiber diet, low socioeconomic status.',
+    'Nausea and abdominal pain',
+    '{"bp": "110/87", "hr": 84, "spo2": 97, "rr": 16, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12072154', 'CASE_12072154', 'Jessica Jones', 85, 'Female', 'she/her', 
+    'Hispanic', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 85-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, poor medication adherence, chronic alcohol consumption, poor insight into illness.',
+    'Nausea and abdominal pain',
+    '{"bp": "112/83", "hr": 86, "spo2": 100, "rr": 22, "temp": "97.7 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12076650', 'CASE_12076650', 'Lisa Johnson', 51, 'Female', 'she/her', 
+    'Caucasian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 51-year-old Woman. Relevant behavioral factors include: high work-related stress, sedentary lifestyle, non-compliant with dietary restriction, health anxiety, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "146/83", "hr": 96, "spo2": 98, "rr": 16, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12086251', 'CASE_12086251', 'Linda Anderson', 81, 'Female', 'she/her', 
+    'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 81-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, depressive mood, limited access to healthcare, heavy smoker, regular medical checkups.',
+    'Severe abdominal pain',
+    '{"bp": "114/84", "hr": 68, "spo2": 99, "rr": 16, "temp": "97.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12095158', 'CASE_12095158', 'Anthony Thomas', 81, 'Male', 'he/him', 
+    'Caucasian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 81-year-old Man. Relevant behavioral factors include: avoids medical care, lives alone, former smoker, stress-related symptoms, non-compliant with dietary restriction.',
+    'Intermittent abdominal pain',
+    '{"bp": "139/79", "hr": 77, "spo2": 95, "rr": 19, "temp": "98.8 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12109423', 'CASE_12109423', 'Dorothy Miller', 73, 'Female', 'she/her', 
+    'Caucasian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 73-year-old Woman. Relevant behavioral factors include: non-compliant with dietary restriction, health anxiety, low-fiber diet, low socioeconomic status, delayed hospital presentation.',
+    'Chronic abdominal pain',
+    '{"bp": "146/88", "hr": 93, "spo2": 95, "rr": 16, "temp": "99.2 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is anxious"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Anxious", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12120702', 'CASE_12120702', 'Mark Miller', 64, 'Male', 'he/him', 
+    'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 64-year-old Man. Relevant behavioral factors include: stress-related symptoms, sedentary lifestyle, ignores early abdominal pain, limited access to healthcare, frequent emergency department visits.',
+    'Intermittent abdominal pain',
+    '{"bp": "110/86", "hr": 72, "spo2": 99, "rr": 19, "temp": "99.4 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is neutral"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Neutral", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
+
+INSERT INTO patients (
+    patientid, clinical_case_id, name, age, gender, pronouns, 
+    ethnicity, occupation, setting, level, time_setting, 
+    descriptions, chief_concern, vital_signs, instructions, case_rules, persona
+) VALUES (
+    '12121983', 'CASE_12121983', 'Linda Williams', 80, 'Female', 'she/her', 
+    'African American', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
+    'This patient is a 80-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, physically demanding job, depressive mood, former smoker.',
+    'Nausea and abdominal pain',
+    '{"bp": "112/73", "hr": 81, "spo2": 99, "rr": 20, "temp": "99.0 F"}',
+    '{"role": "Doctor", "task": "Diagnose the patient", "procedure": ["Take history", "Physical exam"]}',
+    '{"rules": ["Patient is depressed"], "totalTime": "15 mins", "timeBreakdown": []}',
+    '{"emotional_state": "Depressed", "behavioral_rules": ["Standard answers"], "communication_style": {"tone": "Normal"}}'
+);
 
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10013502', 'M', 50, 'high anxiety, low-fiber diet, delays seeking surgical consultation, regular medical checkups, limited family support', 'This patient is a 50-year-old Man. Relevant behavioral factors include: high anxiety, low-fiber diet, delays seeking surgical consultation, regular medical checkups, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10016673', 'F', 72, 'depressive mood, former smoker, self-medication, non-compliant with dietary restriction, low socioeconomic status', 'This patient is a 72-year-old Woman. Relevant behavioral factors include: depressive mood, former smoker, self-medication, non-compliant with dietary restriction, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10022584', 'M', 91, 'uses painkillers excessively, physically demanding job, self-medication, chronic alcohol consumption, high pain tolerance', 'This patient is a 91-year-old Man. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, self-medication, chronic alcohol consumption, high pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10025862', 'F', 61, 'continues eating despite nausea, limited access to healthcare, poor medication adherence, heavy smoker, low pain tolerance', 'This patient is a 61-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, poor medication adherence, heavy smoker, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10031940', 'F', 58, 'uses painkillers excessively, high-fat diet, self-medication, health anxiety, limited family support', 'This patient is a 58-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high-fat diet, self-medication, health anxiety, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10034272', 'M', 69, 'high work-related stress, non-compliant with dietary restriction, high pain tolerance, delayed hospital presentation, social smoker', 'This patient is a 69-year-old Man. Relevant behavioral factors include: high work-related stress, non-compliant with dietary restriction, high pain tolerance, delayed hospital presentation, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10040056', 'M', 31, 'high work-related stress, depressive mood, good medication adherence, ignores early abdominal pain, low-fiber diet', 'This patient is a 31-year-old Man. Relevant behavioral factors include: high work-related stress, depressive mood, good medication adherence, ignores early abdominal pain, low-fiber diet.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10040626', 'F', 29, 'avoids medical care, high work-related stress, high-fat diet, ignores early abdominal pain, health anxiety', 'This patient is a 29-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, high-fat diet, ignores early abdominal pain, health anxiety.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10042037', 'M', 55, 'physically demanding job, stress-related symptoms, delays seeking surgical consultation, physically active, regular medical checkups', 'This patient is a 55-year-old Man. Relevant behavioral factors include: physically demanding job, stress-related symptoms, delays seeking surgical consultation, physically active, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10046241', 'M', 53, 'depressive mood, good medication adherence, limited access to healthcare, irregular meal patterns, non-compliant with dietary restriction', 'This patient is a 53-year-old Man. Relevant behavioral factors include: depressive mood, good medication adherence, limited access to healthcare, irregular meal patterns, non-compliant with dietary restriction.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10052530', 'M', 22, 'high anxiety, ignores early abdominal pain, irregular meal patterns, delayed hospital presentation, limited family support', 'This patient is a 22-year-old Man. Relevant behavioral factors include: high anxiety, ignores early abdominal pain, irregular meal patterns, delayed hospital presentation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10056223', 'M', 48, 'high anxiety, good medication adherence, sedentary lifestyle, delays seeking surgical consultation, low socioeconomic status', 'This patient is a 48-year-old Man. Relevant behavioral factors include: high anxiety, good medication adherence, sedentary lifestyle, delays seeking surgical consultation, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10058856', 'F', 73, 'high work-related stress, high-fat diet, delays seeking surgical consultation, low pain tolerance, delayed hospital presentation', 'This patient is a 73-year-old Woman. Relevant behavioral factors include: high work-related stress, high-fat diet, delays seeking surgical consultation, low pain tolerance, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10069551', 'F', 33, 'high work-related stress, continues eating despite nausea, former smoker, health anxiety, frequent emergency department visits', 'This patient is a 33-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, former smoker, health anxiety, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10070247', 'M', 43, 'uses painkillers excessively, limited access to healthcare, irregular meal patterns, frequent emergency department visits, low pain tolerance', 'This patient is a 43-year-old Man. Relevant behavioral factors include: uses painkillers excessively, limited access to healthcare, irregular meal patterns, frequent emergency department visits, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10071659', 'M', 34, 'avoids medical care, high anxiety, former smoker, ignores early abdominal pain, limited family support', 'This patient is a 34-year-old Man. Relevant behavioral factors include: avoids medical care, high anxiety, former smoker, ignores early abdominal pain, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10073256', 'M', 68, 'ignores early abdominal pain, chronic alcohol consumption, high pain tolerance, delayed hospital presentation, limited family support', 'This patient is a 68-year-old Man. Relevant behavioral factors include: ignores early abdominal pain, chronic alcohol consumption, high pain tolerance, delayed hospital presentation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10074010', 'M', 65, 'continues eating despite nausea, low socioeconomic status, poor medication adherence, binge drinking, low pain tolerance', 'This patient is a 65-year-old Man. Relevant behavioral factors include: continues eating despite nausea, low socioeconomic status, poor medication adherence, binge drinking, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10074282', 'F', 82, 'lives alone, good medication adherence, chronic alcohol consumption, delays seeking surgical consultation, poor insight into illness', 'This patient is a 82-year-old Woman. Relevant behavioral factors include: lives alone, good medication adherence, chronic alcohol consumption, delays seeking surgical consultation, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10076263', 'F', 42, 'poor insight into illness, ignores early abdominal pain, self-medication, physically active, low socioeconomic status', 'This patient is a 42-year-old Woman. Relevant behavioral factors include: poor insight into illness, ignores early abdominal pain, self-medication, physically active, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10079467', 'F', 33, 'continues eating despite nausea, limited access to healthcare, frequent emergency department visits, heavy smoker, low pain tolerance', 'This patient is a 33-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, frequent emergency department visits, heavy smoker, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10080679', 'M', 28, 'avoids medical care, high work-related stress, continues eating despite nausea, high anxiety, chronic alcohol consumption', 'This patient is a 28-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, continues eating despite nausea, high anxiety, chronic alcohol consumption.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10085111', 'M', 18, 'high work-related stress, high anxiety, irregular meal patterns, delays seeking surgical consultation, regular medical checkups', 'This patient is a 18-year-old Man. Relevant behavioral factors include: high work-related stress, high anxiety, irregular meal patterns, delays seeking surgical consultation, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10097289', 'M', 38, 'limited access to healthcare, non-compliant with dietary restriction, frequent emergency department visits, heavy smoker, low pain tolerance', 'This patient is a 38-year-old Man. Relevant behavioral factors include: limited access to healthcare, non-compliant with dietary restriction, frequent emergency department visits, heavy smoker, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10099750', 'M', 29, 'continues eating despite nausea, high anxiety, binge drinking, low socioeconomic status, delayed hospital presentation', 'This patient is a 29-year-old Man. Relevant behavioral factors include: continues eating despite nausea, high anxiety, binge drinking, low socioeconomic status, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10101174', 'F', 60, 'self-medication, health anxiety, chronic alcohol consumption, delays seeking surgical consultation, limited family support', 'This patient is a 60-year-old Woman. Relevant behavioral factors include: self-medication, health anxiety, chronic alcohol consumption, delays seeking surgical consultation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10104732', 'M', 49, 'uses painkillers excessively, lives alone, good medication adherence, stress-related symptoms, chronic alcohol consumption', 'This patient is a 49-year-old Man. Relevant behavioral factors include: uses painkillers excessively, lives alone, good medication adherence, stress-related symptoms, chronic alcohol consumption.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10108132', 'M', 28, 'high work-related stress, continues eating despite nausea, frequent emergency department visits, binge drinking, low pain tolerance', 'This patient is a 28-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, frequent emergency department visits, binge drinking, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10119863', 'M', 67, 'uses painkillers excessively, lives alone, high anxiety, good medication adherence, physically active', 'This patient is a 67-year-old Man. Relevant behavioral factors include: uses painkillers excessively, lives alone, high anxiety, good medication adherence, physically active.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10120826', 'M', 80, 'avoids medical care, high work-related stress, uses painkillers excessively, high anxiety, heavy smoker', 'This patient is a 80-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, uses painkillers excessively, high anxiety, heavy smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10124189', 'M', 18, 'depressive mood, sedentary lifestyle, delays seeking surgical consultation, low socioeconomic status, regular medical checkups', 'This patient is a 18-year-old Man. Relevant behavioral factors include: depressive mood, sedentary lifestyle, delays seeking surgical consultation, low socioeconomic status, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10132759', 'M', 64, 'continues eating despite nausea, poor insight into illness, good medication adherence, irregular meal patterns, low socioeconomic status', 'This patient is a 64-year-old Man. Relevant behavioral factors include: continues eating despite nausea, poor insight into illness, good medication adherence, irregular meal patterns, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10139369', 'M', 22, 'avoids medical care, stress-related symptoms, limited access to healthcare, delays seeking surgical consultation, chronic alcohol consumption', 'This patient is a 22-year-old Man. Relevant behavioral factors include: avoids medical care, stress-related symptoms, limited access to healthcare, delays seeking surgical consultation, chronic alcohol consumption.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10144406', 'M', 65, 'high work-related stress, uses painkillers excessively, good medication adherence, heavy smoker, low pain tolerance', 'This patient is a 65-year-old Man. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, good medication adherence, heavy smoker, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10149959', 'F', 73, 'continues eating despite nausea, sedentary lifestyle, limited access to healthcare, frequent emergency department visits, low pain tolerance', 'This patient is a 73-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, sedentary lifestyle, limited access to healthcare, frequent emergency department visits, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10154376', 'F', 19, 'uses painkillers excessively, poor medication adherence, high pain tolerance, physically active, limited family support', 'This patient is a 19-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, poor medication adherence, high pain tolerance, physically active, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10156068', 'M', 21, 'avoids medical care, sedentary lifestyle, limited access to healthcare, delays seeking surgical consultation, poor insight into illness', 'This patient is a 21-year-old Man. Relevant behavioral factors include: avoids medical care, sedentary lifestyle, limited access to healthcare, delays seeking surgical consultation, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10158488', 'F', 81, 'high work-related stress, irregular meal patterns, delays seeking surgical consultation, poor insight into illness, delayed hospital presentation', 'This patient is a 81-year-old Woman. Relevant behavioral factors include: high work-related stress, irregular meal patterns, delays seeking surgical consultation, poor insight into illness, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10159832', 'F', 49, 'high work-related stress, stress-related symptoms, self-medication, delays seeking surgical consultation, physically active', 'This patient is a 49-year-old Woman. Relevant behavioral factors include: high work-related stress, stress-related symptoms, self-medication, delays seeking surgical consultation, physically active.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10165155', 'M', 22, 'low pain tolerance, ignores early abdominal pain, physically active, low socioeconomic status, delayed hospital presentation', 'This patient is a 22-year-old Man. Relevant behavioral factors include: low pain tolerance, ignores early abdominal pain, physically active, low socioeconomic status, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10174466', 'M', 60, 'uses painkillers excessively, physically demanding job, high-fat diet, self-medication, high pain tolerance', 'This patient is a 60-year-old Man. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, high-fat diet, self-medication, high pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10176741', 'M', 71, 'avoids medical care, high work-related stress, ignores early abdominal pain, high pain tolerance, binge drinking', 'This patient is a 71-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, ignores early abdominal pain, high pain tolerance, binge drinking.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10182104', 'M', 72, 'high anxiety, irregular meal patterns, delays seeking surgical consultation, poor medication adherence, limited family support', 'This patient is a 72-year-old Man. Relevant behavioral factors include: high anxiety, irregular meal patterns, delays seeking surgical consultation, poor medication adherence, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10185476', 'M', 40, 'high work-related stress, continues eating despite nausea, high anxiety, self-medication, heavy smoker', 'This patient is a 40-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, high anxiety, self-medication, heavy smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10186201', 'F', 91, 'continues eating despite nausea, lives alone, stress-related symptoms, chronic alcohol consumption, frequent emergency department visits', 'This patient is a 91-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, stress-related symptoms, chronic alcohol consumption, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10189947', 'F', 32, 'good medication adherence, stress-related symptoms, ignores early abdominal pain, limited access to healthcare, low-fiber diet', 'This patient is a 32-year-old Woman. Relevant behavioral factors include: good medication adherence, stress-related symptoms, ignores early abdominal pain, limited access to healthcare, low-fiber diet.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10205542', 'F', 50, 'former smoker, limited access to healthcare, delays seeking surgical consultation, low pain tolerance, delayed hospital presentation', 'This patient is a 50-year-old Woman. Relevant behavioral factors include: former smoker, limited access to healthcare, delays seeking surgical consultation, low pain tolerance, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10207476', 'F', 63, 'avoids medical care, low pain tolerance, ignores early abdominal pain, low-fiber diet, low socioeconomic status', 'This patient is a 63-year-old Woman. Relevant behavioral factors include: avoids medical care, low pain tolerance, ignores early abdominal pain, low-fiber diet, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10208867', 'F', 32, 'uses painkillers excessively, stress-related symptoms, low socioeconomic status, delayed hospital presentation, social smoker', 'This patient is a 32-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, stress-related symptoms, low socioeconomic status, delayed hospital presentation, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10217918', 'M', 20, 'avoids medical care, physically demanding job, high anxiety, delays seeking surgical consultation, heavy smoker', 'This patient is a 20-year-old Man. Relevant behavioral factors include: avoids medical care, physically demanding job, high anxiety, delays seeking surgical consultation, heavy smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10229195', 'M', 36, 'high work-related stress, continues eating despite nausea, night shift worker, high anxiety, frequent emergency department visits', 'This patient is a 36-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, night shift worker, high anxiety, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10234917', 'F', 77, 'uses painkillers excessively, night shift worker, depressive mood, good medication adherence, limited access to healthcare', 'This patient is a 77-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, night shift worker, depressive mood, good medication adherence, limited access to healthcare.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10235987', 'F', 46, 'continues eating despite nausea, lives alone, high anxiety, former smoker, regular medical checkups', 'This patient is a 46-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, high anxiety, former smoker, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10239566', 'F', 62, 'stress-related symptoms, self-medication, delays seeking surgical consultation, low-fiber diet, low socioeconomic status', 'This patient is a 62-year-old Woman. Relevant behavioral factors include: stress-related symptoms, self-medication, delays seeking surgical consultation, low-fiber diet, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10251549', 'M', 91, 'physically demanding job, high pain tolerance, non-compliant with dietary restriction, poor medication adherence, low-fiber diet', 'This patient is a 91-year-old Man. Relevant behavioral factors include: physically demanding job, high pain tolerance, non-compliant with dietary restriction, poor medication adherence, low-fiber diet.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10253027', 'M', 27, 'physically demanding job, night shift worker, high anxiety, good medication adherence, delays seeking surgical consultation', 'This patient is a 27-year-old Man. Relevant behavioral factors include: physically demanding job, night shift worker, high anxiety, good medication adherence, delays seeking surgical consultation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10260237', 'F', 32, 'physically demanding job, night shift worker, stress-related symptoms, self-medication, delays seeking surgical consultation', 'This patient is a 32-year-old Woman. Relevant behavioral factors include: physically demanding job, night shift worker, stress-related symptoms, self-medication, delays seeking surgical consultation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10266394', 'M', 20, 'limited access to healthcare, health anxiety, delays seeking surgical consultation, frequent emergency department visits, social smoker', 'This patient is a 20-year-old Man. Relevant behavioral factors include: limited access to healthcare, health anxiety, delays seeking surgical consultation, frequent emergency department visits, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10267238', 'M', 33, 'good medication adherence, limited access to healthcare, delays seeking surgical consultation, physically active, poor insight into illness', 'This patient is a 33-year-old Man. Relevant behavioral factors include: good medication adherence, limited access to healthcare, delays seeking surgical consultation, physically active, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10276303', 'F', 37, 'physically demanding job, high-fat diet, depressive mood, self-medication, non-compliant with dietary restriction', 'This patient is a 37-year-old Woman. Relevant behavioral factors include: physically demanding job, high-fat diet, depressive mood, self-medication, non-compliant with dietary restriction.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10279161', 'M', 48, 'physically demanding job, good medication adherence, non-compliant with dietary restriction, high pain tolerance, heavy smoker', 'This patient is a 48-year-old Man. Relevant behavioral factors include: physically demanding job, good medication adherence, non-compliant with dietary restriction, high pain tolerance, heavy smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10286771', 'M', 57, 'continues eating despite nausea, poor medication adherence, health anxiety, low-fiber diet, limited family support', 'This patient is a 57-year-old Man. Relevant behavioral factors include: continues eating despite nausea, poor medication adherence, health anxiety, low-fiber diet, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10287966', 'F', 50, 'uses painkillers excessively, depressive mood, chronic alcohol consumption, low socioeconomic status, regular medical checkups', 'This patient is a 50-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, depressive mood, chronic alcohol consumption, low socioeconomic status, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10288579', 'M', 22, 'uses painkillers excessively, high anxiety, good medication adherence, chronic alcohol consumption, low socioeconomic status', 'This patient is a 22-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high anxiety, good medication adherence, chronic alcohol consumption, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10288778', 'F', 65, 'avoids medical care, physically demanding job, non-compliant with dietary restriction, binge drinking, poor insight into illness', 'This patient is a 65-year-old Woman. Relevant behavioral factors include: avoids medical care, physically demanding job, non-compliant with dietary restriction, binge drinking, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10297466', 'M', 66, 'avoids medical care, physically demanding job, delays seeking surgical consultation, low-fiber diet, poor insight into illness', 'This patient is a 66-year-old Man. Relevant behavioral factors include: avoids medical care, physically demanding job, delays seeking surgical consultation, low-fiber diet, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10298888', 'F', 28, 'avoids medical care, high work-related stress, ignores early abdominal pain, low-fiber diet, low pain tolerance', 'This patient is a 28-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, ignores early abdominal pain, low-fiber diet, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10299002', 'M', 69, 'high work-related stress, night shift worker, depressive mood, delays seeking surgical consultation, delayed hospital presentation', 'This patient is a 69-year-old Man. Relevant behavioral factors include: high work-related stress, night shift worker, depressive mood, delays seeking surgical consultation, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10299815', 'F', 59, 'high work-related stress, former smoker, non-compliant with dietary restriction, high pain tolerance, delayed hospital presentation', 'This patient is a 59-year-old Woman. Relevant behavioral factors include: high work-related stress, former smoker, non-compliant with dietary restriction, high pain tolerance, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10304284', 'F', 37, 'lives alone, high anxiety, ignores early abdominal pain, low-fiber diet, delayed hospital presentation', 'This patient is a 37-year-old Woman. Relevant behavioral factors include: lives alone, high anxiety, ignores early abdominal pain, low-fiber diet, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10305345', 'F', 29, 'high anxiety, good medication adherence, non-compliant with dietary restriction, binge drinking, limited family support', 'This patient is a 29-year-old Woman. Relevant behavioral factors include: high anxiety, good medication adherence, non-compliant with dietary restriction, binge drinking, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10305478', 'M', 54, 'physically demanding job, irregular meal patterns, delays seeking surgical consultation, high pain tolerance, frequent emergency department visits', 'This patient is a 54-year-old Man. Relevant behavioral factors include: physically demanding job, irregular meal patterns, delays seeking surgical consultation, high pain tolerance, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10306702', 'M', 86, 'avoids medical care, continues eating despite nausea, physically demanding job, high anxiety, physically active', 'This patient is a 86-year-old Man. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, physically demanding job, high anxiety, physically active.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10313992', 'F', 43, 'avoids medical care, high work-related stress, uses painkillers excessively, high anxiety, binge drinking', 'This patient is a 43-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, uses painkillers excessively, high anxiety, binge drinking.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10314106', 'M', 54, 'physically demanding job, night shift worker, good medication adherence, delays seeking surgical consultation, low pain tolerance', 'This patient is a 54-year-old Man. Relevant behavioral factors include: physically demanding job, night shift worker, good medication adherence, delays seeking surgical consultation, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10314359', 'M', 27, 'uses painkillers excessively, good medication adherence, limited access to healthcare, irregular meal patterns, high pain tolerance', 'This patient is a 27-year-old Man. Relevant behavioral factors include: uses painkillers excessively, good medication adherence, limited access to healthcare, irregular meal patterns, high pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10317029', 'M', 26, 'uses painkillers excessively, night shift worker, high anxiety, frequent emergency department visits, low socioeconomic status', 'This patient is a 26-year-old Man. Relevant behavioral factors include: uses painkillers excessively, night shift worker, high anxiety, frequent emergency department visits, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10317338', 'F', 25, 'ignores early abdominal pain, irregular meal patterns, high pain tolerance, regular medical checkups, limited family support', 'This patient is a 25-year-old Woman. Relevant behavioral factors include: ignores early abdominal pain, irregular meal patterns, high pain tolerance, regular medical checkups, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10317946', 'F', 31, 'stress-related symptoms, ignores early abdominal pain, irregular meal patterns, low socioeconomic status, delayed hospital presentation', 'This patient is a 31-year-old Woman. Relevant behavioral factors include: stress-related symptoms, ignores early abdominal pain, irregular meal patterns, low socioeconomic status, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10324282', 'M', 31, 'physically demanding job, high anxiety, ignores early abdominal pain, poor medication adherence, binge drinking', 'This patient is a 31-year-old Man. Relevant behavioral factors include: physically demanding job, high anxiety, ignores early abdominal pain, poor medication adherence, binge drinking.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10327710', 'F', 20, 'continues eating despite nausea, high anxiety, limited access to healthcare, frequent emergency department visits, social smoker', 'This patient is a 20-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, high anxiety, limited access to healthcare, frequent emergency department visits, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10335293', 'F', 80, 'uses painkillers excessively, limited access to healthcare, health anxiety, delayed hospital presentation, social smoker', 'This patient is a 80-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, limited access to healthcare, health anxiety, delayed hospital presentation, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10347234', 'F', 91, 'physically demanding job, good medication adherence, irregular meal patterns, delays seeking surgical consultation, low pain tolerance', 'This patient is a 91-year-old Woman. Relevant behavioral factors include: physically demanding job, good medication adherence, irregular meal patterns, delays seeking surgical consultation, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10347411', 'M', 25, 'social smoker, ignores early abdominal pain, frequent emergency department visits, poor insight into illness, limited family support', 'This patient is a 25-year-old Man. Relevant behavioral factors include: social smoker, ignores early abdominal pain, frequent emergency department visits, poor insight into illness, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10350771', 'F', 64, 'uses painkillers excessively, high anxiety, limited access to healthcare, low-fiber diet, frequent emergency department visits', 'This patient is a 64-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high anxiety, limited access to healthcare, low-fiber diet, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10354450', 'M', 30, 'physically demanding job, stress-related symptoms, sedentary lifestyle, non-compliant with dietary restriction, poor medication adherence', 'This patient is a 30-year-old Man. Relevant behavioral factors include: physically demanding job, stress-related symptoms, sedentary lifestyle, non-compliant with dietary restriction, poor medication adherence.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10360554', 'F', 39, 'continues eating despite nausea, chronic alcohol consumption, low pain tolerance, regular medical checkups, limited family support', 'This patient is a 39-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, chronic alcohol consumption, low pain tolerance, regular medical checkups, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10360824', 'F', 20, 'lives alone, depressive mood, ignores early abdominal pain, binge drinking, delayed hospital presentation', 'This patient is a 20-year-old Woman. Relevant behavioral factors include: lives alone, depressive mood, ignores early abdominal pain, binge drinking, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10373195', 'F', 26, 'uses painkillers excessively, night shift worker, low pain tolerance, good medication adherence, low socioeconomic status', 'This patient is a 26-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, night shift worker, low pain tolerance, good medication adherence, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10374847', 'M', 79, 'continues eating despite nausea, physically demanding job, poor medication adherence, low pain tolerance, social smoker', 'This patient is a 79-year-old Man. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, poor medication adherence, low pain tolerance, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10379372', 'M', 22, 'avoids medical care, high anxiety, lives alone, ignores early abdominal pain, binge drinking', 'This patient is a 22-year-old Man. Relevant behavioral factors include: avoids medical care, high anxiety, lives alone, ignores early abdominal pain, binge drinking.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10381914', 'M', 45, 'high pain tolerance, limited access to healthcare, delays seeking surgical consultation, chronic alcohol consumption, frequent emergency department visits', 'This patient is a 45-year-old Man. Relevant behavioral factors include: high pain tolerance, limited access to healthcare, delays seeking surgical consultation, chronic alcohol consumption, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10383228', 'F', 21, 'physically demanding job, high-fat diet, good medication adherence, ignores early abdominal pain, high pain tolerance', 'This patient is a 21-year-old Woman. Relevant behavioral factors include: physically demanding job, high-fat diet, good medication adherence, ignores early abdominal pain, high pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10384457', 'F', 18, 'night shift worker, limited access to healthcare, delays seeking surgical consultation, frequent emergency department visits, low pain tolerance', 'This patient is a 18-year-old Woman. Relevant behavioral factors include: night shift worker, limited access to healthcare, delays seeking surgical consultation, frequent emergency department visits, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10392369', 'M', 77, 'high work-related stress, high anxiety, delays seeking surgical consultation, heavy smoker, regular medical checkups', 'This patient is a 77-year-old Man. Relevant behavioral factors include: high work-related stress, high anxiety, delays seeking surgical consultation, heavy smoker, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10395376', 'M', 45, 'avoids medical care, high work-related stress, continues eating despite nausea, night shift worker, low pain tolerance', 'This patient is a 45-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, continues eating despite nausea, night shift worker, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10395875', 'F', 61, 'physically demanding job, high anxiety, former smoker, delays seeking surgical consultation, regular medical checkups', 'This patient is a 61-year-old Woman. Relevant behavioral factors include: physically demanding job, high anxiety, former smoker, delays seeking surgical consultation, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10396026', 'F', 25, 'high work-related stress, non-compliant with dietary restriction, high pain tolerance, frequent emergency department visits, heavy smoker', 'This patient is a 25-year-old Woman. Relevant behavioral factors include: high work-related stress, non-compliant with dietary restriction, high pain tolerance, frequent emergency department visits, heavy smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10400743', 'F', 76, 'high work-related stress, high anxiety, non-compliant with dietary restriction, frequent emergency department visits, heavy smoker', 'This patient is a 76-year-old Woman. Relevant behavioral factors include: high work-related stress, high anxiety, non-compliant with dietary restriction, frequent emergency department visits, heavy smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10406155', 'F', 38, 'avoids medical care, high anxiety, high-fat diet, limited access to healthcare, delays seeking surgical consultation', 'This patient is a 38-year-old Woman. Relevant behavioral factors include: avoids medical care, high anxiety, high-fat diet, limited access to healthcare, delays seeking surgical consultation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10407324', 'F', 43, 'continues eating despite nausea, lives alone, high-fat diet, good medication adherence, low pain tolerance', 'This patient is a 43-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, high-fat diet, good medication adherence, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10411654', 'F', 41, 'continues eating despite nausea, physically demanding job, irregular meal patterns, low pain tolerance, delayed hospital presentation', 'This patient is a 41-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, irregular meal patterns, low pain tolerance, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10414036', 'F', 63, 'continues eating despite nausea, lives alone, former smoker, stress-related symptoms, regular medical checkups', 'This patient is a 63-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, former smoker, stress-related symptoms, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10416197', 'M', 33, 'uses painkillers excessively, night shift worker, stress-related symptoms, frequent emergency department visits, limited family support', 'This patient is a 33-year-old Man. Relevant behavioral factors include: uses painkillers excessively, night shift worker, stress-related symptoms, frequent emergency department visits, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10417473', 'M', 23, 'non-compliant with dietary restriction, low socioeconomic status, poor medication adherence, binge drinking, poor insight into illness', 'This patient is a 23-year-old Man. Relevant behavioral factors include: non-compliant with dietary restriction, low socioeconomic status, poor medication adherence, binge drinking, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10421990', 'M', 37, 'avoids medical care, physically demanding job, former smoker, non-compliant with dietary restriction, poor insight into illness', 'This patient is a 37-year-old Man. Relevant behavioral factors include: avoids medical care, physically demanding job, former smoker, non-compliant with dietary restriction, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10429123', 'M', 34, 'uses painkillers excessively, good medication adherence, stress-related symptoms, irregular meal patterns, low socioeconomic status', 'This patient is a 34-year-old Man. Relevant behavioral factors include: uses painkillers excessively, good medication adherence, stress-related symptoms, irregular meal patterns, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10430976', 'M', 35, 'depressive mood, limited access to healthcare, non-compliant with dietary restriction, low-fiber diet, delayed hospital presentation', 'This patient is a 35-year-old Man. Relevant behavioral factors include: depressive mood, limited access to healthcare, non-compliant with dietary restriction, low-fiber diet, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10433146', 'F', 62, 'continues eating despite nausea, limited access to healthcare, frequent emergency department visits, poor insight into illness, social smoker', 'This patient is a 62-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, frequent emergency department visits, poor insight into illness, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10441211', 'M', 37, 'continues eating despite nausea, lives alone, good medication adherence, heavy smoker, low pain tolerance', 'This patient is a 37-year-old Man. Relevant behavioral factors include: continues eating despite nausea, lives alone, good medication adherence, heavy smoker, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10441330', 'F', 36, 'ignores early abdominal pain, limited access to healthcare, binge drinking, low pain tolerance, regular medical checkups', 'This patient is a 36-year-old Woman. Relevant behavioral factors include: ignores early abdominal pain, limited access to healthcare, binge drinking, low pain tolerance, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10448910', 'M', 80, 'uses painkillers excessively, frequent emergency department visits, physically active, low pain tolerance, limited family support', 'This patient is a 80-year-old Man. Relevant behavioral factors include: uses painkillers excessively, frequent emergency department visits, physically active, low pain tolerance, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10456934', 'M', 39, 'continues eating despite nausea, physically demanding job, high-fat diet, self-medication, poor insight into illness', 'This patient is a 39-year-old Man. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, high-fat diet, self-medication, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10458345', 'M', 64, 'high pain tolerance, ignores early abdominal pain, poor medication adherence, chronic alcohol consumption, limited family support', 'This patient is a 64-year-old Man. Relevant behavioral factors include: high pain tolerance, ignores early abdominal pain, poor medication adherence, chronic alcohol consumption, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10469621', 'F', 71, 'avoids medical care, uses painkillers excessively, lives alone, health anxiety, physically active', 'This patient is a 71-year-old Woman. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, lives alone, health anxiety, physically active.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10472364', 'M', 51, 'good medication adherence, non-compliant with dietary restriction, high pain tolerance, physically active, limited family support', 'This patient is a 51-year-old Man. Relevant behavioral factors include: good medication adherence, non-compliant with dietary restriction, high pain tolerance, physically active, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10473631', 'M', 69, 'avoids medical care, high work-related stress, sedentary lifestyle, non-compliant with dietary restriction, low pain tolerance', 'This patient is a 69-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, sedentary lifestyle, non-compliant with dietary restriction, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10482767', 'F', 33, 'continues eating despite nausea, depressive mood, poor medication adherence, low-fiber diet, low socioeconomic status', 'This patient is a 33-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, depressive mood, poor medication adherence, low-fiber diet, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10490439', 'M', 53, 'former smoker, self-medication, limited access to healthcare, delays seeking surgical consultation, low pain tolerance', 'This patient is a 53-year-old Man. Relevant behavioral factors include: former smoker, self-medication, limited access to healthcare, delays seeking surgical consultation, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10511804', 'M', 20, 'poor medication adherence, delays seeking surgical consultation, chronic alcohol consumption, poor insight into illness, limited family support', 'This patient is a 20-year-old Man. Relevant behavioral factors include: poor medication adherence, delays seeking surgical consultation, chronic alcohol consumption, poor insight into illness, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10522176', 'F', 54, 'physically demanding job, stress-related symptoms, non-compliant with dietary restriction, frequent emergency department visits, binge drinking', 'This patient is a 54-year-old Woman. Relevant behavioral factors include: physically demanding job, stress-related symptoms, non-compliant with dietary restriction, frequent emergency department visits, binge drinking.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10523090', 'F', 49, 'avoids medical care, uses painkillers excessively, depressive mood, former smoker, limited family support', 'This patient is a 49-year-old Woman. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, depressive mood, former smoker, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10544163', 'M', 91, 'avoids medical care, depressive mood, lives alone, former smoker, ignores early abdominal pain', 'This patient is a 91-year-old Man. Relevant behavioral factors include: avoids medical care, depressive mood, lives alone, former smoker, ignores early abdominal pain.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10548551', 'M', 31, 'depressive mood, sedentary lifestyle, delays seeking surgical consultation, frequent emergency department visits, limited family support', 'This patient is a 31-year-old Man. Relevant behavioral factors include: depressive mood, sedentary lifestyle, delays seeking surgical consultation, frequent emergency department visits, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10548564', 'F', 65, 'uses painkillers excessively, stress-related symptoms, limited access to healthcare, low-fiber diet, regular medical checkups', 'This patient is a 65-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, stress-related symptoms, limited access to healthcare, low-fiber diet, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10559181', 'F', 34, 'continues eating despite nausea, lives alone, high anxiety, heavy smoker, regular medical checkups', 'This patient is a 34-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, high anxiety, heavy smoker, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10569306', 'F', 65, 'lives alone, high anxiety, good medication adherence, ignores early abdominal pain, chronic alcohol consumption', 'This patient is a 65-year-old Woman. Relevant behavioral factors include: lives alone, high anxiety, good medication adherence, ignores early abdominal pain, chronic alcohol consumption.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10570419', 'M', 54, 'high work-related stress, continues eating despite nausea, irregular meal patterns, poor insight into illness, delayed hospital presentation', 'This patient is a 54-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, irregular meal patterns, poor insight into illness, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10583974', 'M', 21, 'good medication adherence, former smoker, ignores early abdominal pain, health anxiety, low socioeconomic status', 'This patient is a 21-year-old Man. Relevant behavioral factors include: good medication adherence, former smoker, ignores early abdominal pain, health anxiety, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10584867', 'M', 64, 'physically demanding job, non-compliant with dietary restriction, irregular meal patterns, health anxiety, delayed hospital presentation', 'This patient is a 64-year-old Man. Relevant behavioral factors include: physically demanding job, non-compliant with dietary restriction, irregular meal patterns, health anxiety, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10584942', 'M', 70, 'avoids medical care, continues eating despite nausea, night shift worker, health anxiety, low socioeconomic status', 'This patient is a 70-year-old Man. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, night shift worker, health anxiety, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10588094', 'M', 66, 'uses painkillers excessively, physically demanding job, former smoker, poor insight into illness, regular medical checkups', 'This patient is a 66-year-old Man. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, former smoker, poor insight into illness, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10590989', 'F', 22, 'avoids medical care, high work-related stress, stress-related symptoms, non-compliant with dietary restriction, heavy smoker', 'This patient is a 22-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, stress-related symptoms, non-compliant with dietary restriction, heavy smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10592815', 'M', 63, 'lives alone, ignores early abdominal pain, low-fiber diet, high pain tolerance, delayed hospital presentation', 'This patient is a 63-year-old Man. Relevant behavioral factors include: lives alone, ignores early abdominal pain, low-fiber diet, high pain tolerance, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10597796', 'F', 33, 'high work-related stress, continues eating despite nausea, good medication adherence, former smoker, high pain tolerance', 'This patient is a 33-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, good medication adherence, former smoker, high pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10598999', 'M', 48, 'high anxiety, non-compliant with dietary restriction, irregular meal patterns, regular medical checkups, limited family support', 'This patient is a 48-year-old Man. Relevant behavioral factors include: high anxiety, non-compliant with dietary restriction, irregular meal patterns, regular medical checkups, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10601314', 'F', 36, 'low pain tolerance, ignores early abdominal pain, low socioeconomic status, regular medical checkups, social smoker', 'This patient is a 36-year-old Woman. Relevant behavioral factors include: low pain tolerance, ignores early abdominal pain, low socioeconomic status, regular medical checkups, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10610402', 'M', 19, 'continues eating despite nausea, former smoker, health anxiety, delayed hospital presentation, limited family support', 'This patient is a 19-year-old Man. Relevant behavioral factors include: continues eating despite nausea, former smoker, health anxiety, delayed hospital presentation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10611684', 'F', 30, 'high-fat diet, delays seeking surgical consultation, low pain tolerance, regular medical checkups, limited family support', 'This patient is a 30-year-old Woman. Relevant behavioral factors include: high-fat diet, delays seeking surgical consultation, low pain tolerance, regular medical checkups, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10623883', 'F', 28, 'avoids medical care, uses painkillers excessively, physically demanding job, health anxiety, low-fiber diet', 'This patient is a 28-year-old Woman. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, physically demanding job, health anxiety, low-fiber diet.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10624168', 'F', 44, 'high-fat diet, limited access to healthcare, delays seeking surgical consultation, frequent emergency department visits, low pain tolerance', 'This patient is a 44-year-old Woman. Relevant behavioral factors include: high-fat diet, limited access to healthcare, delays seeking surgical consultation, frequent emergency department visits, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10625923', 'F', 69, 'high work-related stress, ignores early abdominal pain, chronic alcohol consumption, frequent emergency department visits, poor insight into illness', 'This patient is a 69-year-old Woman. Relevant behavioral factors include: high work-related stress, ignores early abdominal pain, chronic alcohol consumption, frequent emergency department visits, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10629801', 'F', 43, 'avoids medical care, depressive mood, non-compliant with dietary restriction, low-fiber diet, low socioeconomic status', 'This patient is a 43-year-old Woman. Relevant behavioral factors include: avoids medical care, depressive mood, non-compliant with dietary restriction, low-fiber diet, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10633573', 'F', 25, 'lives alone, self-medication, non-compliant with dietary restriction, heavy smoker, low pain tolerance', 'This patient is a 25-year-old Woman. Relevant behavioral factors include: lives alone, self-medication, non-compliant with dietary restriction, heavy smoker, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10648030', 'F', 41, 'high anxiety, sedentary lifestyle, limited access to healthcare, delays seeking surgical consultation, regular medical checkups', 'This patient is a 41-year-old Woman. Relevant behavioral factors include: high anxiety, sedentary lifestyle, limited access to healthcare, delays seeking surgical consultation, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10652831', 'F', 19, 'avoids medical care, continues eating despite nausea, binge drinking, low pain tolerance, limited family support', 'This patient is a 19-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, binge drinking, low pain tolerance, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10653798', 'M', 76, 'poor insight into illness, good medication adherence, former smoker, ignores early abdominal pain, low socioeconomic status', 'This patient is a 76-year-old Man. Relevant behavioral factors include: poor insight into illness, good medication adherence, former smoker, ignores early abdominal pain, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10653951', 'M', 29, 'good medication adherence, stress-related symptoms, delays seeking surgical consultation, binge drinking, limited family support', 'This patient is a 29-year-old Man. Relevant behavioral factors include: good medication adherence, stress-related symptoms, delays seeking surgical consultation, binge drinking, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10656270', 'M', 66, 'high work-related stress, ignores early abdominal pain, irregular meal patterns, poor insight into illness, regular medical checkups', 'This patient is a 66-year-old Man. Relevant behavioral factors include: high work-related stress, ignores early abdominal pain, irregular meal patterns, poor insight into illness, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10666123', 'F', 49, 'continues eating despite nausea, lives alone, stress-related symptoms, irregular meal patterns, poor medication adherence', 'This patient is a 49-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, stress-related symptoms, irregular meal patterns, poor medication adherence.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10669036', 'F', 65, 'avoids medical care, continues eating despite nausea, lives alone, sedentary lifestyle, low pain tolerance', 'This patient is a 65-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, lives alone, sedentary lifestyle, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10669544', 'M', 19, 'avoids medical care, ignores early abdominal pain, limited access to healthcare, irregular meal patterns, low pain tolerance', 'This patient is a 19-year-old Man. Relevant behavioral factors include: avoids medical care, ignores early abdominal pain, limited access to healthcare, irregular meal patterns, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10670966', 'F', 46, 'physically demanding job, delays seeking surgical consultation, high pain tolerance, binge drinking, regular medical checkups', 'This patient is a 46-year-old Woman. Relevant behavioral factors include: physically demanding job, delays seeking surgical consultation, high pain tolerance, binge drinking, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10676503', 'F', 25, 'former smoker, ignores early abdominal pain, high pain tolerance, regular medical checkups, limited family support', 'This patient is a 25-year-old Woman. Relevant behavioral factors include: former smoker, ignores early abdominal pain, high pain tolerance, regular medical checkups, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10677644', 'M', 54, 'high anxiety, sedentary lifestyle, non-compliant with dietary restriction, delayed hospital presentation, limited family support', 'This patient is a 54-year-old Man. Relevant behavioral factors include: high anxiety, sedentary lifestyle, non-compliant with dietary restriction, delayed hospital presentation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10681550', 'F', 68, 'continues eating despite nausea, lives alone, depressive mood, good medication adherence, chronic alcohol consumption', 'This patient is a 68-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, depressive mood, good medication adherence, chronic alcohol consumption.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10683389', 'F', 61, 'high work-related stress, depressive mood, irregular meal patterns, delays seeking surgical consultation, delayed hospital presentation', 'This patient is a 61-year-old Woman. Relevant behavioral factors include: high work-related stress, depressive mood, irregular meal patterns, delays seeking surgical consultation, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10687335', 'M', 45, 'avoids medical care, uses painkillers excessively, high anxiety, physically active, limited family support', 'This patient is a 45-year-old Man. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, high anxiety, physically active, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10689830', 'M', 69, 'high-fat diet, ignores early abdominal pain, low socioeconomic status, frequent emergency department visits, low pain tolerance', 'This patient is a 69-year-old Man. Relevant behavioral factors include: high-fat diet, ignores early abdominal pain, low socioeconomic status, frequent emergency department visits, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10694432', 'M', 21, 'high pain tolerance, delays seeking surgical consultation, low-fiber diet, frequent emergency department visits, limited family support', 'This patient is a 21-year-old Man. Relevant behavioral factors include: high pain tolerance, delays seeking surgical consultation, low-fiber diet, frequent emergency department visits, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10699377', 'M', 75, 'uses painkillers excessively, high-fat diet, limited access to healthcare, health anxiety, regular medical checkups', 'This patient is a 75-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high-fat diet, limited access to healthcare, health anxiety, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10700979', 'M', 19, 'high work-related stress, continues eating despite nausea, high-fat diet, poor medication adherence, poor insight into illness', 'This patient is a 19-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, high-fat diet, poor medication adherence, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10703209', 'F', 21, 'good medication adherence, ignores early abdominal pain, limited access to healthcare, chronic alcohol consumption, high pain tolerance', 'This patient is a 21-year-old Woman. Relevant behavioral factors include: good medication adherence, ignores early abdominal pain, limited access to healthcare, chronic alcohol consumption, high pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10703784', 'M', 88, 'avoids medical care, physically demanding job, high anxiety, ignores early abdominal pain, heavy smoker', 'This patient is a 88-year-old Man. Relevant behavioral factors include: avoids medical care, physically demanding job, high anxiety, ignores early abdominal pain, heavy smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10707726', 'M', 28, 'avoids medical care, night shift worker, ignores early abdominal pain, health anxiety, limited family support', 'This patient is a 28-year-old Man. Relevant behavioral factors include: avoids medical care, night shift worker, ignores early abdominal pain, health anxiety, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10711330', 'M', 40, 'avoids medical care, high-fat diet, stress-related symptoms, non-compliant with dietary restriction, limited family support', 'This patient is a 40-year-old Man. Relevant behavioral factors include: avoids medical care, high-fat diet, stress-related symptoms, non-compliant with dietary restriction, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10717708', 'M', 42, 'uses painkillers excessively, lives alone, good medication adherence, stress-related symptoms, chronic alcohol consumption', 'This patient is a 42-year-old Man. Relevant behavioral factors include: uses painkillers excessively, lives alone, good medication adherence, stress-related symptoms, chronic alcohol consumption.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10723288', 'F', 22, 'continues eating despite nausea, lives alone, irregular meal patterns, health anxiety, poor medication adherence', 'This patient is a 22-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, irregular meal patterns, health anxiety, poor medication adherence.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10727986', 'M', 58, 'continues eating despite nausea, health anxiety, low-fiber diet, low socioeconomic status, delayed hospital presentation', 'This patient is a 58-year-old Man. Relevant behavioral factors include: continues eating despite nausea, health anxiety, low-fiber diet, low socioeconomic status, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10734159', 'F', 86, 'avoids medical care, continues eating despite nausea, high anxiety, low socioeconomic status, social smoker', 'This patient is a 86-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, high anxiety, low socioeconomic status, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10736128', 'F', 33, 'avoids medical care, continues eating despite nausea, physically demanding job, chronic alcohol consumption, poor insight into illness', 'This patient is a 33-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, physically demanding job, chronic alcohol consumption, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10738224', 'F', 42, 'stress-related symptoms, limited access to healthcare, irregular meal patterns, non-compliant with dietary restriction, delayed hospital presentation', 'This patient is a 42-year-old Woman. Relevant behavioral factors include: stress-related symptoms, limited access to healthcare, irregular meal patterns, non-compliant with dietary restriction, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10743310', 'F', 39, 'uses painkillers excessively, self-medication, high pain tolerance, physically active, limited family support', 'This patient is a 39-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, self-medication, high pain tolerance, physically active, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10743605', 'F', 45, 'avoids medical care, depressive mood, ignores early abdominal pain, limited access to healthcare, binge drinking', 'This patient is a 45-year-old Woman. Relevant behavioral factors include: avoids medical care, depressive mood, ignores early abdominal pain, limited access to healthcare, binge drinking.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10745469', 'M', 65, 'uses painkillers excessively, high pain tolerance, frequent emergency department visits, physically active, low socioeconomic status', 'This patient is a 65-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high pain tolerance, frequent emergency department visits, physically active, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10748922', 'M', 34, 'poor insight into illness, high-fat diet, ignores early abdominal pain, low socioeconomic status, regular medical checkups', 'This patient is a 34-year-old Man. Relevant behavioral factors include: poor insight into illness, high-fat diet, ignores early abdominal pain, low socioeconomic status, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10748951', 'F', 62, 'high anxiety, good medication adherence, irregular meal patterns, delays seeking surgical consultation, low socioeconomic status', 'This patient is a 62-year-old Woman. Relevant behavioral factors include: high anxiety, good medication adherence, irregular meal patterns, delays seeking surgical consultation, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10749568', 'M', 59, 'good medication adherence, limited access to healthcare, delays seeking surgical consultation, high pain tolerance, heavy smoker', 'This patient is a 59-year-old Man. Relevant behavioral factors include: good medication adherence, limited access to healthcare, delays seeking surgical consultation, high pain tolerance, heavy smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10754113', 'M', 37, 'uses painkillers excessively, high anxiety, self-medication, limited access to healthcare, physically active', 'This patient is a 37-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high anxiety, self-medication, limited access to healthcare, physically active.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10756982', 'M', 37, 'avoids medical care, sedentary lifestyle, health anxiety, delays seeking surgical consultation, low socioeconomic status', 'This patient is a 37-year-old Man. Relevant behavioral factors include: avoids medical care, sedentary lifestyle, health anxiety, delays seeking surgical consultation, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10758777', 'F', 72, 'uses painkillers excessively, limited access to healthcare, health anxiety, low-fiber diet, frequent emergency department visits', 'This patient is a 72-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, limited access to healthcare, health anxiety, low-fiber diet, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10760019', 'F', 19, 'uses painkillers excessively, physically demanding job, high anxiety, high-fat diet, poor medication adherence', 'This patient is a 19-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, high anxiety, high-fat diet, poor medication adherence.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10762875', 'M', 47, 'uses painkillers excessively, poor insight into illness, sedentary lifestyle, self-medication, low socioeconomic status', 'This patient is a 47-year-old Man. Relevant behavioral factors include: uses painkillers excessively, poor insight into illness, sedentary lifestyle, self-medication, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10769030', 'F', 61, 'former smoker, health anxiety, delays seeking surgical consultation, delayed hospital presentation, limited family support', 'This patient is a 61-year-old Woman. Relevant behavioral factors include: former smoker, health anxiety, delays seeking surgical consultation, delayed hospital presentation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10778867', 'M', 52, 'physically demanding job, delays seeking surgical consultation, high pain tolerance, frequent emergency department visits, binge drinking', 'This patient is a 52-year-old Man. Relevant behavioral factors include: physically demanding job, delays seeking surgical consultation, high pain tolerance, frequent emergency department visits, binge drinking.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10781847', 'M', 30, 'uses painkillers excessively, high-fat diet, low socioeconomic status, poor medication adherence, poor insight into illness', 'This patient is a 30-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high-fat diet, low socioeconomic status, poor medication adherence, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10783366', 'F', 43, 'avoids medical care, uses painkillers excessively, physically demanding job, depressive mood, physically active', 'This patient is a 43-year-old Woman. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, physically demanding job, depressive mood, physically active.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10785348', 'F', 33, 'sedentary lifestyle, ignores early abdominal pain, high pain tolerance, low socioeconomic status, delayed hospital presentation', 'This patient is a 33-year-old Woman. Relevant behavioral factors include: sedentary lifestyle, ignores early abdominal pain, high pain tolerance, low socioeconomic status, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10786656', 'F', 75, 'stress-related symptoms, ignores early abdominal pain, self-medication, chronic alcohol consumption, limited family support', 'This patient is a 75-year-old Woman. Relevant behavioral factors include: stress-related symptoms, ignores early abdominal pain, self-medication, chronic alcohol consumption, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10797056', 'F', 53, 'avoids medical care, continues eating despite nausea, high anxiety, chronic alcohol consumption, low socioeconomic status', 'This patient is a 53-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, high anxiety, chronic alcohol consumption, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10798215', 'F', 36, 'high work-related stress, ignores early abdominal pain, self-medication, physically active, poor insight into illness', 'This patient is a 36-year-old Woman. Relevant behavioral factors include: high work-related stress, ignores early abdominal pain, self-medication, physically active, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10811759', 'M', 31, 'continues eating despite nausea, lives alone, poor medication adherence, physically active, low pain tolerance', 'This patient is a 31-year-old Man. Relevant behavioral factors include: continues eating despite nausea, lives alone, poor medication adherence, physically active, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10819799', 'M', 76, 'lives alone, depressive mood, self-medication, non-compliant with dietary restriction, heavy smoker', 'This patient is a 76-year-old Man. Relevant behavioral factors include: lives alone, depressive mood, self-medication, non-compliant with dietary restriction, heavy smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10822797', 'F', 71, 'uses painkillers excessively, poor insight into illness, physically active, low socioeconomic status, delayed hospital presentation', 'This patient is a 71-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, poor insight into illness, physically active, low socioeconomic status, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10823946', 'F', 86, 'uses painkillers excessively, low pain tolerance, irregular meal patterns, low socioeconomic status, delayed hospital presentation', 'This patient is a 86-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, low pain tolerance, irregular meal patterns, low socioeconomic status, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10825180', 'M', 67, 'high work-related stress, uses painkillers excessively, frequent emergency department visits, heavy smoker, low pain tolerance', 'This patient is a 67-year-old Man. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, frequent emergency department visits, heavy smoker, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10829493', 'M', 72, 'lives alone, depressive mood, ignores early abdominal pain, poor medication adherence, heavy smoker', 'This patient is a 72-year-old Man. Relevant behavioral factors include: lives alone, depressive mood, ignores early abdominal pain, poor medication adherence, heavy smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10830214', 'M', 58, 'high-fat diet, limited access to healthcare, non-compliant with dietary restriction, frequent emergency department visits, poor insight into illness', 'This patient is a 58-year-old Man. Relevant behavioral factors include: high-fat diet, limited access to healthcare, non-compliant with dietary restriction, frequent emergency department visits, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10830359', 'F', 53, 'physically demanding job, sedentary lifestyle, self-medication, non-compliant with dietary restriction, low pain tolerance', 'This patient is a 53-year-old Woman. Relevant behavioral factors include: physically demanding job, sedentary lifestyle, self-medication, non-compliant with dietary restriction, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10833304', 'F', 62, 'lives alone, ignores early abdominal pain, high pain tolerance, frequent emergency department visits, binge drinking', 'This patient is a 62-year-old Woman. Relevant behavioral factors include: lives alone, ignores early abdominal pain, high pain tolerance, frequent emergency department visits, binge drinking.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10833331', 'M', 20, 'high work-related stress, uses painkillers excessively, night shift worker, poor insight into illness, delayed hospital presentation', 'This patient is a 20-year-old Man. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, night shift worker, poor insight into illness, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10835235', 'F', 43, 'continues eating despite nausea, limited access to healthcare, poor insight into illness, regular medical checkups, social smoker', 'This patient is a 43-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, poor insight into illness, regular medical checkups, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10836349', 'F', 43, 'physically demanding job, self-medication, irregular meal patterns, non-compliant with dietary restriction, poor insight into illness', 'This patient is a 43-year-old Woman. Relevant behavioral factors include: physically demanding job, self-medication, irregular meal patterns, non-compliant with dietary restriction, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10840520', 'M', 40, 'avoids medical care, uses painkillers excessively, former smoker, high pain tolerance, limited family support', 'This patient is a 40-year-old Man. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, former smoker, high pain tolerance, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10859519', 'M', 40, 'high work-related stress, continues eating despite nausea, high anxiety, former smoker, self-medication', 'This patient is a 40-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, high anxiety, former smoker, self-medication.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10864816', 'M', 46, 'physically demanding job, non-compliant with dietary restriction, high pain tolerance, binge drinking, delayed hospital presentation', 'This patient is a 46-year-old Man. Relevant behavioral factors include: physically demanding job, non-compliant with dietary restriction, high pain tolerance, binge drinking, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10874066', 'F', 53, 'physically demanding job, non-compliant with dietary restriction, high pain tolerance, regular medical checkups, social smoker', 'This patient is a 53-year-old Woman. Relevant behavioral factors include: physically demanding job, non-compliant with dietary restriction, high pain tolerance, regular medical checkups, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10875474', 'F', 23, 'uses painkillers excessively, night shift worker, high pain tolerance, frequent emergency department visits, limited family support', 'This patient is a 23-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, night shift worker, high pain tolerance, frequent emergency department visits, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10875567', 'F', 38, 'avoids medical care, high work-related stress, uses painkillers excessively, depressive mood, social smoker', 'This patient is a 38-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, uses painkillers excessively, depressive mood, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10877914', 'F', 65, 'poor insight into illness, sedentary lifestyle, self-medication, non-compliant with dietary restriction, low socioeconomic status', 'This patient is a 65-year-old Woman. Relevant behavioral factors include: poor insight into illness, sedentary lifestyle, self-medication, non-compliant with dietary restriction, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10880579', 'F', 57, 'high anxiety, lives alone, sedentary lifestyle, self-medication, non-compliant with dietary restriction', 'This patient is a 57-year-old Woman. Relevant behavioral factors include: high anxiety, lives alone, sedentary lifestyle, self-medication, non-compliant with dietary restriction.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10881070', 'F', 37, 'stress-related symptoms, ignores early abdominal pain, physically active, low socioeconomic status, regular medical checkups', 'This patient is a 37-year-old Woman. Relevant behavioral factors include: stress-related symptoms, ignores early abdominal pain, physically active, low socioeconomic status, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10885949', 'M', 29, 'non-compliant with dietary restriction, irregular meal patterns, health anxiety, frequent emergency department visits, limited family support', 'This patient is a 29-year-old Man. Relevant behavioral factors include: non-compliant with dietary restriction, irregular meal patterns, health anxiety, frequent emergency department visits, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10888963', 'F', 59, 'stress-related symptoms, sedentary lifestyle, limited access to healthcare, delays seeking surgical consultation, frequent emergency department visits', 'This patient is a 59-year-old Woman. Relevant behavioral factors include: stress-related symptoms, sedentary lifestyle, limited access to healthcare, delays seeking surgical consultation, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10892159', 'F', 61, 'uses painkillers excessively, depressive mood, poor medication adherence, low socioeconomic status, social smoker', 'This patient is a 61-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, depressive mood, poor medication adherence, low socioeconomic status, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10895299', 'F', 53, 'avoids medical care, uses painkillers excessively, night shift worker, lives alone, health anxiety', 'This patient is a 53-year-old Woman. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, night shift worker, lives alone, health anxiety.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10898075', 'M', 47, 'stress-related symptoms, non-compliant with dietary restriction, physically active, low socioeconomic status, delayed hospital presentation', 'This patient is a 47-year-old Man. Relevant behavioral factors include: stress-related symptoms, non-compliant with dietary restriction, physically active, low socioeconomic status, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10902160', 'F', 64, 'uses painkillers excessively, high-fat diet, depressive mood, frequent emergency department visits, limited family support', 'This patient is a 64-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high-fat diet, depressive mood, frequent emergency department visits, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10904016', 'M', 60, 'high-fat diet, stress-related symptoms, ignores early abdominal pain, limited access to healthcare, regular medical checkups', 'This patient is a 60-year-old Man. Relevant behavioral factors include: high-fat diet, stress-related symptoms, ignores early abdominal pain, limited access to healthcare, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10905906', 'M', 78, 'lives alone, depressive mood, good medication adherence, irregular meal patterns, non-compliant with dietary restriction', 'This patient is a 78-year-old Man. Relevant behavioral factors include: lives alone, depressive mood, good medication adherence, irregular meal patterns, non-compliant with dietary restriction.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10922167', 'F', 30, 'lives alone, depressive mood, poor medication adherence, delays seeking surgical consultation, low-fiber diet', 'This patient is a 30-year-old Woman. Relevant behavioral factors include: lives alone, depressive mood, poor medication adherence, delays seeking surgical consultation, low-fiber diet.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10926193', 'F', 42, 'lives alone, non-compliant with dietary restriction, frequent emergency department visits, binge drinking, poor insight into illness', 'This patient is a 42-year-old Woman. Relevant behavioral factors include: lives alone, non-compliant with dietary restriction, frequent emergency department visits, binge drinking, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10943161', 'F', 22, 'continues eating despite nausea, physically demanding job, health anxiety, chronic alcohol consumption, frequent emergency department visits', 'This patient is a 22-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, health anxiety, chronic alcohol consumption, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10956159', 'F', 27, 'limited access to healthcare, health anxiety, delays seeking surgical consultation, heavy smoker, delayed hospital presentation', 'This patient is a 27-year-old Woman. Relevant behavioral factors include: limited access to healthcare, health anxiety, delays seeking surgical consultation, heavy smoker, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10958256', 'F', 43, 'continues eating despite nausea, stress-related symptoms, chronic alcohol consumption, delayed hospital presentation, limited family support', 'This patient is a 43-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, stress-related symptoms, chronic alcohol consumption, delayed hospital presentation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10958320', 'F', 20, 'avoids medical care, depressive mood, limited access to healthcare, non-compliant with dietary restriction, chronic alcohol consumption', 'This patient is a 20-year-old Woman. Relevant behavioral factors include: avoids medical care, depressive mood, limited access to healthcare, non-compliant with dietary restriction, chronic alcohol consumption.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10963257', 'F', 50, 'high work-related stress, depressive mood, poor medication adherence, delays seeking surgical consultation, low-fiber diet', 'This patient is a 50-year-old Woman. Relevant behavioral factors include: high work-related stress, depressive mood, poor medication adherence, delays seeking surgical consultation, low-fiber diet.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10964841', 'F', 28, 'avoids medical care, high work-related stress, non-compliant with dietary restriction, high pain tolerance, binge drinking', 'This patient is a 28-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, non-compliant with dietary restriction, high pain tolerance, binge drinking.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10965294', 'M', 21, 'lives alone, ignores early abdominal pain, poor medication adherence, health anxiety, chronic alcohol consumption', 'This patient is a 21-year-old Man. Relevant behavioral factors include: lives alone, ignores early abdominal pain, poor medication adherence, health anxiety, chronic alcohol consumption.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10965345', 'M', 51, 'avoids medical care, high work-related stress, uses painkillers excessively, depressive mood, heavy smoker', 'This patient is a 51-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, uses painkillers excessively, depressive mood, heavy smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10968286', 'M', 50, 'high anxiety, self-medication, delays seeking surgical consultation, heavy smoker, limited family support', 'This patient is a 50-year-old Man. Relevant behavioral factors include: high anxiety, self-medication, delays seeking surgical consultation, heavy smoker, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10983866', 'M', 79, 'high work-related stress, depressive mood, ignores early abdominal pain, self-medication, chronic alcohol consumption', 'This patient is a 79-year-old Man. Relevant behavioral factors include: high work-related stress, depressive mood, ignores early abdominal pain, self-medication, chronic alcohol consumption.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10984267', 'F', 28, 'physically demanding job, ignores early abdominal pain, high pain tolerance, binge drinking, delayed hospital presentation', 'This patient is a 28-year-old Woman. Relevant behavioral factors include: physically demanding job, ignores early abdominal pain, high pain tolerance, binge drinking, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10986405', 'F', 29, 'high anxiety, lives alone, good medication adherence, former smoker, delays seeking surgical consultation', 'This patient is a 29-year-old Woman. Relevant behavioral factors include: high anxiety, lives alone, good medication adherence, former smoker, delays seeking surgical consultation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10994390', 'F', 24, 'high work-related stress, former smoker, stress-related symptoms, non-compliant with dietary restriction, frequent emergency department visits', 'This patient is a 24-year-old Woman. Relevant behavioral factors include: high work-related stress, former smoker, stress-related symptoms, non-compliant with dietary restriction, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10997457', 'M', 23, 'high work-related stress, high-fat diet, non-compliant with dietary restriction, frequent emergency department visits, poor insight into illness', 'This patient is a 23-year-old Man. Relevant behavioral factors include: high work-related stress, high-fat diet, non-compliant with dietary restriction, frequent emergency department visits, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('10998589', 'M', 59, 'low pain tolerance, good medication adherence, ignores early abdominal pain, low socioeconomic status, social smoker', 'This patient is a 59-year-old Man. Relevant behavioral factors include: low pain tolerance, good medication adherence, ignores early abdominal pain, low socioeconomic status, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11000997', 'M', 33, 'good medication adherence, limited access to healthcare, non-compliant with dietary restriction, binge drinking, poor insight into illness', 'This patient is a 33-year-old Man. Relevant behavioral factors include: good medication adherence, limited access to healthcare, non-compliant with dietary restriction, binge drinking, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11004072', 'M', 53, 'high work-related stress, night shift worker, high anxiety, ignores early abdominal pain, regular medical checkups', 'This patient is a 53-year-old Man. Relevant behavioral factors include: high work-related stress, night shift worker, high anxiety, ignores early abdominal pain, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11012637', 'M', 46, 'high anxiety, non-compliant with dietary restriction, low-fiber diet, regular medical checkups, limited family support', 'This patient is a 46-year-old Man. Relevant behavioral factors include: high anxiety, non-compliant with dietary restriction, low-fiber diet, regular medical checkups, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11012879', 'M', 54, 'uses painkillers excessively, high-fat diet, low socioeconomic status, poor medication adherence, low pain tolerance', 'This patient is a 54-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high-fat diet, low socioeconomic status, poor medication adherence, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11031190', 'M', 25, 'avoids medical care, high-fat diet, depressive mood, limited access to healthcare, non-compliant with dietary restriction', 'This patient is a 25-year-old Man. Relevant behavioral factors include: avoids medical care, high-fat diet, depressive mood, limited access to healthcare, non-compliant with dietary restriction.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11039753', 'F', 59, 'continues eating despite nausea, lives alone, high-fat diet, self-medication, poor insight into illness', 'This patient is a 59-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, high-fat diet, self-medication, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11041085', 'M', 53, 'physically demanding job, self-medication, delays seeking surgical consultation, health anxiety, chronic alcohol consumption', 'This patient is a 53-year-old Man. Relevant behavioral factors include: physically demanding job, self-medication, delays seeking surgical consultation, health anxiety, chronic alcohol consumption.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11044320', 'M', 65, 'uses painkillers excessively, limited access to healthcare, poor medication adherence, physically active, low pain tolerance', 'This patient is a 65-year-old Man. Relevant behavioral factors include: uses painkillers excessively, limited access to healthcare, poor medication adherence, physically active, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11052273', 'F', 74, 'avoids medical care, continues eating despite nausea, physically demanding job, depressive mood, sedentary lifestyle', 'This patient is a 74-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, physically demanding job, depressive mood, sedentary lifestyle.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11059708', 'M', 21, 'night shift worker, non-compliant with dietary restriction, health anxiety, delayed hospital presentation, limited family support', 'This patient is a 21-year-old Man. Relevant behavioral factors include: night shift worker, non-compliant with dietary restriction, health anxiety, delayed hospital presentation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11063807', 'F', 48, 'depressive mood, non-compliant with dietary restriction, poor medication adherence, low-fiber diet, limited family support', 'This patient is a 48-year-old Woman. Relevant behavioral factors include: depressive mood, non-compliant with dietary restriction, poor medication adherence, low-fiber diet, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11065944', 'M', 49, 'physically demanding job, depressive mood, good medication adherence, delays seeking surgical consultation, low-fiber diet', 'This patient is a 49-year-old Man. Relevant behavioral factors include: physically demanding job, depressive mood, good medication adherence, delays seeking surgical consultation, low-fiber diet.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11066902', 'F', 35, 'uses painkillers excessively, lives alone, chronic alcohol consumption, high pain tolerance, frequent emergency department visits', 'This patient is a 35-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, lives alone, chronic alcohol consumption, high pain tolerance, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11072749', 'F', 72, 'physically demanding job, high-fat diet, depressive mood, self-medication, non-compliant with dietary restriction', 'This patient is a 72-year-old Woman. Relevant behavioral factors include: physically demanding job, high-fat diet, depressive mood, self-medication, non-compliant with dietary restriction.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11087612', 'M', 54, 'depressive mood, good medication adherence, delays seeking surgical consultation, heavy smoker, low socioeconomic status', 'This patient is a 54-year-old Man. Relevant behavioral factors include: depressive mood, good medication adherence, delays seeking surgical consultation, heavy smoker, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11095671', 'F', 27, 'ignores early abdominal pain, chronic alcohol consumption, frequent emergency department visits, poor insight into illness, limited family support', 'This patient is a 27-year-old Woman. Relevant behavioral factors include: ignores early abdominal pain, chronic alcohol consumption, frequent emergency department visits, poor insight into illness, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11112100', 'M', 58, 'high work-related stress, night shift worker, non-compliant with dietary restriction, poor medication adherence, high pain tolerance', 'This patient is a 58-year-old Man. Relevant behavioral factors include: high work-related stress, night shift worker, non-compliant with dietary restriction, poor medication adherence, high pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11130122', 'M', 48, 'avoids medical care, high-fat diet, lives alone, delays seeking surgical consultation, low pain tolerance', 'This patient is a 48-year-old Man. Relevant behavioral factors include: avoids medical care, high-fat diet, lives alone, delays seeking surgical consultation, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11130436', 'M', 24, 'non-compliant with dietary restriction, irregular meal patterns, poor medication adherence, poor insight into illness, limited family support', 'This patient is a 24-year-old Man. Relevant behavioral factors include: non-compliant with dietary restriction, irregular meal patterns, poor medication adherence, poor insight into illness, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11132868', 'M', 44, 'continues eating despite nausea, physically demanding job, night shift worker, low pain tolerance, regular medical checkups', 'This patient is a 44-year-old Man. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, night shift worker, low pain tolerance, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11133934', 'M', 34, 'avoids medical care, high work-related stress, stress-related symptoms, ignores early abdominal pain, low-fiber diet', 'This patient is a 34-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, stress-related symptoms, ignores early abdominal pain, low-fiber diet.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11133971', 'F', 83, 'lives alone, sedentary lifestyle, non-compliant with dietary restriction, health anxiety, poor medication adherence', 'This patient is a 83-year-old Woman. Relevant behavioral factors include: lives alone, sedentary lifestyle, non-compliant with dietary restriction, health anxiety, poor medication adherence.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11137177', 'M', 66, 'high work-related stress, depressive mood, delays seeking surgical consultation, heavy smoker, delayed hospital presentation', 'This patient is a 66-year-old Man. Relevant behavioral factors include: high work-related stress, depressive mood, delays seeking surgical consultation, heavy smoker, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11151591', 'F', 55, 'high work-related stress, uses painkillers excessively, high anxiety, poor medication adherence, chronic alcohol consumption', 'This patient is a 55-year-old Woman. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, high anxiety, poor medication adherence, chronic alcohol consumption.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11154626', 'M', 74, 'lives alone, sedentary lifestyle, self-medication, ignores early abdominal pain, low pain tolerance', 'This patient is a 74-year-old Man. Relevant behavioral factors include: lives alone, sedentary lifestyle, self-medication, ignores early abdominal pain, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11161405', 'F', 55, 'avoids medical care, high work-related stress, high anxiety, delays seeking surgical consultation, social smoker', 'This patient is a 55-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, high anxiety, delays seeking surgical consultation, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11164899', 'M', 72, 'high work-related stress, continues eating despite nausea, night shift worker, frequent emergency department visits, low pain tolerance', 'This patient is a 72-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, night shift worker, frequent emergency department visits, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11165476', 'F', 45, 'uses painkillers excessively, high anxiety, self-medication, low socioeconomic status, social smoker', 'This patient is a 45-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high anxiety, self-medication, low socioeconomic status, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11168764', 'F', 22, 'stress-related symptoms, non-compliant with dietary restriction, physically active, low socioeconomic status, delayed hospital presentation', 'This patient is a 22-year-old Woman. Relevant behavioral factors include: stress-related symptoms, non-compliant with dietary restriction, physically active, low socioeconomic status, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11169343', 'F', 21, 'sedentary lifestyle, ignores early abdominal pain, health anxiety, poor medication adherence, low socioeconomic status', 'This patient is a 21-year-old Woman. Relevant behavioral factors include: sedentary lifestyle, ignores early abdominal pain, health anxiety, poor medication adherence, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11171757', 'F', 91, 'physically demanding job, sedentary lifestyle, ignores early abdominal pain, high pain tolerance, regular medical checkups', 'This patient is a 91-year-old Woman. Relevant behavioral factors include: physically demanding job, sedentary lifestyle, ignores early abdominal pain, high pain tolerance, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11174184', 'M', 83, 'ignores early abdominal pain, self-medication, heavy smoker, poor insight into illness, limited family support', 'This patient is a 83-year-old Man. Relevant behavioral factors include: ignores early abdominal pain, self-medication, heavy smoker, poor insight into illness, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11174340', 'F', 79, 'avoids medical care, physically demanding job, depressive mood, delays seeking surgical consultation, chronic alcohol consumption', 'This patient is a 79-year-old Woman. Relevant behavioral factors include: avoids medical care, physically demanding job, depressive mood, delays seeking surgical consultation, chronic alcohol consumption.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11174843', 'M', 26, 'uses painkillers excessively, lives alone, health anxiety, low-fiber diet, delayed hospital presentation', 'This patient is a 26-year-old Man. Relevant behavioral factors include: uses painkillers excessively, lives alone, health anxiety, low-fiber diet, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11181505', 'M', 32, 'high work-related stress, non-compliant with dietary restriction, health anxiety, low-fiber diet, delayed hospital presentation', 'This patient is a 32-year-old Man. Relevant behavioral factors include: high work-related stress, non-compliant with dietary restriction, health anxiety, low-fiber diet, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11182240', 'F', 67, 'high work-related stress, irregular meal patterns, non-compliant with dietary restriction, low pain tolerance, regular medical checkups', 'This patient is a 67-year-old Woman. Relevant behavioral factors include: high work-related stress, irregular meal patterns, non-compliant with dietary restriction, low pain tolerance, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11185210', 'F', 88, 'stress-related symptoms, limited access to healthcare, delays seeking surgical consultation, heavy smoker, regular medical checkups', 'This patient is a 88-year-old Woman. Relevant behavioral factors include: stress-related symptoms, limited access to healthcare, delays seeking surgical consultation, heavy smoker, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11185241', 'F', 45, 'delays seeking surgical consultation, poor medication adherence, binge drinking, poor insight into illness, limited family support', 'This patient is a 45-year-old Woman. Relevant behavioral factors include: delays seeking surgical consultation, poor medication adherence, binge drinking, poor insight into illness, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11190494', 'M', 41, 'continues eating despite nausea, high pain tolerance, heavy smoker, low socioeconomic status, regular medical checkups', 'This patient is a 41-year-old Man. Relevant behavioral factors include: continues eating despite nausea, high pain tolerance, heavy smoker, low socioeconomic status, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11190737', 'F', 52, 'high work-related stress, continues eating despite nausea, high anxiety, poor medication adherence, binge drinking', 'This patient is a 52-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, high anxiety, poor medication adherence, binge drinking.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11197798', 'F', 68, 'social smoker, uses painkillers excessively, good medication adherence, high pain tolerance, limited family support', 'This patient is a 68-year-old Woman. Relevant behavioral factors include: social smoker, uses painkillers excessively, good medication adherence, high pain tolerance, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11199428', 'F', 53, 'uses painkillers excessively, lives alone, stress-related symptoms, chronic alcohol consumption, frequent emergency department visits', 'This patient is a 53-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, lives alone, stress-related symptoms, chronic alcohol consumption, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11204526', 'F', 60, 'continues eating despite nausea, stress-related symptoms, sedentary lifestyle, limited access to healthcare, regular medical checkups', 'This patient is a 60-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, stress-related symptoms, sedentary lifestyle, limited access to healthcare, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11213607', 'M', 89, 'depressive mood, ignores early abdominal pain, irregular meal patterns, low socioeconomic status, delayed hospital presentation', 'This patient is a 89-year-old Man. Relevant behavioral factors include: depressive mood, ignores early abdominal pain, irregular meal patterns, low socioeconomic status, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11214417', 'M', 32, 'irregular meal patterns, delays seeking surgical consultation, health anxiety, frequent emergency department visits, limited family support', 'This patient is a 32-year-old Man. Relevant behavioral factors include: irregular meal patterns, delays seeking surgical consultation, health anxiety, frequent emergency department visits, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11215260', 'M', 39, 'high work-related stress, continues eating despite nausea, sedentary lifestyle, high pain tolerance, frequent emergency department visits', 'This patient is a 39-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, sedentary lifestyle, high pain tolerance, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11227282', 'F', 24, 'continues eating despite nausea, limited access to healthcare, irregular meal patterns, poor insight into illness, regular medical checkups', 'This patient is a 24-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, irregular meal patterns, poor insight into illness, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11230823', 'F', 89, 'uses painkillers excessively, high pain tolerance, poor medication adherence, low-fiber diet, low socioeconomic status', 'This patient is a 89-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high pain tolerance, poor medication adherence, low-fiber diet, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11231379', 'M', 69, 'depressive mood, sedentary lifestyle, ignores early abdominal pain, frequent emergency department visits, low socioeconomic status', 'This patient is a 69-year-old Man. Relevant behavioral factors include: depressive mood, sedentary lifestyle, ignores early abdominal pain, frequent emergency department visits, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11235666', 'M', 49, 'high work-related stress, continues eating despite nausea, self-medication, heavy smoker, poor insight into illness', 'This patient is a 49-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, self-medication, heavy smoker, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11241609', 'M', 54, 'uses painkillers excessively, lives alone, high anxiety, poor medication adherence, binge drinking', 'This patient is a 54-year-old Man. Relevant behavioral factors include: uses painkillers excessively, lives alone, high anxiety, poor medication adherence, binge drinking.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11242610', 'F', 18, 'former smoker, self-medication, health anxiety, delays seeking surgical consultation, low socioeconomic status', 'This patient is a 18-year-old Woman. Relevant behavioral factors include: former smoker, self-medication, health anxiety, delays seeking surgical consultation, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11248793', 'F', 57, 'avoids medical care, high work-related stress, high anxiety, ignores early abdominal pain, irregular meal patterns', 'This patient is a 57-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, high anxiety, ignores early abdominal pain, irregular meal patterns.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11251623', 'M', 56, 'physically demanding job, non-compliant with dietary restriction, poor medication adherence, physically active, poor insight into illness', 'This patient is a 56-year-old Man. Relevant behavioral factors include: physically demanding job, non-compliant with dietary restriction, poor medication adherence, physically active, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11258087', 'F', 38, 'uses painkillers excessively, limited access to healthcare, health anxiety, delayed hospital presentation, social smoker', 'This patient is a 38-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, limited access to healthcare, health anxiety, delayed hospital presentation, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11269082', 'F', 24, 'non-compliant with dietary restriction, low-fiber diet, high pain tolerance, frequent emergency department visits, limited family support', 'This patient is a 24-year-old Woman. Relevant behavioral factors include: non-compliant with dietary restriction, low-fiber diet, high pain tolerance, frequent emergency department visits, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11271666', 'F', 26, 'avoids medical care, continues eating despite nausea, limited access to healthcare, health anxiety, chronic alcohol consumption', 'This patient is a 26-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, limited access to healthcare, health anxiety, chronic alcohol consumption.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11275704', 'F', 75, 'high work-related stress, depressive mood, non-compliant with dietary restriction, physically active, delayed hospital presentation', 'This patient is a 75-year-old Woman. Relevant behavioral factors include: high work-related stress, depressive mood, non-compliant with dietary restriction, physically active, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11277832', 'M', 39, 'uses painkillers excessively, stress-related symptoms, self-medication, limited access to healthcare, physically active', 'This patient is a 39-year-old Man. Relevant behavioral factors include: uses painkillers excessively, stress-related symptoms, self-medication, limited access to healthcare, physically active.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11289333', 'F', 39, 'high work-related stress, ignores early abdominal pain, self-medication, health anxiety, heavy smoker', 'This patient is a 39-year-old Woman. Relevant behavioral factors include: high work-related stress, ignores early abdominal pain, self-medication, health anxiety, heavy smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11303674', 'F', 46, 'high anxiety, limited access to healthcare, non-compliant with dietary restriction, chronic alcohol consumption, regular medical checkups', 'This patient is a 46-year-old Woman. Relevant behavioral factors include: high anxiety, limited access to healthcare, non-compliant with dietary restriction, chronic alcohol consumption, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11306665', 'F', 62, 'lives alone, high anxiety, ignores early abdominal pain, self-medication, chronic alcohol consumption', 'This patient is a 62-year-old Woman. Relevant behavioral factors include: lives alone, high anxiety, ignores early abdominal pain, self-medication, chronic alcohol consumption.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11309272', 'M', 35, 'avoids medical care, depressive mood, ignores early abdominal pain, limited access to healthcare, social smoker', 'This patient is a 35-year-old Man. Relevant behavioral factors include: avoids medical care, depressive mood, ignores early abdominal pain, limited access to healthcare, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11309808', 'F', 54, 'physically demanding job, delays seeking surgical consultation, heavy smoker, low pain tolerance, delayed hospital presentation', 'This patient is a 54-year-old Woman. Relevant behavioral factors include: physically demanding job, delays seeking surgical consultation, heavy smoker, low pain tolerance, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11313489', 'F', 68, 'continues eating despite nausea, physically demanding job, high anxiety, sedentary lifestyle, poor medication adherence', 'This patient is a 68-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, high anxiety, sedentary lifestyle, poor medication adherence.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11324378', 'F', 71, 'depressive mood, former smoker, self-medication, non-compliant with dietary restriction, low socioeconomic status', 'This patient is a 71-year-old Woman. Relevant behavioral factors include: depressive mood, former smoker, self-medication, non-compliant with dietary restriction, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11325145', 'F', 31, 'uses painkillers excessively, physically demanding job, self-medication, health anxiety, physically active', 'This patient is a 31-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, self-medication, health anxiety, physically active.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11325242', 'M', 61, 'continues eating despite nausea, stress-related symptoms, chronic alcohol consumption, low socioeconomic status, regular medical checkups', 'This patient is a 61-year-old Man. Relevant behavioral factors include: continues eating despite nausea, stress-related symptoms, chronic alcohol consumption, low socioeconomic status, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11333221', 'F', 91, 'low pain tolerance, good medication adherence, former smoker, ignores early abdominal pain, low socioeconomic status', 'This patient is a 91-year-old Woman. Relevant behavioral factors include: low pain tolerance, good medication adherence, former smoker, ignores early abdominal pain, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11337676', 'F', 49, 'high work-related stress, continues eating despite nausea, good medication adherence, health anxiety, physically active', 'This patient is a 49-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, good medication adherence, health anxiety, physically active.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11341524', 'F', 74, 'uses painkillers excessively, night shift worker, health anxiety, poor medication adherence, limited family support', 'This patient is a 74-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, night shift worker, health anxiety, poor medication adherence, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11345822', 'M', 59, 'continues eating despite nausea, limited access to healthcare, chronic alcohol consumption, frequent emergency department visits, poor insight into illness', 'This patient is a 59-year-old Man. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, chronic alcohol consumption, frequent emergency department visits, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11353978', 'F', 67, 'limited access to healthcare, delays seeking surgical consultation, poor medication adherence, physically active, low pain tolerance', 'This patient is a 67-year-old Woman. Relevant behavioral factors include: limited access to healthcare, delays seeking surgical consultation, poor medication adherence, physically active, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11354070', 'F', 41, 'high work-related stress, depressive mood, non-compliant with dietary restriction, chronic alcohol consumption, regular medical checkups', 'This patient is a 41-year-old Woman. Relevant behavioral factors include: high work-related stress, depressive mood, non-compliant with dietary restriction, chronic alcohol consumption, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11361559', 'M', 51, 'night shift worker, lives alone, good medication adherence, non-compliant with dietary restriction, high pain tolerance', 'This patient is a 51-year-old Man. Relevant behavioral factors include: night shift worker, lives alone, good medication adherence, non-compliant with dietary restriction, high pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11364335', 'M', 41, 'continues eating despite nausea, sedentary lifestyle, limited access to healthcare, low pain tolerance, regular medical checkups', 'This patient is a 41-year-old Man. Relevant behavioral factors include: continues eating despite nausea, sedentary lifestyle, limited access to healthcare, low pain tolerance, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11364933', 'F', 57, 'high-fat diet, ignores early abdominal pain, high pain tolerance, delayed hospital presentation, limited family support', 'This patient is a 57-year-old Woman. Relevant behavioral factors include: high-fat diet, ignores early abdominal pain, high pain tolerance, delayed hospital presentation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11365171', 'F', 20, 'high work-related stress, self-medication, irregular meal patterns, non-compliant with dietary restriction, poor insight into illness', 'This patient is a 20-year-old Woman. Relevant behavioral factors include: high work-related stress, self-medication, irregular meal patterns, non-compliant with dietary restriction, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11377991', 'F', 31, 'continues eating despite nausea, stress-related symptoms, frequent emergency department visits, heavy smoker, low socioeconomic status', 'This patient is a 31-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, stress-related symptoms, frequent emergency department visits, heavy smoker, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11381948', 'F', 21, 'lives alone, stress-related symptoms, sedentary lifestyle, non-compliant with dietary restriction, frequent emergency department visits', 'This patient is a 21-year-old Woman. Relevant behavioral factors include: lives alone, stress-related symptoms, sedentary lifestyle, non-compliant with dietary restriction, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11382387', 'M', 51, 'high work-related stress, depressive mood, self-medication, non-compliant with dietary restriction, binge drinking', 'This patient is a 51-year-old Man. Relevant behavioral factors include: high work-related stress, depressive mood, self-medication, non-compliant with dietary restriction, binge drinking.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11397896', 'F', 57, 'lives alone, good medication adherence, delays seeking surgical consultation, high pain tolerance, social smoker', 'This patient is a 57-year-old Woman. Relevant behavioral factors include: lives alone, good medication adherence, delays seeking surgical consultation, high pain tolerance, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11404878', 'M', 55, 'physically demanding job, delays seeking surgical consultation, high pain tolerance, physically active, delayed hospital presentation', 'This patient is a 55-year-old Man. Relevant behavioral factors include: physically demanding job, delays seeking surgical consultation, high pain tolerance, physically active, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11407165', 'M', 33, 'avoids medical care, health anxiety, delays seeking surgical consultation, chronic alcohol consumption, low socioeconomic status', 'This patient is a 33-year-old Man. Relevant behavioral factors include: avoids medical care, health anxiety, delays seeking surgical consultation, chronic alcohol consumption, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11407563', 'F', 39, 'avoids medical care, ignores early abdominal pain, binge drinking, low pain tolerance, limited family support', 'This patient is a 39-year-old Woman. Relevant behavioral factors include: avoids medical care, ignores early abdominal pain, binge drinking, low pain tolerance, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11415267', 'F', 70, 'avoids medical care, uses painkillers excessively, physically demanding job, depressive mood, binge drinking', 'This patient is a 70-year-old Woman. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, physically demanding job, depressive mood, binge drinking.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11418296', 'M', 27, 'high anxiety, good medication adherence, ignores early abdominal pain, chronic alcohol consumption, limited family support', 'This patient is a 27-year-old Man. Relevant behavioral factors include: high anxiety, good medication adherence, ignores early abdominal pain, chronic alcohol consumption, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11419902', 'M', 26, 'high work-related stress, non-compliant with dietary restriction, low-fiber diet, poor insight into illness, delayed hospital presentation', 'This patient is a 26-year-old Man. Relevant behavioral factors include: high work-related stress, non-compliant with dietary restriction, low-fiber diet, poor insight into illness, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11426173', 'M', 34, 'low socioeconomic status, poor medication adherence, delays seeking surgical consultation, heavy smoker, poor insight into illness', 'This patient is a 34-year-old Man. Relevant behavioral factors include: low socioeconomic status, poor medication adherence, delays seeking surgical consultation, heavy smoker, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11427738', 'F', 50, 'uses painkillers excessively, high-fat diet, limited access to healthcare, health anxiety, regular medical checkups', 'This patient is a 50-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high-fat diet, limited access to healthcare, health anxiety, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11432522', 'F', 45, 'continues eating despite nausea, irregular meal patterns, poor insight into illness, delayed hospital presentation, limited family support', 'This patient is a 45-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, irregular meal patterns, poor insight into illness, delayed hospital presentation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11432819', 'F', 25, 'ignores early abdominal pain, self-medication, low-fiber diet, high pain tolerance, low socioeconomic status', 'This patient is a 25-year-old Woman. Relevant behavioral factors include: ignores early abdominal pain, self-medication, low-fiber diet, high pain tolerance, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11436948', 'F', 21, 'high work-related stress, high-fat diet, ignores early abdominal pain, self-medication, poor insight into illness', 'This patient is a 21-year-old Woman. Relevant behavioral factors include: high work-related stress, high-fat diet, ignores early abdominal pain, self-medication, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11437257', 'F', 75, 'continues eating despite nausea, night shift worker, poor medication adherence, low pain tolerance, limited family support', 'This patient is a 75-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, night shift worker, poor medication adherence, low pain tolerance, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11438173', 'M', 84, 'physically demanding job, high anxiety, good medication adherence, non-compliant with dietary restriction, heavy smoker', 'This patient is a 84-year-old Man. Relevant behavioral factors include: physically demanding job, high anxiety, good medication adherence, non-compliant with dietary restriction, heavy smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11441212', 'F', 31, 'continues eating despite nausea, limited access to healthcare, health anxiety, regular medical checkups, social smoker', 'This patient is a 31-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, health anxiety, regular medical checkups, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11441483', 'F', 66, 'high work-related stress, former smoker, ignores early abdominal pain, self-medication, low pain tolerance', 'This patient is a 66-year-old Woman. Relevant behavioral factors include: high work-related stress, former smoker, ignores early abdominal pain, self-medication, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11450072', 'M', 22, 'continues eating despite nausea, good medication adherence, stress-related symptoms, low-fiber diet, limited family support', 'This patient is a 22-year-old Man. Relevant behavioral factors include: continues eating despite nausea, good medication adherence, stress-related symptoms, low-fiber diet, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11458481', 'F', 23, 'depressive mood, poor medication adherence, delays seeking surgical consultation, heavy smoker, low socioeconomic status', 'This patient is a 23-year-old Woman. Relevant behavioral factors include: depressive mood, poor medication adherence, delays seeking surgical consultation, heavy smoker, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11461906', 'M', 62, 'stress-related symptoms, ignores early abdominal pain, low-fiber diet, frequent emergency department visits, limited family support', 'This patient is a 62-year-old Man. Relevant behavioral factors include: stress-related symptoms, ignores early abdominal pain, low-fiber diet, frequent emergency department visits, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11463611', 'M', 54, 'uses painkillers excessively, irregular meal patterns, poor insight into illness, delayed hospital presentation, limited family support', 'This patient is a 54-year-old Man. Relevant behavioral factors include: uses painkillers excessively, irregular meal patterns, poor insight into illness, delayed hospital presentation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11469232', 'F', 32, 'uses painkillers excessively, stress-related symptoms, limited access to healthcare, poor medication adherence, binge drinking', 'This patient is a 32-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, stress-related symptoms, limited access to healthcare, poor medication adherence, binge drinking.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11470408', 'M', 68, 'avoids medical care, high-fat diet, stress-related symptoms, ignores early abdominal pain, low socioeconomic status', 'This patient is a 68-year-old Man. Relevant behavioral factors include: avoids medical care, high-fat diet, stress-related symptoms, ignores early abdominal pain, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11474392', 'F', 82, 'physically demanding job, high anxiety, good medication adherence, non-compliant with dietary restriction, chronic alcohol consumption', 'This patient is a 82-year-old Woman. Relevant behavioral factors include: physically demanding job, high anxiety, good medication adherence, non-compliant with dietary restriction, chronic alcohol consumption.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11475386', 'F', 63, 'sedentary lifestyle, ignores early abdominal pain, poor medication adherence, low pain tolerance, limited family support', 'This patient is a 63-year-old Woman. Relevant behavioral factors include: sedentary lifestyle, ignores early abdominal pain, poor medication adherence, low pain tolerance, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11482361', 'F', 65, 'continues eating despite nausea, good medication adherence, stress-related symptoms, limited access to healthcare, social smoker', 'This patient is a 65-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, good medication adherence, stress-related symptoms, limited access to healthcare, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11483477', 'F', 45, 'physically demanding job, high anxiety, irregular meal patterns, non-compliant with dietary restriction, regular medical checkups', 'This patient is a 45-year-old Woman. Relevant behavioral factors include: physically demanding job, high anxiety, irregular meal patterns, non-compliant with dietary restriction, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11487947', 'F', 50, 'avoids medical care, high work-related stress, uses painkillers excessively, depressive mood, social smoker', 'This patient is a 50-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, uses painkillers excessively, depressive mood, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11488639', 'F', 26, 'continues eating despite nausea, good medication adherence, stress-related symptoms, sedentary lifestyle, limited access to healthcare', 'This patient is a 26-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, good medication adherence, stress-related symptoms, sedentary lifestyle, limited access to healthcare.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11489960', 'M', 22, 'social smoker, self-medication, non-compliant with dietary restriction, low pain tolerance, limited family support', 'This patient is a 22-year-old Man. Relevant behavioral factors include: social smoker, self-medication, non-compliant with dietary restriction, low pain tolerance, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11490406', 'F', 79, 'lives alone, delays seeking surgical consultation, high pain tolerance, heavy smoker, delayed hospital presentation', 'This patient is a 79-year-old Woman. Relevant behavioral factors include: lives alone, delays seeking surgical consultation, high pain tolerance, heavy smoker, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11494934', 'M', 77, 'continues eating despite nausea, good medication adherence, sedentary lifestyle, poor insight into illness, limited family support', 'This patient is a 77-year-old Man. Relevant behavioral factors include: continues eating despite nausea, good medication adherence, sedentary lifestyle, poor insight into illness, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11508666', 'M', 34, 'uses painkillers excessively, limited access to healthcare, health anxiety, frequent emergency department visits, social smoker', 'This patient is a 34-year-old Man. Relevant behavioral factors include: uses painkillers excessively, limited access to healthcare, health anxiety, frequent emergency department visits, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11512324', 'F', 24, 'high-fat diet, low socioeconomic status, poor medication adherence, delays seeking surgical consultation, low pain tolerance', 'This patient is a 24-year-old Woman. Relevant behavioral factors include: high-fat diet, low socioeconomic status, poor medication adherence, delays seeking surgical consultation, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11518710', 'M', 63, 'social smoker, self-medication, delays seeking surgical consultation, high pain tolerance, limited family support', 'This patient is a 63-year-old Man. Relevant behavioral factors include: social smoker, self-medication, delays seeking surgical consultation, high pain tolerance, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11520582', 'M', 19, 'avoids medical care, depressive mood, ignores early abdominal pain, low-fiber diet, low socioeconomic status', 'This patient is a 19-year-old Man. Relevant behavioral factors include: avoids medical care, depressive mood, ignores early abdominal pain, low-fiber diet, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11526031', 'F', 63, 'depressive mood, former smoker, ignores early abdominal pain, limited access to healthcare, regular medical checkups', 'This patient is a 63-year-old Woman. Relevant behavioral factors include: depressive mood, former smoker, ignores early abdominal pain, limited access to healthcare, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11532659', 'F', 59, 'lives alone, high anxiety, former smoker, non-compliant with dietary restriction, poor medication adherence', 'This patient is a 59-year-old Woman. Relevant behavioral factors include: lives alone, high anxiety, former smoker, non-compliant with dietary restriction, poor medication adherence.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11532808', 'M', 54, 'depressive mood, lives alone, ignores early abdominal pain, frequent emergency department visits, binge drinking', 'This patient is a 54-year-old Man. Relevant behavioral factors include: depressive mood, lives alone, ignores early abdominal pain, frequent emergency department visits, binge drinking.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11533366', 'F', 60, 'high anxiety, good medication adherence, ignores early abdominal pain, heavy smoker, limited family support', 'This patient is a 60-year-old Woman. Relevant behavioral factors include: high anxiety, good medication adherence, ignores early abdominal pain, heavy smoker, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11542488', 'F', 64, 'continues eating despite nausea, good medication adherence, low-fiber diet, high pain tolerance, low socioeconomic status', 'This patient is a 64-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, good medication adherence, low-fiber diet, high pain tolerance, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11545313', 'F', 91, 'uses painkillers excessively, depressive mood, chronic alcohol consumption, frequent emergency department visits, limited family support', 'This patient is a 91-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, depressive mood, chronic alcohol consumption, frequent emergency department visits, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11547436', 'F', 30, 'physically demanding job, high-fat diet, stress-related symptoms, ignores early abdominal pain, poor medication adherence', 'This patient is a 30-year-old Woman. Relevant behavioral factors include: physically demanding job, high-fat diet, stress-related symptoms, ignores early abdominal pain, poor medication adherence.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11552008', 'F', 33, 'former smoker, delays seeking surgical consultation, low pain tolerance, delayed hospital presentation, limited family support', 'This patient is a 33-year-old Woman. Relevant behavioral factors include: former smoker, delays seeking surgical consultation, low pain tolerance, delayed hospital presentation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11553781', 'M', 31, 'avoids medical care, night shift worker, delays seeking surgical consultation, poor insight into illness, limited family support', 'This patient is a 31-year-old Man. Relevant behavioral factors include: avoids medical care, night shift worker, delays seeking surgical consultation, poor insight into illness, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11554504', 'F', 59, 'uses painkillers excessively, lives alone, sedentary lifestyle, health anxiety, frequent emergency department visits', 'This patient is a 59-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, lives alone, sedentary lifestyle, health anxiety, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11557394', 'F', 20, 'uses painkillers excessively, physically demanding job, self-medication, health anxiety, heavy smoker', 'This patient is a 20-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, self-medication, health anxiety, heavy smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11558244', 'F', 34, 'continues eating despite nausea, former smoker, high pain tolerance, delayed hospital presentation, limited family support', 'This patient is a 34-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, former smoker, high pain tolerance, delayed hospital presentation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11559338', 'F', 81, 'lives alone, high anxiety, self-medication, non-compliant with dietary restriction, heavy smoker', 'This patient is a 81-year-old Woman. Relevant behavioral factors include: lives alone, high anxiety, self-medication, non-compliant with dietary restriction, heavy smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11564165', 'F', 28, 'uses painkillers excessively, physically demanding job, night shift worker, high anxiety, regular medical checkups', 'This patient is a 28-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, night shift worker, high anxiety, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11573961', 'F', 84, 'uses painkillers excessively, sedentary lifestyle, limited access to healthcare, low pain tolerance, regular medical checkups', 'This patient is a 84-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, sedentary lifestyle, limited access to healthcare, low pain tolerance, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11574089', 'F', 75, 'physically demanding job, depressive mood, delays seeking surgical consultation, heavy smoker, delayed hospital presentation', 'This patient is a 75-year-old Woman. Relevant behavioral factors include: physically demanding job, depressive mood, delays seeking surgical consultation, heavy smoker, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11585572', 'M', 49, 'physically demanding job, sedentary lifestyle, self-medication, ignores early abdominal pain, poor insight into illness', 'This patient is a 49-year-old Man. Relevant behavioral factors include: physically demanding job, sedentary lifestyle, self-medication, ignores early abdominal pain, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11585755', 'F', 24, 'uses painkillers excessively, high anxiety, self-medication, irregular meal patterns, limited family support', 'This patient is a 24-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high anxiety, self-medication, irregular meal patterns, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11589051', 'F', 30, 'continues eating despite nausea, binge drinking, poor insight into illness, regular medical checkups, limited family support', 'This patient is a 30-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, binge drinking, poor insight into illness, regular medical checkups, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11593760', 'F', 85, 'continues eating despite nausea, self-medication, limited access to healthcare, heavy smoker, poor insight into illness', 'This patient is a 85-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, self-medication, limited access to healthcare, heavy smoker, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11595084', 'M', 64, 'physically demanding job, depressive mood, good medication adherence, sedentary lifestyle, ignores early abdominal pain', 'This patient is a 64-year-old Man. Relevant behavioral factors include: physically demanding job, depressive mood, good medication adherence, sedentary lifestyle, ignores early abdominal pain.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11597556', 'M', 31, 'continues eating despite nausea, night shift worker, low pain tolerance, low socioeconomic status, delayed hospital presentation', 'This patient is a 31-year-old Man. Relevant behavioral factors include: continues eating despite nausea, night shift worker, low pain tolerance, low socioeconomic status, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11603188', 'F', 45, 'continues eating despite nausea, high pain tolerance, frequent emergency department visits, heavy smoker, limited family support', 'This patient is a 45-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, high pain tolerance, frequent emergency department visits, heavy smoker, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11613173', 'M', 40, 'high work-related stress, high anxiety, sedentary lifestyle, self-medication, delays seeking surgical consultation', 'This patient is a 40-year-old Man. Relevant behavioral factors include: high work-related stress, high anxiety, sedentary lifestyle, self-medication, delays seeking surgical consultation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11613566', 'F', 53, 'night shift worker, lives alone, non-compliant with dietary restriction, low pain tolerance, delayed hospital presentation', 'This patient is a 53-year-old Woman. Relevant behavioral factors include: night shift worker, lives alone, non-compliant with dietary restriction, low pain tolerance, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11614115', 'M', 69, 'high-fat diet, self-medication, delays seeking surgical consultation, high pain tolerance, low socioeconomic status', 'This patient is a 69-year-old Man. Relevant behavioral factors include: high-fat diet, self-medication, delays seeking surgical consultation, high pain tolerance, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11617428', 'M', 22, 'stress-related symptoms, sedentary lifestyle, non-compliant with dietary restriction, delayed hospital presentation, limited family support', 'This patient is a 22-year-old Man. Relevant behavioral factors include: stress-related symptoms, sedentary lifestyle, non-compliant with dietary restriction, delayed hospital presentation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11620485', 'F', 70, 'lives alone, stress-related symptoms, ignores early abdominal pain, irregular meal patterns, frequent emergency department visits', 'This patient is a 70-year-old Woman. Relevant behavioral factors include: lives alone, stress-related symptoms, ignores early abdominal pain, irregular meal patterns, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11622905', 'F', 58, 'uses painkillers excessively, lives alone, self-medication, health anxiety, low-fiber diet', 'This patient is a 58-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, lives alone, self-medication, health anxiety, low-fiber diet.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11644013', 'F', 72, 'social smoker, high pain tolerance, poor medication adherence, delays seeking surgical consultation, limited family support', 'This patient is a 72-year-old Woman. Relevant behavioral factors include: social smoker, high pain tolerance, poor medication adherence, delays seeking surgical consultation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11654859', 'F', 18, 'high work-related stress, depressive mood, poor medication adherence, delays seeking surgical consultation, chronic alcohol consumption', 'This patient is a 18-year-old Woman. Relevant behavioral factors include: high work-related stress, depressive mood, poor medication adherence, delays seeking surgical consultation, chronic alcohol consumption.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11658175', 'F', 55, 'high anxiety, self-medication, delays seeking surgical consultation, chronic alcohol consumption, limited family support', 'This patient is a 55-year-old Woman. Relevant behavioral factors include: high anxiety, self-medication, delays seeking surgical consultation, chronic alcohol consumption, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11662214', 'F', 86, 'high work-related stress, good medication adherence, ignores early abdominal pain, chronic alcohol consumption, poor insight into illness', 'This patient is a 86-year-old Woman. Relevant behavioral factors include: high work-related stress, good medication adherence, ignores early abdominal pain, chronic alcohol consumption, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11666439', 'F', 44, 'avoids medical care, stress-related symptoms, ignores early abdominal pain, irregular meal patterns, limited family support', 'This patient is a 44-year-old Woman. Relevant behavioral factors include: avoids medical care, stress-related symptoms, ignores early abdominal pain, irregular meal patterns, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11667451', 'M', 71, 'stress-related symptoms, ignores early abdominal pain, irregular meal patterns, frequent emergency department visits, limited family support', 'This patient is a 71-year-old Man. Relevant behavioral factors include: stress-related symptoms, ignores early abdominal pain, irregular meal patterns, frequent emergency department visits, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11676740', 'M', 64, 'physically demanding job, sedentary lifestyle, non-compliant with dietary restriction, health anxiety, delayed hospital presentation', 'This patient is a 64-year-old Man. Relevant behavioral factors include: physically demanding job, sedentary lifestyle, non-compliant with dietary restriction, health anxiety, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11684586', 'F', 19, 'depressive mood, lives alone, sedentary lifestyle, self-medication, non-compliant with dietary restriction', 'This patient is a 19-year-old Woman. Relevant behavioral factors include: depressive mood, lives alone, sedentary lifestyle, self-medication, non-compliant with dietary restriction.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11686464', 'M', 84, 'poor insight into illness, good medication adherence, sedentary lifestyle, ignores early abdominal pain, low socioeconomic status', 'This patient is a 84-year-old Man. Relevant behavioral factors include: poor insight into illness, good medication adherence, sedentary lifestyle, ignores early abdominal pain, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11689448', 'M', 67, 'stress-related symptoms, irregular meal patterns, delays seeking surgical consultation, low socioeconomic status, regular medical checkups', 'This patient is a 67-year-old Man. Relevant behavioral factors include: stress-related symptoms, irregular meal patterns, delays seeking surgical consultation, low socioeconomic status, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11690136', 'F', 77, 'high anxiety, ignores early abdominal pain, low socioeconomic status, poor medication adherence, binge drinking', 'This patient is a 77-year-old Woman. Relevant behavioral factors include: high anxiety, ignores early abdominal pain, low socioeconomic status, poor medication adherence, binge drinking.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11693488', 'F', 40, 'high work-related stress, uses painkillers excessively, poor medication adherence, binge drinking, poor insight into illness', 'This patient is a 40-year-old Woman. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, poor medication adherence, binge drinking, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11694247', 'M', 20, 'continues eating despite nausea, lives alone, high anxiety, former smoker, poor medication adherence', 'This patient is a 20-year-old Man. Relevant behavioral factors include: continues eating despite nausea, lives alone, high anxiety, former smoker, poor medication adherence.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11695033', 'M', 23, 'continues eating despite nausea, limited access to healthcare, heavy smoker, poor insight into illness, delayed hospital presentation', 'This patient is a 23-year-old Man. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, heavy smoker, poor insight into illness, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11705734', 'M', 80, 'physically demanding job, ignores early abdominal pain, self-medication, low-fiber diet, high pain tolerance', 'This patient is a 80-year-old Man. Relevant behavioral factors include: physically demanding job, ignores early abdominal pain, self-medication, low-fiber diet, high pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11712125', 'F', 28, 'physically demanding job, irregular meal patterns, delays seeking surgical consultation, poor insight into illness, delayed hospital presentation', 'This patient is a 28-year-old Woman. Relevant behavioral factors include: physically demanding job, irregular meal patterns, delays seeking surgical consultation, poor insight into illness, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11715648', 'F', 53, 'high work-related stress, continues eating despite nausea, stress-related symptoms, poor medication adherence, binge drinking', 'This patient is a 53-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, stress-related symptoms, poor medication adherence, binge drinking.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11719981', 'F', 59, 'stress-related symptoms, limited access to healthcare, irregular meal patterns, delays seeking surgical consultation, delayed hospital presentation', 'This patient is a 59-year-old Woman. Relevant behavioral factors include: stress-related symptoms, limited access to healthcare, irregular meal patterns, delays seeking surgical consultation, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11724488', 'M', 82, 'continues eating despite nausea, lives alone, stress-related symptoms, poor medication adherence, heavy smoker', 'This patient is a 82-year-old Man. Relevant behavioral factors include: continues eating despite nausea, lives alone, stress-related symptoms, poor medication adherence, heavy smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11725523', 'M', 56, 'physically demanding job, self-medication, non-compliant with dietary restriction, high pain tolerance, physically active', 'This patient is a 56-year-old Man. Relevant behavioral factors include: physically demanding job, self-medication, non-compliant with dietary restriction, high pain tolerance, physically active.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11726724', 'F', 79, 'high work-related stress, uses painkillers excessively, night shift worker, high pain tolerance, delayed hospital presentation', 'This patient is a 79-year-old Woman. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, night shift worker, high pain tolerance, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11728555', 'F', 52, 'self-medication, irregular meal patterns, non-compliant with dietary restriction, high pain tolerance, low socioeconomic status', 'This patient is a 52-year-old Woman. Relevant behavioral factors include: self-medication, irregular meal patterns, non-compliant with dietary restriction, high pain tolerance, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11728692', 'F', 28, 'uses painkillers excessively, night shift worker, lives alone, good medication adherence, poor insight into illness', 'This patient is a 28-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, night shift worker, lives alone, good medication adherence, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11737161', 'M', 52, 'high anxiety, non-compliant with dietary restriction, low socioeconomic status, poor medication adherence, binge drinking', 'This patient is a 52-year-old Man. Relevant behavioral factors include: high anxiety, non-compliant with dietary restriction, low socioeconomic status, poor medication adherence, binge drinking.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11739512', 'M', 83, 'uses painkillers excessively, lives alone, self-medication, binge drinking, low pain tolerance', 'This patient is a 83-year-old Man. Relevant behavioral factors include: uses painkillers excessively, lives alone, self-medication, binge drinking, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11740714', 'M', 34, 'uses painkillers excessively, poor insight into illness, sedentary lifestyle, low socioeconomic status, regular medical checkups', 'This patient is a 34-year-old Man. Relevant behavioral factors include: uses painkillers excessively, poor insight into illness, sedentary lifestyle, low socioeconomic status, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11742206', 'F', 50, 'avoids medical care, high anxiety, lives alone, former smoker, ignores early abdominal pain', 'This patient is a 50-year-old Woman. Relevant behavioral factors include: avoids medical care, high anxiety, lives alone, former smoker, ignores early abdominal pain.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11744921', 'F', 64, 'high work-related stress, high-fat diet, depressive mood, self-medication, delays seeking surgical consultation', 'This patient is a 64-year-old Woman. Relevant behavioral factors include: high work-related stress, high-fat diet, depressive mood, self-medication, delays seeking surgical consultation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11746236', 'F', 19, 'uses painkillers excessively, high anxiety, heavy smoker, delayed hospital presentation, limited family support', 'This patient is a 19-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high anxiety, heavy smoker, delayed hospital presentation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11756787', 'M', 23, 'avoids medical care, continues eating despite nausea, high-fat diet, lives alone, poor insight into illness', 'This patient is a 23-year-old Man. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, high-fat diet, lives alone, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11761621', 'M', 44, 'avoids medical care, continues eating despite nausea, limited access to healthcare, health anxiety, physically active', 'This patient is a 44-year-old Man. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, limited access to healthcare, health anxiety, physically active.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11761802', 'F', 48, 'uses painkillers excessively, physically demanding job, high anxiety, binge drinking, delayed hospital presentation', 'This patient is a 48-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, high anxiety, binge drinking, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11765822', 'F', 45, 'avoids medical care, ignores early abdominal pain, limited access to healthcare, heavy smoker, low pain tolerance', 'This patient is a 45-year-old Woman. Relevant behavioral factors include: avoids medical care, ignores early abdominal pain, limited access to healthcare, heavy smoker, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11783205', 'M', 32, 'former smoker, self-medication, non-compliant with dietary restriction, health anxiety, limited family support', 'This patient is a 32-year-old Man. Relevant behavioral factors include: former smoker, self-medication, non-compliant with dietary restriction, health anxiety, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11795159', 'F', 53, 'continues eating despite nausea, sedentary lifestyle, poor insight into illness, delayed hospital presentation, limited family support', 'This patient is a 53-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, sedentary lifestyle, poor insight into illness, delayed hospital presentation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11801645', 'M', 33, 'depressive mood, ignores early abdominal pain, low-fiber diet, low socioeconomic status, delayed hospital presentation', 'This patient is a 33-year-old Man. Relevant behavioral factors include: depressive mood, ignores early abdominal pain, low-fiber diet, low socioeconomic status, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11802081', 'M', 35, 'physically demanding job, ignores early abdominal pain, self-medication, high pain tolerance, heavy smoker', 'This patient is a 35-year-old Man. Relevant behavioral factors include: physically demanding job, ignores early abdominal pain, self-medication, high pain tolerance, heavy smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11803545', 'F', 31, 'high work-related stress, continues eating despite nausea, good medication adherence, binge drinking, low pain tolerance', 'This patient is a 31-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, good medication adherence, binge drinking, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11804069', 'F', 50, 'high work-related stress, poor medication adherence, delays seeking surgical consultation, low-fiber diet, low pain tolerance', 'This patient is a 50-year-old Woman. Relevant behavioral factors include: high work-related stress, poor medication adherence, delays seeking surgical consultation, low-fiber diet, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11808155', 'F', 85, 'lives alone, high anxiety, delays seeking surgical consultation, binge drinking, regular medical checkups', 'This patient is a 85-year-old Woman. Relevant behavioral factors include: lives alone, high anxiety, delays seeking surgical consultation, binge drinking, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11808233', 'F', 22, 'uses painkillers excessively, lives alone, high anxiety, high-fat diet, poor medication adherence', 'This patient is a 22-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, lives alone, high anxiety, high-fat diet, poor medication adherence.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11815391', 'M', 19, 'avoids medical care, high work-related stress, former smoker, health anxiety, delays seeking surgical consultation', 'This patient is a 19-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, former smoker, health anxiety, delays seeking surgical consultation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11815394', 'M', 45, 'social smoker, continues eating despite nausea, high anxiety, regular medical checkups, limited family support', 'This patient is a 45-year-old Man. Relevant behavioral factors include: social smoker, continues eating despite nausea, high anxiety, regular medical checkups, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11816365', 'M', 56, 'good medication adherence, non-compliant with dietary restriction, health anxiety, chronic alcohol consumption, limited family support', 'This patient is a 56-year-old Man. Relevant behavioral factors include: good medication adherence, non-compliant with dietary restriction, health anxiety, chronic alcohol consumption, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11817384', 'F', 55, 'night shift worker, non-compliant with dietary restriction, health anxiety, low socioeconomic status, regular medical checkups', 'This patient is a 55-year-old Woman. Relevant behavioral factors include: night shift worker, non-compliant with dietary restriction, health anxiety, low socioeconomic status, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11825167', 'M', 54, 'night shift worker, ignores early abdominal pain, high pain tolerance, delayed hospital presentation, limited family support', 'This patient is a 54-year-old Man. Relevant behavioral factors include: night shift worker, ignores early abdominal pain, high pain tolerance, delayed hospital presentation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11828074', 'M', 59, 'sedentary lifestyle, non-compliant with dietary restriction, health anxiety, poor medication adherence, limited family support', 'This patient is a 59-year-old Man. Relevant behavioral factors include: sedentary lifestyle, non-compliant with dietary restriction, health anxiety, poor medication adherence, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11829290', 'F', 20, 'physically demanding job, self-medication, non-compliant with dietary restriction, low-fiber diet, high pain tolerance', 'This patient is a 20-year-old Woman. Relevant behavioral factors include: physically demanding job, self-medication, non-compliant with dietary restriction, low-fiber diet, high pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11829995', 'M', 22, 'depressive mood, sedentary lifestyle, self-medication, ignores early abdominal pain, limited family support', 'This patient is a 22-year-old Man. Relevant behavioral factors include: depressive mood, sedentary lifestyle, self-medication, ignores early abdominal pain, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11833713', 'F', 70, 'continues eating despite nausea, lives alone, health anxiety, heavy smoker, delayed hospital presentation', 'This patient is a 70-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, health anxiety, heavy smoker, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11853064', 'F', 29, 'low pain tolerance, good medication adherence, ignores early abdominal pain, chronic alcohol consumption, low socioeconomic status', 'This patient is a 29-year-old Woman. Relevant behavioral factors include: low pain tolerance, good medication adherence, ignores early abdominal pain, chronic alcohol consumption, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11853603', 'F', 60, 'continues eating despite nausea, depressive mood, low-fiber diet, delayed hospital presentation, limited family support', 'This patient is a 60-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, depressive mood, low-fiber diet, delayed hospital presentation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11861225', 'M', 41, 'ignores early abdominal pain, self-medication, limited access to healthcare, high pain tolerance, binge drinking', 'This patient is a 41-year-old Man. Relevant behavioral factors include: ignores early abdominal pain, self-medication, limited access to healthcare, high pain tolerance, binge drinking.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11864955', 'F', 28, 'avoids medical care, high anxiety, non-compliant with dietary restriction, low socioeconomic status, social smoker', 'This patient is a 28-year-old Woman. Relevant behavioral factors include: avoids medical care, high anxiety, non-compliant with dietary restriction, low socioeconomic status, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11865685', 'M', 84, 'avoids medical care, lives alone, delays seeking surgical consultation, low-fiber diet, low pain tolerance', 'This patient is a 84-year-old Man. Relevant behavioral factors include: avoids medical care, lives alone, delays seeking surgical consultation, low-fiber diet, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11871323', 'M', 28, 'uses painkillers excessively, night shift worker, good medication adherence, stress-related symptoms, low socioeconomic status', 'This patient is a 28-year-old Man. Relevant behavioral factors include: uses painkillers excessively, night shift worker, good medication adherence, stress-related symptoms, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11874388', 'M', 28, 'high anxiety, high-fat diet, limited access to healthcare, non-compliant with dietary restriction, frequent emergency department visits', 'This patient is a 28-year-old Man. Relevant behavioral factors include: high anxiety, high-fat diet, limited access to healthcare, non-compliant with dietary restriction, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11875279', 'F', 33, 'physically demanding job, ignores early abdominal pain, irregular meal patterns, high pain tolerance, frequent emergency department visits', 'This patient is a 33-year-old Woman. Relevant behavioral factors include: physically demanding job, ignores early abdominal pain, irregular meal patterns, high pain tolerance, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11876479', 'F', 42, 'uses painkillers excessively, limited access to healthcare, health anxiety, frequent emergency department visits, binge drinking', 'This patient is a 42-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, limited access to healthcare, health anxiety, frequent emergency department visits, binge drinking.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11887722', 'F', 44, 'high work-related stress, continues eating despite nausea, irregular meal patterns, high pain tolerance, delayed hospital presentation', 'This patient is a 44-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, irregular meal patterns, high pain tolerance, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11889430', 'M', 23, 'physically demanding job, ignores early abdominal pain, poor medication adherence, high pain tolerance, heavy smoker', 'This patient is a 23-year-old Man. Relevant behavioral factors include: physically demanding job, ignores early abdominal pain, poor medication adherence, high pain tolerance, heavy smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11891669', 'F', 75, 'uses painkillers excessively, depressive mood, binge drinking, low socioeconomic status, delayed hospital presentation', 'This patient is a 75-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, depressive mood, binge drinking, low socioeconomic status, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11897016', 'F', 47, 'high anxiety, ignores early abdominal pain, frequent emergency department visits, heavy smoker, low socioeconomic status', 'This patient is a 47-year-old Woman. Relevant behavioral factors include: high anxiety, ignores early abdominal pain, frequent emergency department visits, heavy smoker, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11902171', 'M', 45, 'physically demanding job, ignores early abdominal pain, irregular meal patterns, health anxiety, frequent emergency department visits', 'This patient is a 45-year-old Man. Relevant behavioral factors include: physically demanding job, ignores early abdominal pain, irregular meal patterns, health anxiety, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11905418', 'F', 63, 'continues eating despite nausea, physically demanding job, poor medication adherence, health anxiety, social smoker', 'This patient is a 63-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, poor medication adherence, health anxiety, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11909152', 'F', 30, 'high work-related stress, continues eating despite nausea, sedentary lifestyle, self-medication, health anxiety', 'This patient is a 30-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, sedentary lifestyle, self-medication, health anxiety.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11912384', 'M', 22, 'ignores early abdominal pain, high pain tolerance, frequent emergency department visits, binge drinking, low socioeconomic status', 'This patient is a 22-year-old Man. Relevant behavioral factors include: ignores early abdominal pain, high pain tolerance, frequent emergency department visits, binge drinking, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11914761', 'F', 31, 'uses painkillers excessively, high anxiety, limited access to healthcare, frequent emergency department visits, heavy smoker', 'This patient is a 31-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high anxiety, limited access to healthcare, frequent emergency department visits, heavy smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11916405', 'M', 59, 'delays seeking surgical consultation, heavy smoker, poor insight into illness, delayed hospital presentation, limited family support', 'This patient is a 59-year-old Man. Relevant behavioral factors include: delays seeking surgical consultation, heavy smoker, poor insight into illness, delayed hospital presentation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11925563', 'F', 60, 'continues eating despite nausea, high anxiety, former smoker, low socioeconomic status, regular medical checkups', 'This patient is a 60-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, high anxiety, former smoker, low socioeconomic status, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11936168', 'M', 32, 'lives alone, high-fat diet, ignores early abdominal pain, health anxiety, regular medical checkups', 'This patient is a 32-year-old Man. Relevant behavioral factors include: lives alone, high-fat diet, ignores early abdominal pain, health anxiety, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11945588', 'M', 53, 'uses painkillers excessively, high anxiety, sedentary lifestyle, delayed hospital presentation, limited family support', 'This patient is a 53-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high anxiety, sedentary lifestyle, delayed hospital presentation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11950373', 'F', 79, 'uses painkillers excessively, sedentary lifestyle, health anxiety, delayed hospital presentation, limited family support', 'This patient is a 79-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, sedentary lifestyle, health anxiety, delayed hospital presentation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11951469', 'F', 42, 'self-medication, limited access to healthcare, delays seeking surgical consultation, chronic alcohol consumption, poor insight into illness', 'This patient is a 42-year-old Woman. Relevant behavioral factors include: self-medication, limited access to healthcare, delays seeking surgical consultation, chronic alcohol consumption, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11953203', 'M', 19, 'uses painkillers excessively, lives alone, irregular meal patterns, frequent emergency department visits, low pain tolerance', 'This patient is a 19-year-old Man. Relevant behavioral factors include: uses painkillers excessively, lives alone, irregular meal patterns, frequent emergency department visits, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11953944', 'M', 41, 'high anxiety, ignores early abdominal pain, limited access to healthcare, chronic alcohol consumption, delayed hospital presentation', 'This patient is a 41-year-old Man. Relevant behavioral factors include: high anxiety, ignores early abdominal pain, limited access to healthcare, chronic alcohol consumption, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11954434', 'M', 42, 'avoids medical care, high work-related stress, uses painkillers excessively, health anxiety, physically active', 'This patient is a 42-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, uses painkillers excessively, health anxiety, physically active.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11956695', 'F', 31, 'lives alone, ignores early abdominal pain, irregular meal patterns, poor medication adherence, poor insight into illness', 'This patient is a 31-year-old Woman. Relevant behavioral factors include: lives alone, ignores early abdominal pain, irregular meal patterns, poor medication adherence, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11963670', 'F', 48, 'high work-related stress, continues eating despite nausea, depressive mood, low-fiber diet, frequent emergency department visits', 'This patient is a 48-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, depressive mood, low-fiber diet, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11965254', 'F', 24, 'lives alone, high anxiety, self-medication, irregular meal patterns, delays seeking surgical consultation', 'This patient is a 24-year-old Woman. Relevant behavioral factors include: lives alone, high anxiety, self-medication, irregular meal patterns, delays seeking surgical consultation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11969588', 'F', 32, 'social smoker, high anxiety, delays seeking surgical consultation, delayed hospital presentation, limited family support', 'This patient is a 32-year-old Woman. Relevant behavioral factors include: social smoker, high anxiety, delays seeking surgical consultation, delayed hospital presentation, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11969872', 'M', 49, 'continues eating despite nausea, lives alone, stress-related symptoms, self-medication, binge drinking', 'This patient is a 49-year-old Man. Relevant behavioral factors include: continues eating despite nausea, lives alone, stress-related symptoms, self-medication, binge drinking.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11972669', 'M', 46, 'former smoker, non-compliant with dietary restriction, health anxiety, poor medication adherence, limited family support', 'This patient is a 46-year-old Man. Relevant behavioral factors include: former smoker, non-compliant with dietary restriction, health anxiety, poor medication adherence, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11975241', 'M', 34, 'continues eating despite nausea, depressive mood, former smoker, frequent emergency department visits, limited family support', 'This patient is a 34-year-old Man. Relevant behavioral factors include: continues eating despite nausea, depressive mood, former smoker, frequent emergency department visits, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11977174', 'F', 26, 'avoids medical care, physically demanding job, high anxiety, delays seeking surgical consultation, physically active', 'This patient is a 26-year-old Woman. Relevant behavioral factors include: avoids medical care, physically demanding job, high anxiety, delays seeking surgical consultation, physically active.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11981239', 'M', 60, 'depressive mood, non-compliant with dietary restriction, heavy smoker, low socioeconomic status, delayed hospital presentation', 'This patient is a 60-year-old Man. Relevant behavioral factors include: depressive mood, non-compliant with dietary restriction, heavy smoker, low socioeconomic status, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11982995', 'M', 77, 'physically demanding job, ignores early abdominal pain, self-medication, health anxiety, physically active', 'This patient is a 77-year-old Man. Relevant behavioral factors include: physically demanding job, ignores early abdominal pain, self-medication, health anxiety, physically active.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11984520', 'F', 50, 'uses painkillers excessively, lives alone, good medication adherence, sedentary lifestyle, low pain tolerance', 'This patient is a 50-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, lives alone, good medication adherence, sedentary lifestyle, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11986246', 'F', 84, 'continues eating despite nausea, stress-related symptoms, limited access to healthcare, low-fiber diet, regular medical checkups', 'This patient is a 84-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, stress-related symptoms, limited access to healthcare, low-fiber diet, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11990136', 'F', 83, 'high work-related stress, continues eating despite nausea, frequent emergency department visits, binge drinking, low pain tolerance', 'This patient is a 83-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, frequent emergency department visits, binge drinking, low pain tolerance.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11991721', 'F', 35, 'high work-related stress, high anxiety, non-compliant with dietary restriction, regular medical checkups, social smoker', 'This patient is a 35-year-old Woman. Relevant behavioral factors include: high work-related stress, high anxiety, non-compliant with dietary restriction, regular medical checkups, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11992252', 'M', 70, 'high work-related stress, uses painkillers excessively, low-fiber diet, high pain tolerance, frequent emergency department visits', 'This patient is a 70-year-old Man. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, low-fiber diet, high pain tolerance, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('11998037', 'M', 66, 'high anxiety, lives alone, ignores early abdominal pain, frequent emergency department visits, heavy smoker', 'This patient is a 66-year-old Man. Relevant behavioral factors include: high anxiety, lives alone, ignores early abdominal pain, frequent emergency department visits, heavy smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12001650', 'F', 41, 'ignores early abdominal pain, poor medication adherence, heavy smoker, poor insight into illness, limited family support', 'This patient is a 41-year-old Woman. Relevant behavioral factors include: ignores early abdominal pain, poor medication adherence, heavy smoker, poor insight into illness, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12004475', 'M', 54, 'uses painkillers excessively, high-fat diet, lives alone, health anxiety, frequent emergency department visits', 'This patient is a 54-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high-fat diet, lives alone, health anxiety, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12008843', 'M', 49, 'night shift worker, limited access to healthcare, non-compliant with dietary restriction, health anxiety, delayed hospital presentation', 'This patient is a 49-year-old Man. Relevant behavioral factors include: night shift worker, limited access to healthcare, non-compliant with dietary restriction, health anxiety, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12017101', 'F', 58, 'high work-related stress, ignores early abdominal pain, binge drinking, low pain tolerance, delayed hospital presentation', 'This patient is a 58-year-old Woman. Relevant behavioral factors include: high work-related stress, ignores early abdominal pain, binge drinking, low pain tolerance, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12017780', 'F', 87, 'sedentary lifestyle, delays seeking surgical consultation, high pain tolerance, low socioeconomic status, regular medical checkups', 'This patient is a 87-year-old Woman. Relevant behavioral factors include: sedentary lifestyle, delays seeking surgical consultation, high pain tolerance, low socioeconomic status, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12027666', 'F', 82, 'high-fat diet, depressive mood, limited access to healthcare, delays seeking surgical consultation, regular medical checkups', 'This patient is a 82-year-old Woman. Relevant behavioral factors include: high-fat diet, depressive mood, limited access to healthcare, delays seeking surgical consultation, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12029076', 'F', 23, 'high pain tolerance, delays seeking surgical consultation, low-fiber diet, low socioeconomic status, delayed hospital presentation', 'This patient is a 23-year-old Woman. Relevant behavioral factors include: high pain tolerance, delays seeking surgical consultation, low-fiber diet, low socioeconomic status, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12035989', 'F', 67, 'stress-related symptoms, ignores early abdominal pain, binge drinking, regular medical checkups, limited family support', 'This patient is a 67-year-old Woman. Relevant behavioral factors include: stress-related symptoms, ignores early abdominal pain, binge drinking, regular medical checkups, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12037237', 'F', 79, 'uses painkillers excessively, low pain tolerance, low socioeconomic status, regular medical checkups, social smoker', 'This patient is a 79-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, low pain tolerance, low socioeconomic status, regular medical checkups, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12042083', 'M', 26, 'depressive mood, ignores early abdominal pain, self-medication, limited access to healthcare, chronic alcohol consumption', 'This patient is a 26-year-old Man. Relevant behavioral factors include: depressive mood, ignores early abdominal pain, self-medication, limited access to healthcare, chronic alcohol consumption.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12043129', 'F', 32, 'physically demanding job, night shift worker, stress-related symptoms, non-compliant with dietary restriction, frequent emergency department visits', 'This patient is a 32-year-old Woman. Relevant behavioral factors include: physically demanding job, night shift worker, stress-related symptoms, non-compliant with dietary restriction, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12044563', 'M', 47, 'lives alone, irregular meal patterns, delays seeking surgical consultation, high pain tolerance, frequent emergency department visits', 'This patient is a 47-year-old Man. Relevant behavioral factors include: lives alone, irregular meal patterns, delays seeking surgical consultation, high pain tolerance, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12045374', 'F', 21, 'lives alone, low-fiber diet, delays seeking surgical consultation, poor insight into illness, regular medical checkups', 'This patient is a 21-year-old Woman. Relevant behavioral factors include: lives alone, low-fiber diet, delays seeking surgical consultation, poor insight into illness, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12058276', 'M', 41, 'high work-related stress, uses painkillers excessively, night shift worker, good medication adherence, health anxiety', 'This patient is a 41-year-old Man. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, night shift worker, good medication adherence, health anxiety.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12059015', 'M', 24, 'continues eating despite nausea, health anxiety, chronic alcohol consumption, frequent emergency department visits, limited family support', 'This patient is a 24-year-old Man. Relevant behavioral factors include: continues eating despite nausea, health anxiety, chronic alcohol consumption, frequent emergency department visits, limited family support.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12069125', 'F', 55, 'avoids medical care, uses painkillers excessively, poor insight into illness, night shift worker, low socioeconomic status', 'This patient is a 55-year-old Woman. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, poor insight into illness, night shift worker, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12069169', 'F', 37, 'lives alone, non-compliant with dietary restriction, poor medication adherence, poor insight into illness, social smoker', 'This patient is a 37-year-old Woman. Relevant behavioral factors include: lives alone, non-compliant with dietary restriction, poor medication adherence, poor insight into illness, social smoker.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12069691', 'F', 26, 'continues eating despite nausea, stress-related symptoms, poor medication adherence, low-fiber diet, low socioeconomic status', 'This patient is a 26-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, stress-related symptoms, poor medication adherence, low-fiber diet, low socioeconomic status.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12072154', 'F', 85, 'continues eating despite nausea, lives alone, poor medication adherence, chronic alcohol consumption, poor insight into illness', 'This patient is a 85-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, poor medication adherence, chronic alcohol consumption, poor insight into illness.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12076650', 'F', 51, 'high work-related stress, sedentary lifestyle, non-compliant with dietary restriction, health anxiety, delayed hospital presentation', 'This patient is a 51-year-old Woman. Relevant behavioral factors include: high work-related stress, sedentary lifestyle, non-compliant with dietary restriction, health anxiety, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12086251', 'F', 81, 'uses painkillers excessively, depressive mood, limited access to healthcare, heavy smoker, regular medical checkups', 'This patient is a 81-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, depressive mood, limited access to healthcare, heavy smoker, regular medical checkups.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12095158', 'M', 81, 'avoids medical care, lives alone, former smoker, stress-related symptoms, non-compliant with dietary restriction', 'This patient is a 81-year-old Man. Relevant behavioral factors include: avoids medical care, lives alone, former smoker, stress-related symptoms, non-compliant with dietary restriction.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12109423', 'F', 73, 'non-compliant with dietary restriction, health anxiety, low-fiber diet, low socioeconomic status, delayed hospital presentation', 'This patient is a 73-year-old Woman. Relevant behavioral factors include: non-compliant with dietary restriction, health anxiety, low-fiber diet, low socioeconomic status, delayed hospital presentation.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12120702', 'M', 64, 'stress-related symptoms, sedentary lifestyle, ignores early abdominal pain, limited access to healthcare, frequent emergency department visits', 'This patient is a 64-year-old Man. Relevant behavioral factors include: stress-related symptoms, sedentary lifestyle, ignores early abdominal pain, limited access to healthcare, frequent emergency department visits.');
-
-
-INSERT INTO patients (patientid, gender, age, behaviors, description)
-VALUES ('12121983', 'F', 80, 'avoids medical care, continues eating despite nausea, physically demanding job, depressive mood, former smoker', 'This patient is a 80-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, physically demanding job, depressive mood, former smoker.');
 
 -- INSERT CLINICAL CASES
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2015,7 +7595,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2027,7 +7607,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2039,7 +7619,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2051,7 +7631,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2063,7 +7643,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2075,7 +7655,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2087,7 +7667,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2099,7 +7679,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2111,7 +7691,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2123,7 +7703,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2135,7 +7715,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2147,7 +7727,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2159,7 +7739,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2171,7 +7751,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2183,7 +7763,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2195,7 +7775,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2207,7 +7787,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2219,7 +7799,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2231,7 +7811,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2243,7 +7823,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2255,7 +7835,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2267,7 +7847,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2279,7 +7859,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2291,7 +7871,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2303,7 +7883,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2315,19 +7895,19 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
     '29256816', '10104732', 'acute pancreatitis gallstones seizure disorder HIV, asymptomatic malnutrtion, mild', 'PANCREATITIS',
-    'A patient was admitted via ew emer. for evaluation of abdominal symptoms, later diagnosed with acute pancreatitis.', '___ with history of HIV (CD4 940 on ___, viral load  undetectable ___, CNS lymphoma with residual left-sided,  seizure disorder deficits presenting with abdominal pain,  nausea, and vomiting.  . He was seen by neurology at ___ in late ___ after having a  breakthrough seizure while on depakote.  He was started on  Keppra on ___ with plan to down-titrate and eventually come off  the Depakote (on ___ dose reduced to 750mg BID for 1 week with  plan to go to 750mg daily for 1 week then stop). He was  evaluated on ___ in the Emergency Department after presenting  with behavioral changes since starting the Keppra. He had a CT  head. He was seen by neurology. It was thought that the changes  were likely due to the Keppra. The plan was to continue with the  planned taper of depakote and continue the keppra.  He was  transferred to Radius on ___.  . At Radius on ___ he reported nausea, vomiting and abdominal  pain. Labs drawn and noted to have AST 980 and ALT 1122 with ALK  phos 334 and total bilirubin 5.7 (direct 2.8) with lipase of  303.  .   In the ED, initial vitals: 97.3 80 ___ 98% 3L NC. Labs  notable for ALT 1251 and AST 919 (normal ___, T-bili 5.1  (3.3 on ___, lipase 431, creatinine 1.7 (baseline 1.2-1.5).  UA with  moderate blood, few bacteria. Serum acetaminophen  negative.  RUQ U/S was obtained that showed nonspecific  gallbladder distention with stones, no bile duct dilation,  echogenic liver compatible with fatty deposition. He was seen by  surgery but felt unlikely that he had cholecystitis. The patient  was given unasyn prior to transfer.  .   Currently, the patient reports abdominal pain, mostly  ___ to epigastric, unable to quantify or provide  description, associated wtih nausea.  .   ROS: per HPI, denies fever, chills, headache, diarrhea, dysuria.', '- HIV - CNS lymphoma, DX ___, treated at ___ w/ residual left facial  droop - corneal ulceration s/p enucleation  - seizure disorder (keppra being up-tirtrated, depakote  down-titrated)    Social History: ___ Family History: -parents are alive and healthy', '[VITALS] Temp: NA BP: 140/98 HR: 90 O2Sat: 97 Weight: NA  [EXAM] VS:  97.9  BP:140/98  HR:90  RR:16  100%RA GENERAL: thin male, intermittent cough    HEENT: OP dry, sclera mildy icteric  NECK: supple, no JVD   HEART: S1-S2, regular rhythm, normal rate, no murmur appreciated LUNGS: CTAB, good air movement, resp unlabored ABDOMEN: normal bowel sounds, soft, TTP diffusely but mostly  supra-pubic, no rebound tenderness appreciated GU: condom catheter in place  EXTREMITIES: no edema   SKIN: no rashes or lesions   NEURO: slow to answer questions, oriented to self only,  President is "___", glass eye on left, left facial weakness,  decreased strength in lower extremities',
+    'A patient was admitted via ew emer. for evaluation of abdominal symptoms, later diagnosed with acute pancreatitis.', '___ with history of HIV (CD4 940 on ___, viral load  undetectable ___, CNS lymphoma with residual left-sided,  seizure disorder deficits presenting with abdominal pain,  nausea, and vomiting.  . He was seen by neurology at ___ in late ___ after having a  breakthrough seizure while on depakote.  He was started on  Keppra on ___ with plan to down-titrate and eventually come off  the Depakote (on ___ dose reduced to 750mg BID for 1 week with  plan to go to 750mg daily for 1 week then stop). He was  evaluated on ___ in the Emergency Department after presenting  with behavioral changes since starting the Keppra. He had a CT  head. He was seen by neurology. It was thought that the changes  were likely due to the Keppra. The plan was to continue with the  planned taper of depakote and continue the keppra.  He was  transferred to Radius on ___.  . At Radius on ___ he reported nausea, vomiting and abdominal  pain. Labs drawn and noted to have AST 980 and ALT 1122 with ALK  phos 334 and total bilirubin 5.7 (direct 2.8) with lipase of  303.  .   In the ED, initial vitals: 97.3 80 ___ 98% 3L NC. Labs  notable for ALT 1251 and AST 919 (normal ___, T-bili 5.1  (3.3 on ___, lipase 431, creatinine 1.7 (baseline 1.2-1.5).  UA with  moderate blood, few bacteria. Serum acetaminophen  negative.  RUQ U/S was obtained that showed nonspecific  gallbladder distention with stones, no bile duct dilation,  echogenic liver compatible with fatty deposition. He was seen by  surgery but felt unlikely that he had cholecystitis. The patient  was given unasyn prior to transfer.  .   Currently, the patient reports abdominal pain, mostly  ___ to epigastric, unable to quantify or provide  descriptions, associated wtih nausea.  .   ROS: per HPI, denies fever, chills, headache, diarrhea, dysuria.', '- HIV - CNS lymphoma, DX ___, treated at ___ w/ residual left facial  droop - corneal ulceration s/p enucleation  - seizure disorder (keppra being up-tirtrated, depakote  down-titrated)    Social History: ___ Family History: -parents are alive and healthy', '[VITALS] Temp: NA BP: 140/98 HR: 90 O2Sat: 97 Weight: NA  [EXAM] VS:  97.9  BP:140/98  HR:90  RR:16  100%RA GENERAL: thin male, intermittent cough    HEENT: OP dry, sclera mildy icteric  NECK: supple, no JVD   HEART: S1-S2, regular rhythm, normal rate, no murmur appreciated LUNGS: CTAB, good air movement, resp unlabored ABDOMEN: normal bowel sounds, soft, TTP diffusely but mostly  supra-pubic, no rebound tenderness appreciated GU: condom catheter in place  EXTREMITIES: no edema   SKIN: no rashes or lesions   NEURO: slow to answer questions, oriented to self only,  President is "___", glass eye on left, left facial weakness,  decreased strength in lower extremities',
     'active', 'system_generator'
 );
 
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2339,7 +7919,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2351,7 +7931,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2363,7 +7943,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2375,7 +7955,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2387,7 +7967,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2399,7 +7979,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2411,7 +7991,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2423,7 +8003,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2435,7 +8015,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2447,7 +8027,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2459,7 +8039,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2471,7 +8051,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2483,7 +8063,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2495,7 +8075,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2507,7 +8087,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2519,7 +8099,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2531,7 +8111,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2543,7 +8123,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2555,7 +8135,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2567,7 +8147,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2579,7 +8159,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2591,7 +8171,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2603,7 +8183,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2615,7 +8195,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2627,7 +8207,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2639,7 +8219,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2651,7 +8231,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2663,7 +8243,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2675,7 +8255,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2687,7 +8267,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2699,7 +8279,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2711,7 +8291,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2723,7 +8303,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2735,7 +8315,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2747,7 +8327,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2759,7 +8339,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2771,7 +8351,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2783,7 +8363,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2795,7 +8375,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2807,7 +8387,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2819,7 +8399,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2831,7 +8411,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2843,7 +8423,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2855,7 +8435,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2867,7 +8447,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2879,7 +8459,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2891,7 +8471,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2903,7 +8483,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2915,7 +8495,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2927,7 +8507,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2939,7 +8519,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2951,7 +8531,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2963,7 +8543,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2975,7 +8555,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2987,7 +8567,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -2999,7 +8579,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3011,7 +8591,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3023,7 +8603,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3035,7 +8615,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3047,7 +8627,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3059,7 +8639,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3071,7 +8651,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3083,7 +8663,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3095,7 +8675,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3107,7 +8687,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3119,7 +8699,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3131,7 +8711,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3143,7 +8723,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3155,7 +8735,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3167,7 +8747,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3179,7 +8759,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3191,7 +8771,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3203,7 +8783,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3215,7 +8795,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3227,7 +8807,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3239,7 +8819,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3251,7 +8831,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3263,7 +8843,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3275,7 +8855,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3287,7 +8867,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3299,7 +8879,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3311,7 +8891,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3323,7 +8903,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3335,7 +8915,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3347,7 +8927,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3359,7 +8939,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3371,7 +8951,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3383,7 +8963,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3395,7 +8975,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3407,7 +8987,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3419,7 +8999,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3431,7 +9011,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3443,7 +9023,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3455,7 +9035,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3467,7 +9047,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3479,7 +9059,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3491,7 +9071,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3503,7 +9083,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3515,7 +9095,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3527,7 +9107,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3539,7 +9119,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3551,7 +9131,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3563,7 +9143,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3575,7 +9155,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3587,7 +9167,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3599,7 +9179,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3611,7 +9191,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3623,7 +9203,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3635,7 +9215,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3647,7 +9227,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3659,7 +9239,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3671,7 +9251,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3683,7 +9263,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3695,7 +9275,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3707,7 +9287,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3719,7 +9299,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3731,7 +9311,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3743,7 +9323,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3755,7 +9335,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3767,7 +9347,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3779,7 +9359,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3791,7 +9371,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3803,7 +9383,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3815,7 +9395,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3827,7 +9407,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3839,7 +9419,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3851,7 +9431,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3863,7 +9443,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3875,7 +9455,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3887,7 +9467,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3899,7 +9479,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3911,7 +9491,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3923,7 +9503,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3935,7 +9515,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3947,7 +9527,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3959,7 +9539,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3971,7 +9551,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3983,7 +9563,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -3995,7 +9575,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4007,7 +9587,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4019,7 +9599,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4031,7 +9611,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4043,7 +9623,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4055,7 +9635,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4067,7 +9647,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4079,7 +9659,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4091,7 +9671,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4103,7 +9683,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4115,7 +9695,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4127,7 +9707,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4139,7 +9719,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4151,7 +9731,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4163,7 +9743,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4175,7 +9755,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4187,7 +9767,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4199,7 +9779,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4211,7 +9791,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4223,7 +9803,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4235,7 +9815,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4247,7 +9827,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4259,7 +9839,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4271,7 +9851,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4283,7 +9863,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4295,7 +9875,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4307,7 +9887,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4319,7 +9899,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4331,7 +9911,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4343,7 +9923,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4355,7 +9935,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4367,7 +9947,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4379,7 +9959,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4391,7 +9971,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4403,7 +9983,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4415,7 +9995,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4427,7 +10007,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4439,7 +10019,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4451,7 +10031,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4463,7 +10043,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4475,7 +10055,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4487,7 +10067,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4499,7 +10079,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4511,7 +10091,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4523,7 +10103,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4535,7 +10115,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4547,7 +10127,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4559,7 +10139,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4571,7 +10151,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4583,7 +10163,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4595,7 +10175,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4607,7 +10187,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4619,7 +10199,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4631,7 +10211,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4643,7 +10223,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4655,7 +10235,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4667,7 +10247,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4679,7 +10259,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4691,7 +10271,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4703,7 +10283,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4715,7 +10295,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4727,7 +10307,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4739,7 +10319,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4751,7 +10331,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4763,7 +10343,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4775,7 +10355,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4787,7 +10367,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4799,7 +10379,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4811,7 +10391,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4823,7 +10403,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4835,7 +10415,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4847,7 +10427,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4859,7 +10439,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4871,7 +10451,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4883,7 +10463,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4895,7 +10475,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4907,7 +10487,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4919,7 +10499,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4931,7 +10511,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4943,7 +10523,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4955,7 +10535,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4967,7 +10547,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4979,7 +10559,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -4991,7 +10571,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5003,7 +10583,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5015,7 +10595,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5027,7 +10607,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5039,7 +10619,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5051,7 +10631,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5063,7 +10643,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5075,7 +10655,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5087,7 +10667,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5099,7 +10679,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5111,7 +10691,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5123,7 +10703,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5135,7 +10715,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5147,7 +10727,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5159,7 +10739,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5171,7 +10751,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5183,7 +10763,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5195,7 +10775,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5207,7 +10787,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5219,7 +10799,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5231,7 +10811,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5243,7 +10823,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5255,7 +10835,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5267,7 +10847,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5279,7 +10859,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5291,7 +10871,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5303,7 +10883,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5315,7 +10895,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5327,7 +10907,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5339,7 +10919,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5351,7 +10931,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5363,19 +10943,19 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
     '28337776', '11199428', 'Acute gangrenous cholecystitis', 'CHOLECYSTITIS',
-    'A patient was admitted via observation admit for evaluation of abdominal symptoms, later diagnosed with acute gallbladder disease.', '___ with a history of DMII presents with abdominal pain and  intractable nausea and vomiting. The patient was in her usual  stage of health until last ___, when she  developed acute onset nausea and vomiting, followed by abdominal  pain. She cannot recall an inciting event. She reports that the  emesis has been non-bloody, non-billious, "clear" by her  description, and she continues to vomit multiple times per day.  She reports cramping/burning abdominal pain in the RUQ and epigastrium that  worsens with retching. She has had minimal PO intake since  ___. She was evaluated at urgent care today, noted to be  tachycardic to the 140s with a leukocytosis of 24.5 and was  transferred to ___ for further evaluation. She endorses  fevers and chills at home. Now transferred to ___ for  management.  She denies diarrhea or constipation, melena or BRBPR, urinary  frequency/urgency, dysuria, unexplained weight loss, chest  pain/shortness of breath, dizziness/lightheadedness, vertigo,  syncope, weakness.   Of note, Her last upper and lower endoscopies were in ___. EGD  showed a hiatal hernia, mild esophagitis and multiple gastric  polyps. Colonsocopy was notable for colonic polyps (biopsied,  adenomas), scattered diverticulosis, and internal hemorrhoids.', 'DMII, GERD, morbid obesity, depression, LBP, lumbar disk displacement    Social History: ___ Family History: NC', '[VITALS] Temp: NA BP: NA HR: 120 O2Sat: NA Weight: NA  [EXAM] Vitals: AVSS, see flowsheets GEN: No distress, pleasant, conversant HEENT:  Sclera non-icteric, neck is supple without  lymphadenopathy, thyromegaly or JVD HEART:  RRR with no murmurs CHEST:  No increased work of breathing, clear to auscultation  bilaterally, no crackles or wheezes ABDOMEN: Soft, non-tender, no rebound or guarding INCISIONS: Incisions are clean and intact with minimal drainage  and erythema EXTREMITIES: Warm, well perfused, no edema',
+    'A patient was admitted via observation admit for evaluation of abdominal symptoms, later diagnosed with acute gallbladder disease.', '___ with a history of DMII presents with abdominal pain and  intractable nausea and vomiting. The patient was in her usual  stage of health until last ___, when she  developed acute onset nausea and vomiting, followed by abdominal  pain. She cannot recall an inciting event. She reports that the  emesis has been non-bloody, non-billious, "clear" by her  descriptions, and she continues to vomit multiple times per day.  She reports cramping/burning abdominal pain in the RUQ and epigastrium that  worsens with retching. She has had minimal PO intake since  ___. She was evaluated at urgent care today, noted to be  tachycardic to the 140s with a leukocytosis of 24.5 and was  transferred to ___ for further evaluation. She endorses  fevers and chills at home. Now transferred to ___ for  management.  She denies diarrhea or constipation, melena or BRBPR, urinary  frequency/urgency, dysuria, unexplained weight loss, chest  pain/shortness of breath, dizziness/lightheadedness, vertigo,  syncope, weakness.   Of note, Her last upper and lower endoscopies were in ___. EGD  showed a hiatal hernia, mild esophagitis and multiple gastric  polyps. Colonsocopy was notable for colonic polyps (biopsied,  adenomas), scattered diverticulosis, and internal hemorrhoids.', 'DMII, GERD, morbid obesity, depression, LBP, lumbar disk displacement    Social History: ___ Family History: NC', '[VITALS] Temp: NA BP: NA HR: 120 O2Sat: NA Weight: NA  [EXAM] Vitals: AVSS, see flowsheets GEN: No distress, pleasant, conversant HEENT:  Sclera non-icteric, neck is supple without  lymphadenopathy, thyromegaly or JVD HEART:  RRR with no murmurs CHEST:  No increased work of breathing, clear to auscultation  bilaterally, no crackles or wheezes ABDOMEN: Soft, non-tender, no rebound or guarding INCISIONS: Incisions are clean and intact with minimal drainage  and erythema EXTREMITIES: Warm, well perfused, no edema',
     'active', 'system_generator'
 );
 
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5387,7 +10967,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5399,7 +10979,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5411,7 +10991,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5423,7 +11003,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5435,7 +11015,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5447,7 +11027,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5459,7 +11039,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5471,7 +11051,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5483,7 +11063,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5495,7 +11075,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5507,7 +11087,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5519,7 +11099,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5531,7 +11111,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5543,7 +11123,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5555,7 +11135,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5567,7 +11147,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5579,7 +11159,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5591,7 +11171,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5603,7 +11183,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5615,7 +11195,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5627,7 +11207,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5639,7 +11219,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5651,7 +11231,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5663,7 +11243,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5675,7 +11255,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5687,7 +11267,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5699,7 +11279,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5711,7 +11291,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5723,7 +11303,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5735,7 +11315,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5747,7 +11327,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5759,7 +11339,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5771,7 +11351,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5783,7 +11363,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5795,7 +11375,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5807,7 +11387,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5819,7 +11399,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5831,7 +11411,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5843,7 +11423,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5855,7 +11435,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5867,7 +11447,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5879,7 +11459,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5891,7 +11471,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5903,7 +11483,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5915,7 +11495,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5927,7 +11507,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5939,7 +11519,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5951,7 +11531,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5963,7 +11543,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5975,7 +11555,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5987,7 +11567,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -5999,7 +11579,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6011,7 +11591,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6023,7 +11603,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6035,7 +11615,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6047,7 +11627,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6059,7 +11639,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6071,7 +11651,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6083,7 +11663,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6095,7 +11675,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6107,7 +11687,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6119,7 +11699,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6131,7 +11711,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6143,7 +11723,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6155,7 +11735,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6167,7 +11747,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6179,7 +11759,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6191,7 +11771,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6203,7 +11783,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6215,7 +11795,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6227,7 +11807,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6239,7 +11819,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6251,7 +11831,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6263,7 +11843,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6275,7 +11855,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6287,7 +11867,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6299,7 +11879,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6311,7 +11891,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6323,7 +11903,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6335,7 +11915,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6347,7 +11927,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6359,7 +11939,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6371,7 +11951,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6383,7 +11963,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6395,7 +11975,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6407,7 +11987,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6419,7 +11999,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6431,7 +12011,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6443,7 +12023,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6455,7 +12035,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6467,7 +12047,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6479,7 +12059,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6491,7 +12071,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6503,7 +12083,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6515,7 +12095,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6527,7 +12107,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6539,7 +12119,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6551,7 +12131,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6563,7 +12143,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6575,7 +12155,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6587,7 +12167,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6599,7 +12179,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6611,7 +12191,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6623,7 +12203,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6635,7 +12215,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6647,7 +12227,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6659,7 +12239,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6671,7 +12251,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6683,7 +12263,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6695,7 +12275,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6707,7 +12287,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6719,7 +12299,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6731,7 +12311,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6743,7 +12323,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6755,7 +12335,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6767,7 +12347,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6779,7 +12359,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6791,7 +12371,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6803,7 +12383,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6815,7 +12395,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6827,7 +12407,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6839,7 +12419,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6851,7 +12431,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6863,7 +12443,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6875,7 +12455,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6887,7 +12467,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6899,7 +12479,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6911,7 +12491,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6923,7 +12503,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6935,7 +12515,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6947,7 +12527,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6959,7 +12539,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6971,7 +12551,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6983,7 +12563,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -6995,7 +12575,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7007,7 +12587,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7019,7 +12599,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7031,7 +12611,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7043,7 +12623,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7055,7 +12635,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7067,7 +12647,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7079,7 +12659,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7091,7 +12671,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7103,7 +12683,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7115,7 +12695,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7127,7 +12707,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7139,7 +12719,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7151,7 +12731,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7163,7 +12743,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7175,7 +12755,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7187,7 +12767,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7199,7 +12779,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7211,7 +12791,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7223,7 +12803,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7235,7 +12815,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7247,7 +12827,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7259,7 +12839,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7271,7 +12851,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7283,7 +12863,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7295,7 +12875,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7307,7 +12887,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7319,7 +12899,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7331,7 +12911,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7343,7 +12923,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7355,7 +12935,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7367,7 +12947,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7379,7 +12959,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7391,7 +12971,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7403,7 +12983,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7415,7 +12995,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7427,7 +13007,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7439,7 +13019,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7451,7 +13031,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7463,7 +13043,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7475,7 +13055,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7487,7 +13067,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7499,7 +13079,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7511,7 +13091,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7523,7 +13103,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7535,7 +13115,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7547,7 +13127,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7559,7 +13139,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7571,7 +13151,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7583,7 +13163,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7595,7 +13175,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7607,7 +13187,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7619,7 +13199,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7631,7 +13211,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7643,7 +13223,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7655,7 +13235,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7667,7 +13247,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7679,7 +13259,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7691,7 +13271,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7703,7 +13283,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7715,7 +13295,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7727,7 +13307,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7739,7 +13319,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7751,7 +13331,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7763,7 +13343,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7775,7 +13355,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7787,7 +13367,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7799,7 +13379,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7811,7 +13391,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7823,7 +13403,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7835,7 +13415,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7847,7 +13427,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7859,7 +13439,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7871,7 +13451,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7883,7 +13463,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7895,7 +13475,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7907,7 +13487,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7919,7 +13499,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7931,7 +13511,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7943,7 +13523,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7955,7 +13535,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7967,7 +13547,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7979,7 +13559,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -7991,7 +13571,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -8003,7 +13583,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -8015,7 +13595,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -8027,7 +13607,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -8039,7 +13619,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -8051,7 +13631,7 @@ VALUES (
 
 INSERT INTO clinicalcases (
     clinicalcaseid, patientid, title, type,
-    description, symptom, medicalhistory, pe,
+    descriptions, symptom, medicalhistory, pe,
     status, createdBy
 )
 VALUES (
@@ -388363,7 +393943,7 @@ VALUES (
     'CT',
     'Abdomen',
     'CT ABD & PELVIS W & W/O CONTRAST, ADDL SECTIONS',
-    'TECHNIQUE: Multiphasic Liver: Multidetector CT of the abdomen and pelviswas done as part of CT torsowithout and with IV contrast. Initially, the abdomen and pelviswas scanned without IV contrast. Subsequently, a single bolus of IV contrast was injected and the abdomen was scanned in the early arterial phase, followed by a scan of the abdomen and pelvisin the portal venous phase, followed by a scan of the abdomen in equilibrium phase (3-min delay). Oral contrast was not administered. Coronal and sagittal reformations were performed and reviewed on PACS.  DOSE: Acquisition sequence:    1) Spiral Acquisition 4.1 s, 64.7 cm; CTDIvol = 18.1 mGy (Body) DLP = 1,173.2 mGy-cm.    2) Spiral Acquisition 1.8 s, 28.7 cm; CTDIvol = 18.6 mGy (Body) DLP = 533.8 mGy-cm.    3) Spiral Acquisition 1.8 s, 28.7 cm; CTDIvol = 18.6 mGy (Body) DLP = 534.4 mGy-cm.    4) Spiral Acquisition 1.8 s, 28.7 cm; CTDIvol = 18.6 mGy (Body) DLP = 533.1 mGy-cm.    5) Stationary Acquisition 2.0 s, 0.5 cm; CTDIvol = 11.2 mGy (Body) DLP = 5.6 mGy-cm.  Total DLP (Body) = 2,780 mGy-cm.  FINDINGS:   LOWER CHEST: Please refer to separate report of CT chest performed on the same day for description of the thoracic findings.  ABDOMEN:   HEPATOBILIARY: The liver demonstrates homogenous attenuation throughout.  Scattered small hypodense lesions throughout the liver are noted, likely reflective of cysts or biliary hamartomas which are too small to fully characterize on this exam.  No concerning hepatic enhancement is noted.  There is no evidence of intrahepatic or extrahepatic biliary dilatation.  The gallbladder contains gallstones without wall thickening or surrounding inflammation.  An anterior approach percutaneous ____ tube is appropriately positioned and coiled within the fundus of the gallbladder.  The hepatic and portal veins are patent.  PANCREAS: The pancreas has normal attenuation throughout, without evidence of focal lesions or pancreatic ductal dilatation.  There is no peripancreatic stranding.  SPLEEN: The spleen shows normal size, and an apparent wedge-shaped hypodensity in the superior spleen is likely reflective of a small infarct.  There is a small amount of intra-abdominal blood around the spleen.  ADRENALS: The right and left adrenal glands are normal in size and shape.  URINARY: The kidneys are of normal and symmetric size with normal nephrogram.  There is no evidence of hydronephrosis.  Bilateral small subcentimeter hypodensities in the kidneys are too small to characterize but likely reflective of cysts.  There is no perinephric abnormality.  GASTROINTESTINAL: The stomach is unremarkable.  The imaged small bowel loops demonstrate normal caliber, wall thickness, and enhancement throughout.  The visualized colonic loops within normal limits.  Sigmoid colonic diverticulosis is noted.  The appendix is not visualized.  There is a small-moderate amount of intra-abdominal blood with the ___ density fluid along the liver.  There is a fluid fluid level noted in the right perihepatic blood.  LYMPH NODES: There is no retroperitoneal or mesenteric lymphadenopathy.  VASCULAR: There is no abdominal aortic aneurysm.  Mild atherosclerotic disease is noted.  The abdominal aorta and its major branches are patent.  There is a small-moderate size hematoma situated between the gallbladder and duodenum with associated contrast extravasation on delayed imaging.  Bleeding is noted from a possible subcapsular arterial branch arising from the right hepatic artery as the branch courses adjacent to the ____ tube (series 3A:image 57, series 4:image 60).  BONES: There is no evidence of worrisome osseous lesions or acute fracture.  SOFT TISSUES: The abdominal and pelvic wall is within normal limits.  NOTIFICATION: The findings were discussed with ___, M.D. by ___ ___, M.D. on the telephone on ___ at 1:02 pm, 5 minutes after discovery of the findings.'
+    'TECHNIQUE: Multiphasic Liver: Multidetector CT of the abdomen and pelviswas done as part of CT torsowithout and with IV contrast. Initially, the abdomen and pelviswas scanned without IV contrast. Subsequently, a single bolus of IV contrast was injected and the abdomen was scanned in the early arterial phase, followed by a scan of the abdomen and pelvisin the portal venous phase, followed by a scan of the abdomen in equilibrium phase (3-min delay). Oral contrast was not administered. Coronal and sagittal reformations were performed and reviewed on PACS.  DOSE: Acquisition sequence:    1) Spiral Acquisition 4.1 s, 64.7 cm; CTDIvol = 18.1 mGy (Body) DLP = 1,173.2 mGy-cm.    2) Spiral Acquisition 1.8 s, 28.7 cm; CTDIvol = 18.6 mGy (Body) DLP = 533.8 mGy-cm.    3) Spiral Acquisition 1.8 s, 28.7 cm; CTDIvol = 18.6 mGy (Body) DLP = 534.4 mGy-cm.    4) Spiral Acquisition 1.8 s, 28.7 cm; CTDIvol = 18.6 mGy (Body) DLP = 533.1 mGy-cm.    5) Stationary Acquisition 2.0 s, 0.5 cm; CTDIvol = 11.2 mGy (Body) DLP = 5.6 mGy-cm.  Total DLP (Body) = 2,780 mGy-cm.  FINDINGS:   LOWER CHEST: Please refer to separate report of CT chest performed on the same day for descriptions of the thoracic findings.  ABDOMEN:   HEPATOBILIARY: The liver demonstrates homogenous attenuation throughout.  Scattered small hypodense lesions throughout the liver are noted, likely reflective of cysts or biliary hamartomas which are too small to fully characterize on this exam.  No concerning hepatic enhancement is noted.  There is no evidence of intrahepatic or extrahepatic biliary dilatation.  The gallbladder contains gallstones without wall thickening or surrounding inflammation.  An anterior approach percutaneous ____ tube is appropriately positioned and coiled within the fundus of the gallbladder.  The hepatic and portal veins are patent.  PANCREAS: The pancreas has normal attenuation throughout, without evidence of focal lesions or pancreatic ductal dilatation.  There is no peripancreatic stranding.  SPLEEN: The spleen shows normal size, and an apparent wedge-shaped hypodensity in the superior spleen is likely reflective of a small infarct.  There is a small amount of intra-abdominal blood around the spleen.  ADRENALS: The right and left adrenal glands are normal in size and shape.  URINARY: The kidneys are of normal and symmetric size with normal nephrogram.  There is no evidence of hydronephrosis.  Bilateral small subcentimeter hypodensities in the kidneys are too small to characterize but likely reflective of cysts.  There is no perinephric abnormality.  GASTROINTESTINAL: The stomach is unremarkable.  The imaged small bowel loops demonstrate normal caliber, wall thickness, and enhancement throughout.  The visualized colonic loops within normal limits.  Sigmoid colonic diverticulosis is noted.  The appendix is not visualized.  There is a small-moderate amount of intra-abdominal blood with the ___ density fluid along the liver.  There is a fluid fluid level noted in the right perihepatic blood.  LYMPH NODES: There is no retroperitoneal or mesenteric lymphadenopathy.  VASCULAR: There is no abdominal aortic aneurysm.  Mild atherosclerotic disease is noted.  The abdominal aorta and its major branches are patent.  There is a small-moderate size hematoma situated between the gallbladder and duodenum with associated contrast extravasation on delayed imaging.  Bleeding is noted from a possible subcapsular arterial branch arising from the right hepatic artery as the branch courses adjacent to the ____ tube (series 3A:image 57, series 4:image 60).  BONES: There is no evidence of worrisome osseous lesions or acute fracture.  SOFT TISSUES: The abdominal and pelvic wall is within normal limits.  NOTIFICATION: The findings were discussed with ___, M.D. by ___ ___, M.D. on the telephone on ___ at 1:02 pm, 5 minutes after discovery of the findings.'
 );
 
 
@@ -388377,7 +393957,7 @@ VALUES (
     'CT',
     'Chest',
     'CT CHEST W/O CONTRAST',
-    'EXAMINATION: CT CHEST W/O CONTRAST:  TECHNIQUE: Multidetector helical scanning of the chest was performed without intravenous contrast agent reconstructed as contiguous 5- and 1.25-mm thick axial, 2.5-mm thick coronal and parasagittal, and 8 x 8 mm MIPs axial images.  DOSE: Acquisition sequence:    1) Spiral Acquisition 4.1 s, 64.7 cm; CTDIvol = 18.1 mGy (Body) DLP = 1,173.2 mGy-cm.    2) Spiral Acquisition 1.8 s, 28.7 cm; CTDIvol = 18.6 mGy (Body) DLP = 533.8 mGy-cm.    3) Spiral Acquisition 1.8 s, 28.7 cm; CTDIvol = 18.6 mGy (Body) DLP = 534.4 mGy-cm.    4) Spiral Acquisition 1.8 s, 28.7 cm; CTDIvol = 18.6 mGy (Body) DLP = 533.1 mGy-cm.    5) Stationary Acquisition 2.0 s, 0.5 cm; CTDIvol = 11.2 mGy (Body) DLP = 5.6 mGy-cm.  Total DLP (Body) = 2,780 mGy-cm. ** Note: This radiation dose report was copied from CLIP ___ (CT ABD AND PELVIS W AND W/O CONTRAST, ADDL SECTIONS):  FINDINGS:   NECK, THORACIC INLET, AXILLAE, CHEST WALL: There is moderate calcification of the head and neck vessels.  Right central venous line terminates in the proximal right atrium.  Left pectoral AICD, with leads terminating in their expected locations within the right atrium and ventricle. Patient is status post CABG with sternotomy wires in situ.  There is no supraclavicular, infraclavicular or axillary lymphadenopathy.  Excluding the breasts, for which dedicated mammographic assessment is required, soft tissues of the chest wall are grossly unremarkable.  UPPER ABDOMEN: Although this exam is not optimized for evaluation of subdiaphragmatic structures, multiple hepatic hypodensities, the largest within segment VIII measuring 11 x 11 mm (2:46), most consistent with simple cysts, though incompletely characterized on this unenhanced examination.  Trace perihepatic and perisplenic ascites.  For complete description of subdiaphragmatic findings, please refer to same-day CT abdomen and pelvis report.  MEDIASTINUM: Multiple prevascular, precarinal, subcarinal and right upper and lower paratracheal lymph nodes, none of which are pathologically enlarged by CT size criteria.  HILA: Bilateral hilar lymph nodes are not enlarged.  HEART and PERICARDIUM: Substantial cardiomegaly.  Extensive coronary artery calcification.  Dense mitral valve annular calcification.  Moderate aortic valve annular calcification.  No pericardial effusion.  No infiltration of the epicardial fat.  PLEURA: No pleural effusion or nodularity.  LUNG: 1. PARENCHYMA: Multiple ill-defined upper lobe predominant bilateral nodules are concerning for infection or septic pulmonary emboli (302:89, 91, 96, 100). Interlobular septal thickening, ground-glass opacities within the bilateral lungs and mosaic appearance of the associated lung parenchyma are consistent with mild pulmonary edema.  No confluent airspace consolidation.  No diffuse lung disease.  Mild bibasilar segmental dependent atelectasis. 2. AIRWAYS:  The tracheobronchial tree is patent to the subsegmental level bilaterally. 3. VESSELS:  The aorta and main pulmonary artery are normal in caliber.  There is extensive calcification of the aortic arch and descending thoracic aorta.  On this nondedicated examination, there is no large central pulmonary embolus.  CHEST CAGE: Mild spondylosis of the thoracic spine.  There are no lytic or destructive lesions within the chest cage or imaged thoracic spine.  No new pathologic or compression fractures.'
+    'EXAMINATION: CT CHEST W/O CONTRAST:  TECHNIQUE: Multidetector helical scanning of the chest was performed without intravenous contrast agent reconstructed as contiguous 5- and 1.25-mm thick axial, 2.5-mm thick coronal and parasagittal, and 8 x 8 mm MIPs axial images.  DOSE: Acquisition sequence:    1) Spiral Acquisition 4.1 s, 64.7 cm; CTDIvol = 18.1 mGy (Body) DLP = 1,173.2 mGy-cm.    2) Spiral Acquisition 1.8 s, 28.7 cm; CTDIvol = 18.6 mGy (Body) DLP = 533.8 mGy-cm.    3) Spiral Acquisition 1.8 s, 28.7 cm; CTDIvol = 18.6 mGy (Body) DLP = 534.4 mGy-cm.    4) Spiral Acquisition 1.8 s, 28.7 cm; CTDIvol = 18.6 mGy (Body) DLP = 533.1 mGy-cm.    5) Stationary Acquisition 2.0 s, 0.5 cm; CTDIvol = 11.2 mGy (Body) DLP = 5.6 mGy-cm.  Total DLP (Body) = 2,780 mGy-cm. ** Note: This radiation dose report was copied from CLIP ___ (CT ABD AND PELVIS W AND W/O CONTRAST, ADDL SECTIONS):  FINDINGS:   NECK, THORACIC INLET, AXILLAE, CHEST WALL: There is moderate calcification of the head and neck vessels.  Right central venous line terminates in the proximal right atrium.  Left pectoral AICD, with leads terminating in their expected locations within the right atrium and ventricle. Patient is status post CABG with sternotomy wires in situ.  There is no supraclavicular, infraclavicular or axillary lymphadenopathy.  Excluding the breasts, for which dedicated mammographic assessment is required, soft tissues of the chest wall are grossly unremarkable.  UPPER ABDOMEN: Although this exam is not optimized for evaluation of subdiaphragmatic structures, multiple hepatic hypodensities, the largest within segment VIII measuring 11 x 11 mm (2:46), most consistent with simple cysts, though incompletely characterized on this unenhanced examination.  Trace perihepatic and perisplenic ascites.  For complete descriptions of subdiaphragmatic findings, please refer to same-day CT abdomen and pelvis report.  MEDIASTINUM: Multiple prevascular, precarinal, subcarinal and right upper and lower paratracheal lymph nodes, none of which are pathologically enlarged by CT size criteria.  HILA: Bilateral hilar lymph nodes are not enlarged.  HEART and PERICARDIUM: Substantial cardiomegaly.  Extensive coronary artery calcification.  Dense mitral valve annular calcification.  Moderate aortic valve annular calcification.  No pericardial effusion.  No infiltration of the epicardial fat.  PLEURA: No pleural effusion or nodularity.  LUNG: 1. PARENCHYMA: Multiple ill-defined upper lobe predominant bilateral nodules are concerning for infection or septic pulmonary emboli (302:89, 91, 96, 100). Interlobular septal thickening, ground-glass opacities within the bilateral lungs and mosaic appearance of the associated lung parenchyma are consistent with mild pulmonary edema.  No confluent airspace consolidation.  No diffuse lung disease.  Mild bibasilar segmental dependent atelectasis. 2. AIRWAYS:  The tracheobronchial tree is patent to the subsegmental level bilaterally. 3. VESSELS:  The aorta and main pulmonary artery are normal in caliber.  There is extensive calcification of the aortic arch and descending thoracic aorta.  On this nondedicated examination, there is no large central pulmonary embolus.  CHEST CAGE: Mild spondylosis of the thoracic spine.  There are no lytic or destructive lesions within the chest cage or imaged thoracic spine.  No new pathologic or compression fractures.'
 );
 
 
@@ -393795,7 +399375,7 @@ VALUES (
     'CT',
     'Abdomen',
     'CT ABD & PELVIS W/O CONTRAST',
-    'EXAMINATION: CT abdomen and pelvis  TECHNIQUE: Multidetector CT images of the abdomen and pelvis were acquired without intravenous contrast. Non-contrast scan has several limitations in detecting vascular and parenchymal organ abnormalities, including tumor detection. Oral contrast was administered. Coronal and sagittal reformations were performed and reviewed on PACS.  DOSE: Acquisition sequence:    1) Spiral Acquisition 10.0 s, 64.9 cm; CTDIvol = 6.5 mGy (Body) DLP = 416.2 mGy-cm.  Total DLP (Body) = 416 mGy-cm.  FINDINGS:   LOWER CHEST: Please refer to separate report of CT chest performed on the same day for description of the thoracic findings.  ABDOMEN:   HEPATOBILIARY: The liver demonstrates homogeneous attenuation throughout.  There is no evidence of focal lesions within the limitations of an unenhanced scan.  There is no evidence of intrahepatic or extrahepatic biliary dilatation.  The gallbladder is surgically absent.  PANCREAS: The pancreas has normal attenuation throughout, without evidence of focal lesions within the limitations of an unenhanced scan.  There is no pancreatic ductal dilatation.  There is no peripancreatic stranding.  SPLEEN: The spleen shows normal size and attenuation throughout, without evidence of focal lesions.  ADRENALS: The right and left adrenal glands are normal in size and shape.  URINARY: The kidneys are of normal and symmetric size.  There is no evidence of focal renal lesions within the limitations of an unenhanced scan.  There is no hydronephrosis.  There is no nephrolithiasis.  There is no perinephric abnormality.  GASTROINTESTINAL: The stomach is unremarkable.  Small bowel loops demonstrate normal caliber and wall thickness throughout.  The colon and rectum are within normal limits.  The appendix is normal.  PELVIS: The urinary bladder and distal ureters are unremarkable.  There is no free fluid in the pelvis.  REPRODUCTIVE ORGANS: The small calcified fibroid is seen at the uterine fundus.  LYMPH NODES: There is no retroperitoneal or mesenteric lymphadenopathy.  There is no pelvic or inguinal lymphadenopathy.  VASCULAR: There is no abdominal aortic aneurysm.  No atherosclerotic disease is noted.  BONES: There is no evidence of worrisome osseous lesions or acute fracture.  There is transitional vertebral anatomy with sacralization of L5.  SOFT TISSUES: The abdominal and pelvic wall is within normal limits.'
+    'EXAMINATION: CT abdomen and pelvis  TECHNIQUE: Multidetector CT images of the abdomen and pelvis were acquired without intravenous contrast. Non-contrast scan has several limitations in detecting vascular and parenchymal organ abnormalities, including tumor detection. Oral contrast was administered. Coronal and sagittal reformations were performed and reviewed on PACS.  DOSE: Acquisition sequence:    1) Spiral Acquisition 10.0 s, 64.9 cm; CTDIvol = 6.5 mGy (Body) DLP = 416.2 mGy-cm.  Total DLP (Body) = 416 mGy-cm.  FINDINGS:   LOWER CHEST: Please refer to separate report of CT chest performed on the same day for descriptions of the thoracic findings.  ABDOMEN:   HEPATOBILIARY: The liver demonstrates homogeneous attenuation throughout.  There is no evidence of focal lesions within the limitations of an unenhanced scan.  There is no evidence of intrahepatic or extrahepatic biliary dilatation.  The gallbladder is surgically absent.  PANCREAS: The pancreas has normal attenuation throughout, without evidence of focal lesions within the limitations of an unenhanced scan.  There is no pancreatic ductal dilatation.  There is no peripancreatic stranding.  SPLEEN: The spleen shows normal size and attenuation throughout, without evidence of focal lesions.  ADRENALS: The right and left adrenal glands are normal in size and shape.  URINARY: The kidneys are of normal and symmetric size.  There is no evidence of focal renal lesions within the limitations of an unenhanced scan.  There is no hydronephrosis.  There is no nephrolithiasis.  There is no perinephric abnormality.  GASTROINTESTINAL: The stomach is unremarkable.  Small bowel loops demonstrate normal caliber and wall thickness throughout.  The colon and rectum are within normal limits.  The appendix is normal.  PELVIS: The urinary bladder and distal ureters are unremarkable.  There is no free fluid in the pelvis.  REPRODUCTIVE ORGANS: The small calcified fibroid is seen at the uterine fundus.  LYMPH NODES: There is no retroperitoneal or mesenteric lymphadenopathy.  There is no pelvic or inguinal lymphadenopathy.  VASCULAR: There is no abdominal aortic aneurysm.  No atherosclerotic disease is noted.  BONES: There is no evidence of worrisome osseous lesions or acute fracture.  There is transitional vertebral anatomy with sacralization of L5.  SOFT TISSUES: The abdominal and pelvic wall is within normal limits.'
 );
 
 
@@ -393893,7 +399473,7 @@ VALUES (
     'CT',
     'Abdomen',
     'CT ABD & PELVIS WITH CONTRAST',
-    'EXAMINATION: CT abdomen and pelvis with contrast  TECHNIQUE: Single phase split bolus contrast: MDCT axial images were acquired through the abdomen and pelvis following intravenous contrast administration with split bolus technique. Oral contrast was administered. Coronal and sagittal reformations were performed and reviewed on PACS.  DOSE: Total DLP (Body) = 560 mGy-cm.  FINDINGS:   LOWER CHEST: Please refer to separate report of CT chest performed on the same day for description of the thoracic findings.  ABDOMEN:   HEPATOBILIARY: The liver demonstrates homogenous attenuation throughout.  Subcentimeter hypodensity adjacent to the gallbladder fossa on 05:54 is too small to characterize.  A region of enhancement in segment 3 is compatible with portal venous fistula.  There is no evidence of intrahepatic or extrahepatic biliary dilatation.  The gallbladder contains gallstones.  There is free fluid in the gallbladder fossa likely related to the acute process in the pancreas.  PANCREAS: The pancreatic head, uncinate process, neck, and a portion of the pancreatic body are homogeneously enhancing.  There is mild heterogeneous enhancement of the distal pancreatic body and tail with extensive surrounding peripancreatic stranding tracking into the left pericolic gutter and a small amount of free fluid extending to the gallbladder fossa.  No discrete pancreatic masses are seen.  There are 2 subcentimeter hypodensities in the pancreatic head and uncinate process that are incompletely characterized and may represent small IPMNs.  No drainable peripancreatic fluid collections are seen.  There is no evidence of pseudoaneurysm.  SPLEEN: The spleen shows normal size and attenuation throughout, without evidence of focal lesions.  ADRENALS: The right and left adrenal glands are normal in size and shape.  URINARY: The kidneys are of normal and symmetric size with normal nephrogram.  There is no hydronephrosis.  There are a few scattered subcentimeter foci which are too small to characterize but statistically most likely represent cysts.  There is no perinephric abnormality.  GASTROINTESTINAL: Portions of the stomach appear focally thickened, particularly along the greater curvature where peripancreatic fluid extends to contact the gastric wall.  This thickening is irregular in some portions (for example in the proximal body on 05:50).  Small bowel loops demonstrate normal caliber, wall thickness, and enhancement throughout.  The colon and rectum are within normal limits.  PELVIS: The urinary bladder and distal ureters are unremarkable.  There is no free fluid in the pelvis.  REPRODUCTIVE ORGANS: The uterus is not visualized. No adnexal abnormality is seen.  LYMPH NODES: There is no retroperitoneal or mesenteric lymphadenopathy.  There is no pelvic or inguinal lymphadenopathy.  VASCULAR: There is no abdominal aortic aneurysm.  Moderate atherosclerotic disease is noted.  BONES: There is no evidence of worrisome osseous lesions or acute fracture.  SOFT TISSUES: Small fat containing umbilical hernia.  Well-circumscribed high density ovoid lesions in the vulva measuring up to 65 Hounsfield units are favored to represent hemorrhagic or proteinaceous Bartholin''s gland cysts and could be further evaluated with ultrasound as clinically warranted.'
+    'EXAMINATION: CT abdomen and pelvis with contrast  TECHNIQUE: Single phase split bolus contrast: MDCT axial images were acquired through the abdomen and pelvis following intravenous contrast administration with split bolus technique. Oral contrast was administered. Coronal and sagittal reformations were performed and reviewed on PACS.  DOSE: Total DLP (Body) = 560 mGy-cm.  FINDINGS:   LOWER CHEST: Please refer to separate report of CT chest performed on the same day for descriptions of the thoracic findings.  ABDOMEN:   HEPATOBILIARY: The liver demonstrates homogenous attenuation throughout.  Subcentimeter hypodensity adjacent to the gallbladder fossa on 05:54 is too small to characterize.  A region of enhancement in segment 3 is compatible with portal venous fistula.  There is no evidence of intrahepatic or extrahepatic biliary dilatation.  The gallbladder contains gallstones.  There is free fluid in the gallbladder fossa likely related to the acute process in the pancreas.  PANCREAS: The pancreatic head, uncinate process, neck, and a portion of the pancreatic body are homogeneously enhancing.  There is mild heterogeneous enhancement of the distal pancreatic body and tail with extensive surrounding peripancreatic stranding tracking into the left pericolic gutter and a small amount of free fluid extending to the gallbladder fossa.  No discrete pancreatic masses are seen.  There are 2 subcentimeter hypodensities in the pancreatic head and uncinate process that are incompletely characterized and may represent small IPMNs.  No drainable peripancreatic fluid collections are seen.  There is no evidence of pseudoaneurysm.  SPLEEN: The spleen shows normal size and attenuation throughout, without evidence of focal lesions.  ADRENALS: The right and left adrenal glands are normal in size and shape.  URINARY: The kidneys are of normal and symmetric size with normal nephrogram.  There is no hydronephrosis.  There are a few scattered subcentimeter foci which are too small to characterize but statistically most likely represent cysts.  There is no perinephric abnormality.  GASTROINTESTINAL: Portions of the stomach appear focally thickened, particularly along the greater curvature where peripancreatic fluid extends to contact the gastric wall.  This thickening is irregular in some portions (for example in the proximal body on 05:50).  Small bowel loops demonstrate normal caliber, wall thickness, and enhancement throughout.  The colon and rectum are within normal limits.  PELVIS: The urinary bladder and distal ureters are unremarkable.  There is no free fluid in the pelvis.  REPRODUCTIVE ORGANS: The uterus is not visualized. No adnexal abnormality is seen.  LYMPH NODES: There is no retroperitoneal or mesenteric lymphadenopathy.  There is no pelvic or inguinal lymphadenopathy.  VASCULAR: There is no abdominal aortic aneurysm.  Moderate atherosclerotic disease is noted.  BONES: There is no evidence of worrisome osseous lesions or acute fracture.  SOFT TISSUES: Small fat containing umbilical hernia.  Well-circumscribed high density ovoid lesions in the vulva measuring up to 65 Hounsfield units are favored to represent hemorrhagic or proteinaceous Bartholin''s gland cysts and could be further evaluated with ultrasound as clinically warranted.'
 );
 
 
@@ -396175,7 +401755,7 @@ VALUES (
     'CT',
     'Abdomen',
     'CT ABD & PELVIS WITH CONTRAST',
-    'EXAMINATION: CT ABD AND PELVIS WITH CONTRAST:  TECHNIQUE: Single phase contrast: MDCT axial images were acquired through the abdomen and pelvis following intravenous contrast administration. Oral contrast was not administered. Coronal and sagittal reformations were performed and reviewed on PACS.  DOSE: Acquisition sequence:    1) Spiral Acquisition 2.9 s, 37.7 cm; CTDIvol = 13.2 mGy (Body) DLP = 495.5 mGy-cm.    2) Spiral Acquisition 4.0 s, 52.7 cm; CTDIvol = 14.4 mGy (Body) DLP = 758.7 mGy-cm.    3) Stationary Acquisition 0.6 s, 0.5 cm; CTDIvol = 3.3 mGy (Body) DLP = 1.7 mGy-cm.    4) Stationary Acquisition 0.6 s, 0.5 cm; CTDIvol = 3.3 mGy (Body) DLP = 1.7 mGy-cm.  Total DLP (Body) = 1,257 mGy-cm.  FINDINGS:   LOWER CHEST: Septal thickening and emphysema most prominent in the right lower lobe is incompletely imaged, please see separate report from same day CTA chest for full description of intrathoracic findings.  ABDOMEN:   HEPATOBILIARY: The liver is mildly nodular, consistent with cirrhosis there is no evidence of focal lesions. There is no evidence of intrahepatic biliary dilatation.  The common bile duct measures 1.3 cm in maximum diameter, unchanged from prior study.  This may be due to the prior cholecystectomy.  PANCREAS: A 1.4 cm hypodensity near the pancreatic head is unchanged in size from the prior study (series 606, image 26).  The remainder of the pancreatic parenchyma is normal.  No pancreatic ductal dilatation.  No peripancreatic stranding.  SPLEEN: The spleen shows normal size and attenuation throughout, without evidence of focal lesions.  ADRENALS: The right and left adrenal glands are normal in size and shape.  URINARY: The kidneys are of normal and symmetric size with normal nephrogram.  There is no evidence of focal renal lesions or hydronephrosis.  There is no perinephric abnormality.  GASTROINTESTINAL: The stomach is unremarkable.  There is increased prominence of a 2.5 x 3.0 cm hypoenhancing lesion along the second portion of the duodenum/pancreatic head (series 304, image 28; series 607, image 25).  Small bowel loops demonstrate normal caliber, wall thickness, and enhancement throughout.  Patient is status post partial colectomy with a and sigmoid colostomy in the left lower quadrant.  The remainder of the colon is intact and within normal limits.  There is a ___ J-pouch which terminates at the sigmoid colon.  Superior to the staple line, there is a 2.9 x 1.5 cm area of non organized fluid (series 304, image 56) co at the site of the removed surgical drain.  There is minimal adjacent stranding.  No ascites.  PELVIS: The urinary bladder is distended.  The distal ureters are unremarkable.  REPRODUCTIVE ORGANS: The prostate and seminal vesicles are grossly unremarkable.  LYMPH NODES: There is no retroperitoneal or mesenteric lymphadenopathy.  There is no pelvic or inguinal lymphadenopathy.  VASCULAR: Fusiform dilatation of the infrarenal abdominal aorta measures up to 2.6 cm, unchanged from the prior study.  Mild atherosclerotic disease is noted.  BONES: There is no evidence of worrisome osseous lesions or acute fracture.  SOFT TISSUES: The abdominal and pelvic wall is within normal limits.'
+    'EXAMINATION: CT ABD AND PELVIS WITH CONTRAST:  TECHNIQUE: Single phase contrast: MDCT axial images were acquired through the abdomen and pelvis following intravenous contrast administration. Oral contrast was not administered. Coronal and sagittal reformations were performed and reviewed on PACS.  DOSE: Acquisition sequence:    1) Spiral Acquisition 2.9 s, 37.7 cm; CTDIvol = 13.2 mGy (Body) DLP = 495.5 mGy-cm.    2) Spiral Acquisition 4.0 s, 52.7 cm; CTDIvol = 14.4 mGy (Body) DLP = 758.7 mGy-cm.    3) Stationary Acquisition 0.6 s, 0.5 cm; CTDIvol = 3.3 mGy (Body) DLP = 1.7 mGy-cm.    4) Stationary Acquisition 0.6 s, 0.5 cm; CTDIvol = 3.3 mGy (Body) DLP = 1.7 mGy-cm.  Total DLP (Body) = 1,257 mGy-cm.  FINDINGS:   LOWER CHEST: Septal thickening and emphysema most prominent in the right lower lobe is incompletely imaged, please see separate report from same day CTA chest for full descriptions of intrathoracic findings.  ABDOMEN:   HEPATOBILIARY: The liver is mildly nodular, consistent with cirrhosis there is no evidence of focal lesions. There is no evidence of intrahepatic biliary dilatation.  The common bile duct measures 1.3 cm in maximum diameter, unchanged from prior study.  This may be due to the prior cholecystectomy.  PANCREAS: A 1.4 cm hypodensity near the pancreatic head is unchanged in size from the prior study (series 606, image 26).  The remainder of the pancreatic parenchyma is normal.  No pancreatic ductal dilatation.  No peripancreatic stranding.  SPLEEN: The spleen shows normal size and attenuation throughout, without evidence of focal lesions.  ADRENALS: The right and left adrenal glands are normal in size and shape.  URINARY: The kidneys are of normal and symmetric size with normal nephrogram.  There is no evidence of focal renal lesions or hydronephrosis.  There is no perinephric abnormality.  GASTROINTESTINAL: The stomach is unremarkable.  There is increased prominence of a 2.5 x 3.0 cm hypoenhancing lesion along the second portion of the duodenum/pancreatic head (series 304, image 28; series 607, image 25).  Small bowel loops demonstrate normal caliber, wall thickness, and enhancement throughout.  Patient is status post partial colectomy with a and sigmoid colostomy in the left lower quadrant.  The remainder of the colon is intact and within normal limits.  There is a ___ J-pouch which terminates at the sigmoid colon.  Superior to the staple line, there is a 2.9 x 1.5 cm area of non organized fluid (series 304, image 56) co at the site of the removed surgical drain.  There is minimal adjacent stranding.  No ascites.  PELVIS: The urinary bladder is distended.  The distal ureters are unremarkable.  REPRODUCTIVE ORGANS: The prostate and seminal vesicles are grossly unremarkable.  LYMPH NODES: There is no retroperitoneal or mesenteric lymphadenopathy.  There is no pelvic or inguinal lymphadenopathy.  VASCULAR: Fusiform dilatation of the infrarenal abdominal aorta measures up to 2.6 cm, unchanged from the prior study.  Mild atherosclerotic disease is noted.  BONES: There is no evidence of worrisome osseous lesions or acute fracture.  SOFT TISSUES: The abdominal and pelvic wall is within normal limits.'
 );
 
 
@@ -396835,3 +402415,5 @@ VALUES (
     'CT ABD & PELVIS WITH CONTRAST',
     'EXAMINATION: CT ABD AND PELVIS WITH CONTRAST:  TECHNIQUE: Single phase contrast: MDCT axial images were acquired through the abdomen and pelvis following intravenous contrast administration. Oral contrast was not administered. Coronal and sagittal reformations were performed and reviewed on PACS.  DOSE: Acquisition sequence:    1) Stationary Acquisition 0.5 s, 1.0 cm; CTDIvol = 1.1 mGy (Body) DLP = 1.1 mGy-cm.    2) Stationary Acquisition 6.0 s, 1.0 cm; CTDIvol = 13.5 mGy (Body) DLP = 13.5 mGy-cm.    3) Spiral Acquisition 14.3 s, 49.2 cm; CTDIvol = 11.5 mGy (Body) DLP = 549.6 mGy-cm.  Total DLP (Body) = 577 mGy-cm.  FINDINGS:   LOWER CHEST: Visualized lung fields are within normal limits.  There is no evidence of pleural or pericardial effusion.  ABDOMEN:   HEPATOBILIARY: The liver demonstrates homogenous attenuation throughout.  There is no suspicious focal lesion.  There is no evidence of intrahepatic or extrahepatic biliary dilatation.  The gallbladder is surgically absent.  PANCREAS: The pancreas has normal attenuation throughout, without evidence of focal lesions or pancreatic ductal dilatation.  There is no peripancreatic stranding.  SPLEEN: The spleen shows normal size and attenuation throughout.  There are few scattered punctate calcifications, likely representing sequela prior granulomatous disease..  ADRENALS: The right and left adrenal glands are normal in size and shape.  URINARY: The kidneys are of normal and symmetric size with normal nephrogram.  There is no evidence of solid renal lesions.   There is no perinephric abnormality.  There is no hydronephrosis or hydroureter.  The urinary bladder is unremarkable.  GASTROINTESTINAL: The stomach is unremarkable.  Small bowel loops demonstrate normal caliber, wall thickness, and enhancement. Diverticulosis of the sigmoid colon is noted.  There is a segment of focal wall thickening of the proximal sigmoid colon where there is regional diverticula and adjacent fat stranding.  On series 5, image 67, coronal image series 6, image 63, there is a 5 mm hypodense structure which may represent a small subserosal abscess versus inflamed diverticulum.  A punctate focus of gas adjacent to this may be at the distal edge of the diverticulum or possibly tiny micro perforation.  The appendix is normal.  PELVIS: There is no free fluid in the pelvis.  REPRODUCTIVE ORGANS: Intrauterine device seen within the uterus.  No adnexal abnormality noted.  1.2 cm right ovarian corpus luteum is noted.  LYMPH NODES: There is no retroperitoneal or mesenteric lymphadenopathy.   There is no pelvic or inguinal lymphadenopathy.  VASCULAR: No significant atherosclerotic disease is noted.  There is no abdominal aortic aneurysm.  BONES: There is no evidence of worrisome osseous lesions or acute fracture.  SOFT TISSUES: The abdominal and pelvic wall is within normal limits.'
 );
+
+

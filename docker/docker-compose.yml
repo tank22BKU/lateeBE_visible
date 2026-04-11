@@ -26,7 +26,25 @@
       - mysql
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__ClinicalCaseDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      ConnectionStrings__ClinicalCaseDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
+    networks:
+      - latee-network
+  
+  assessment:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.Assessment
+    container_name: assessment-api
+    ports:
+      - "8004:8080"
+    depends_on:
+      - mysql
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Server=latee-mysql;Port=3306;Database=latee;Uid=user;Pwd=pass;AllowPublicKeyRetrieval=True"
+      GeminiAi__ApiKey: ${GEMINI_API_KEY} 
+    env_file:
+      - ../.env
     networks:
       - latee-network
 
@@ -41,21 +59,93 @@
       - mysql
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__VirtualPatientDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      ConnectionStrings__VirtualPatientDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
     networks:
       - latee-network
-    # ollama:
-    #   image: ollama/ollama:latest
-    #   container_name: ollama
-    #   ports:
-    #     - "11434:11434"
-    #   volumes:
-    #     - ollama_data:/root/.ollama
-    #   command: >
-    #     bash -c " ollama serve & sleep 5 && ollama pull llama3.1:8b && wait "
-    #   networks:
-    #     - latee-network
 
+  # =========================================================
+  # VIRTUAL PATIENT AI (Llama 3.1 + Adapter)
+  # =========================================================
+
+  virtualpatient-python:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.VirtualPatient.Python
+    container_name: vp-python-api
+    ports:
+      - "8005:8080" 
+    depends_on:
+      ollama-warmup-vp:
+        condition: service_completed_successfully
+      virtualpatient:
+        condition: service_started
+    environment:
+      OLLAMA_URL: "http://ollama-vp:11434"
+      OLLAMA_MODEL: "virtual-patient-model"
+      VIRTUAL_PATIENT_API_URL: "http://virtualpatient:8080/api/virtual-patients"
+    networks:
+      - latee-network
+
+  ollama-vp:
+    image: ollama/ollama:latest
+    container_name: ollama-vp
+    ports:
+      - "11435:11434" 
+    volumes:
+      - ollama_vp_data:/root/.ollama
+      - ./Llama-3.1-Virtual-Patient-MimicIV_Ver2.0:/root/.ollama/adapters_setup:ro
+      - ./ollama_vp_setup:/root/.ollama/setup:ro
+    networks:
+      - latee-network
+    environment:
+      - OLLAMA_NUM_PARALLEL=1
+      - OLLAMA_FLASH_ATTENTION=1 
+      - OLLAMA_MAX_LOADED_MODELS=1 
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  ollama-warmup-vp:
+    image: ollama/ollama:latest
+    container_name: ollama-warmup-vp
+    depends_on:
+      ollama-vp:
+        condition: service_started
+    volumes:
+      - ollama_vp_data:/root/.ollama  
+      - ./Llama-3.1-Virtual-Patient-MimicIV_Ver2.0:/root/.ollama/adapters_setup:ro
+      - ./ollama_vp_setup:/root/.ollama/setup:ro
+    environment:
+      - OLLAMA_HOST=http://ollama-vp:11434
+    entrypoint: [ "/bin/sh" ]
+    command: 
+      - "-c"
+      - |
+        echo "Waiting for Ollama API..."
+        until ollama list > /dev/null 2>&1; do sleep 2; done
+
+        # Kiểm tra nếu chưa có base model thì mới pull
+        if ! ollama list | grep -q "llama3.1:8b"; then
+          echo "Pulling Llama 3.1 8B..."
+          ollama pull llama3.1:8b
+        else
+          echo "Base model already exists. Skipping pull."
+        fi
+
+        echo "Applying adapter via Modelfile..."
+        ollama create virtual-patient-model -f /root/.ollama/setup/Modelfile.VP
+        echo "Warmup Done Successfully!"
+    restart: "no"
+    networks:
+      - latee-network
+
+  # =========================================================
+  # AI Assistant, Gateway, Redis...
+  # =========================================================
 
   ollama:
     image: ollama/ollama:latest
@@ -79,7 +169,7 @@
         reservations:
           devices:
             - driver: nvidia
-              count: 1 # Chỉ dùng 1 GPU
+              count: 1
               capabilities: [ gpu ]
     healthcheck:
       test: [ "CMD", "ollama", "list" ]
@@ -140,7 +230,7 @@
       dockerfile: docker/Dockerfile.Roadmap
     container_name: roadmap-api
     ports:
-      - "8004:8080"
+      - "8006:8080"
     env_file:
       - ../.env
     depends_on:
@@ -161,12 +251,11 @@
     volumes:
       - ../src/Gateway/ApiGateway/ocelot.json:/app/ocelot.json:ro
     depends_on:
-      clinicalcase:
-        condition: service_started
-      virtualpatient:
-        condition: service_started
-      ai-assistant:
-        condition: service_healthy
+      - clinicalcase
+      - virtualpatient
+      - ai-assistant
+      - assessment
+      - roadmap
     environment:
       ASPNETCORE_ENVIRONMENT: Development
     networks:
@@ -183,7 +272,7 @@
 volumes:
   mysql_data:
   ollama_data:
-
+  ollama_vp_data: 
 
 networks:
   latee-network:

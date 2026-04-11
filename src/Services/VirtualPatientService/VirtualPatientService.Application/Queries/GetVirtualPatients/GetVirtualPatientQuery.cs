@@ -1,9 +1,9 @@
 using MediatR;
 
-using VirtualPatientService.Application.Queries.GetVirtualPatients;
+namespace VirtualPatientService.Application.Queries.GetVirtualPatients;
 
 public record GetVirtualPatientQuery(
-    char? Gender,
+    string? Gender, 
     int Page,
     int PageSize
 ) : IRequest<PagedResult<VirtualPatientDto>>;

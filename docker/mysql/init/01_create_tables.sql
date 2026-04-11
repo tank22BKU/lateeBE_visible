@@ -1,20 +1,33 @@
-﻿
-CREATE TABLE patients (
-    patientid VARCHAR(10) PRIMARY KEY,
-    gender CHAR(1) CHECK (gender IN ('M','F')),
+﻿CREATE TABLE patients (
+    patientid VARCHAR(50) PRIMARY KEY,
+    clinical_case_id VARCHAR(50), 
+    name VARCHAR(100) NOT NULL,
     age INT,
-    behaviors TEXT,
-    description TEXT,
-    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    gender VARCHAR(20),
+    pronouns VARCHAR(20),
+    ethnicity VARCHAR(50),
+    occupation VARCHAR(100),
+    setting VARCHAR(50),
+    level VARCHAR(20),
+    time_setting VARCHAR(50),
+    avatar_img TEXT,
+    descriptions TEXT,
+    chief_concern TEXT,
+    vital_signs JSON, 
+    instructions JSON,
+    case_rules JSON,
+    persona JSON,
+    status VARCHAR(20) DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 CREATE TABLE clinicalcases (
     clinicalcaseid VARCHAR(20) PRIMARY KEY,
-    patientid VARCHAR(10) NOT NULL,
+    patientid VARCHAR(50) NOT NULL,
     title TEXT,
     type VARCHAR(50),
-    description TEXT,
+    descriptions TEXT,
     symptom TEXT,
     medicalhistory TEXT,
     pe TEXT,
@@ -22,9 +35,7 @@ CREATE TABLE clinicalcases (
     createdBy VARCHAR(50),
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_patient
-        FOREIGN KEY (patientid)
-        REFERENCES patients(patientid)
+    CONSTRAINT fk_patient FOREIGN KEY (patientid) REFERENCES patients(patientid)
 );
 
 CREATE TABLE labtestitem (
@@ -42,12 +53,8 @@ CREATE TABLE laboratorytest (
     value TEXT NOT NULL,
     rangelower VARCHAR(20),
     rangeupper VARCHAR(20),
-    CONSTRAINT fk_lab_case
-        FOREIGN KEY (clinicalcaseid)
-        REFERENCES clinicalcases(clinicalcaseid),
-    CONSTRAINT fk_lab_item
-        FOREIGN KEY (itemid)
-        REFERENCES labtestitem(itemid)
+    CONSTRAINT fk_lab_case FOREIGN KEY (clinicalcaseid) REFERENCES clinicalcases(clinicalcaseid),
+    CONSTRAINT fk_lab_item FOREIGN KEY (itemid) REFERENCES labtestitem(itemid)
 );
 
 CREATE TABLE radiologyreport (
@@ -58,7 +65,79 @@ CREATE TABLE radiologyreport (
     region VARCHAR(50),
     examname TEXT,
     text TEXT,
-    CONSTRAINT fk_radio_case
-        FOREIGN KEY (clinicalcaseid)
-        REFERENCES clinicalcases(clinicalcaseid)
+    CONSTRAINT fk_radio_case FOREIGN KEY (clinicalcaseid) REFERENCES clinicalcases(clinicalcaseid)
+);
+
+CREATE TABLE assessments (
+    assessment_id VARCHAR(50) PRIMARY KEY,
+    creator_id VARCHAR(50) NOT NULL,
+    clinical_case_id VARCHAR(20),    
+    course_id VARCHAR(50),
+    module_id VARCHAR(50),
+    specialty VARCHAR(100),          
+    topic VARCHAR(100) NOT NULL,
+    subtopic VARCHAR(100),
+    difficulty_level ENUM('Beginner', 'Intermediate', 'Advanced', 'Expert') DEFAULT 'Intermediate',
+    title TEXT NOT NULL,
+    descriptions TEXT,
+    goal TEXT,                       
+    num_questions INT DEFAULT 10,
+    time_limit_minutes INT,          
+    passing_score_percentage DECIMAL(5,2) DEFAULT 80.00,
+    max_attempts INT DEFAULT 1,     
+    generation_prompt TEXT,
+    allowed_question_types JSON,     
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE assessment_questions (
+    question_id VARCHAR(50) PRIMARY KEY,
+    assessment_id VARCHAR(50) NOT NULL,
+    question_type ENUM('MultipleChoice', 'MultipleResponse', 'TrueFalse', 'FillInBlank', 'ShortAnswer') NOT NULL,
+    cognitive_level ENUM('Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'),
+    content TEXT NOT NULL,           
+    options JSON,                    
+    explanation TEXT,                
+    points DECIMAL(5,2) DEFAULT 1.00,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_aq_assessment FOREIGN KEY (assessment_id) REFERENCES assessments(assessment_id) ON DELETE CASCADE
+);
+
+CREATE TABLE assessment_attempts (
+    attempt_id VARCHAR(50) PRIMARY KEY,
+    assessment_id VARCHAR(50) NOT NULL,
+    user_id VARCHAR(50) NOT NULL,
+    start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    end_time TIMESTAMP NULL,
+    score DECIMAL(5,2),
+    is_passed BOOLEAN,
+    status ENUM('InProgress', 'Completed', 'Abandoned') DEFAULT 'InProgress',
+    CONSTRAINT fk_attempt_assessment FOREIGN KEY (assessment_id) REFERENCES assessments(assessment_id) ON DELETE CASCADE
+);
+
+CREATE TABLE attempt_answers (
+    answer_id VARCHAR(50) PRIMARY KEY,
+    attempt_id VARCHAR(50) NOT NULL,
+    question_id VARCHAR(50) NOT NULL,
+    user_choice JSON,             
+    is_correct BOOLEAN,
+    points_earned DECIMAL(5,2) DEFAULT 0.00,
+    is_flagged BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_ans_attempt FOREIGN KEY (attempt_id) REFERENCES assessment_attempts(attempt_id) ON DELETE CASCADE,
+    CONSTRAINT fk_ans_question FOREIGN KEY (question_id) REFERENCES assessment_questions(question_id)
+);
+
+CREATE TABLE assessment_issues (
+    issue_id VARCHAR(50) PRIMARY KEY,
+    question_id VARCHAR(50) NOT NULL,
+    reporter_id VARCHAR(50) NOT NULL,
+    label VARCHAR(100),             
+    descriptions TEXT NOT NULL,
+    feedback TEXT,                  
+    status ENUM('Open', 'InReview', 'Resolved', 'Rejected') DEFAULT 'Open',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_issue_question FOREIGN KEY (question_id) REFERENCES assessment_questions(question_id) ON DELETE CASCADE
 );

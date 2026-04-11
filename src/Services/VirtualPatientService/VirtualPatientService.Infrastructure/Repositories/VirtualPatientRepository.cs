@@ -27,15 +27,15 @@ public class VirtualPatientRepository : IVirtualPatientRepository
             .FirstOrDefaultAsync(x => x.PatientId == patientId);
     }
 
-    public async Task<(List<VirtualPatient> Items, int Total)> GetPagedAsync(char? gender, int page, int pageSize)
+    public async Task<(List<VirtualPatient> Items, int Total)> GetPagedAsync(string? gender, int page, int pageSize)
     {
         var query = _db.VirtualPatients.AsNoTracking();
 
-        // Filter by gender if provided
-        if (gender.HasValue)
+        if (!string.IsNullOrEmpty(gender))
         {
-            query = query.Where(x => x.Gender == gender.Value);
+            query = query.Where(x => x.Gender == gender);
         }
+
 
         var total = await query.CountAsync();
 
