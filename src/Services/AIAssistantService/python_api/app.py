@@ -1,33 +1,26 @@
 # app.py
-from typing import Tuple, List, Optional, Dict, Any
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+import asyncio
+import json
 import os
 import time
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
-
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_ollama import ChatOllama
-from ragLoader import RAGLoader
-from dotenv import load_dotenv
-
-from fastapi.responses import StreamingResponse
-import json
+from pydantic import BaseModel
 from typing import AsyncGenerator
+from typing import Tuple, List, Optional, Dict, Any
 
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
-
+from config import (
+    logger,
+)
 from dtos import (
     AssistantRequest,
-    AssistantResponse,
-    MessageItem,
     QuestionValidationRequest,
-    QuestionValidationResponse,
-    ValidationFlag,
-    HISTORY_MAX_ITEMS,
-    HISTORY_TTL_SECONDS,
     RedisHistoryStore,
     MemoryHistoryStore,
     redis,
@@ -35,17 +28,45 @@ from dtos import (
     ClinicalReasoningRequest,
     ClinicalReasoningResponse,
 )
-
-from config import (
-    SYSTEM_PROMPT,
-    VALIDATION_PROMPT,
-    CLINICAL_REASONING_PROMPT,
-    DIFY_PROMPT,
-    logger,
-)
-
+from ragLoader import RAGLoader
 
 load_dotenv()
+# --------------------
+# Optional retriever placeholder
+# --------------------
+# If you want RAG, instantiate a retriever (FAISS/Chroma/etc.) and set RETRIEVER var.
+ragLoader = RAGLoader()
+RETRIEVER = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("[STARTING] App starting...")
+
+    # init RAG
+    global RETRIEVER
+    RETRIEVER = ragLoader.get_retriever()
+
+    try:
+        llm = get_llm()
+        llm.invoke("Hello")
+        logger.info("Ollama warmup done")
+    except Exception as e:
+        logger.error(f"Ollama warmup failed: {e}")
+
+    yield
+    logger.info("[SHUTDOWN] App shutdown")
+
+app = FastAPI(title="Medical Assistant API", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+export_app = app  # for testing purposes
 
 HF_TOKEN = os.getenv("HF_TOKEN", "")
 REPO_ID = os.getenv("HF_REPO_ID", "meta-llama/Llama-3.1-8B-Instruct")
@@ -56,31 +77,7 @@ REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 REDIS_DB = int(os.getenv("REDIS_DB", 0))
 
-# --------------------
-# Optional retriever placeholder
-# --------------------
-# If you want RAG, instantiate a retriever (FAISS/Chroma/etc.) and set RETRIEVER var.
-RETRIEVER = RAGLoader().get_retriever()
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    logger.info("[STARTING WARM-UP] Starting app... warming up LLM")
-    llm = init_llm()
-    start = time.time()
-
-    try:
-        llm.invoke([HumanMessage(content="Hello")])
-        logger.info(f"[DONE WARM-UP] LLM warm-up done in {time.time() - start:.2f}s")
-    except Exception as e:
-        logger.error(f"[ERROR] Warm-up failed: {e}")
-
-    yield
-    logger.info("[SHUT DOWN] App shutdown")
-
-
 executor = ThreadPoolExecutor(max_workers=4)
-
 
 async def retrieve_documents_async(
     question: str, use_rag: bool
@@ -111,18 +108,6 @@ async def prepare_llm_async():
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(executor, get_llm)
 
-
-app = FastAPI(title="Medical Assistant API", lifespan=lifespan)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-export_app = app  # for testing purposes
 
 REDIS_URL = os.getenv("REDIS_URL")
 
@@ -174,10 +159,15 @@ def health_check():
 # variables (RETRIEVER, executor, export_app) are fully initialized
 
 
-@app.post("/assistant/stream")
-async def assistant_chat(req: AssistantRequest):
-    from assistantChat import assistant_stream
-    return await assistant_stream(req)
+# @app.post("/assistant/stream")
+# async def assistant_chat(req: AssistantRequest):
+#     from assistantChat import assistant_stream
+#     return await assistant_stream(req)
+
+@app.post("/assistant/stream/hf")
+async def assistant_hf_chat(req: AssistantRequest):
+    from assistantChat import assistant_stream_hf
+    return await assistant_stream_hf(req)
 
 
 """
@@ -185,10 +175,15 @@ API endpoints for question validation and clinical reasoning, implemented in sep
 """
 
 
-@app.post("/assistant/validate_question")
+# @app.post("/assistant/validate_question")
+# async def validate_question_endpoint(req: QuestionValidationRequest):
+#     from validateQuestion import validate_question
+#     return await validate_question(req)
+
+@app.post("/assistant/validate_question/hf")
 async def validate_question_endpoint(req: QuestionValidationRequest):
-    from validateQuestion import validate_question
-    return await validate_question(req)
+    from validateQuestion import validate_question_hf
+    return await validate_question_hf(req)
 
 
 """
@@ -196,7 +191,12 @@ Clinical reasoning endpoint, also implemented in separate module.
 """
 
 
-@app.post("/clinicalreasoning", response_model=ClinicalReasoningResponse)
-async def clinical_reasoning_chat(req: ClinicalReasoningRequest):
-    from reasoning import clinical_reasoning_endpoint
-    return await clinical_reasoning_endpoint(req)
+# @app.post("/clinicalreasoning", response_model=ClinicalReasoningResponse)
+# async def clinical_reasoning_chat(req: ClinicalReasoningRequest):
+#     from reasoning import clinical_reasoning_endpoint
+#     return await clinical_reasoning_endpoint(req)
+
+@app.post("/clinicalreasoning/hf", response_model=ClinicalReasoningResponse)
+async def clinical_reasoning_chat_hf(req: ClinicalReasoningRequest):
+    from reasoning import clinical_reasoning_stream_hf
+    return await clinical_reasoning_stream_hf(req)

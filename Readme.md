@@ -1,4 +1,21 @@
-﻿### How to create new service
+﻿### How to configure
+- fill HF_TOKEN in .env
+- fill RoadmapService.API/appsettings.json with Google Gemini API key
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "Gemini": {
+    "ApiKey": "Google Gemini API key here",
+    "Model": "gemini-2.5-flash"
+  }
+}
+
+### How to create new service
 
 ### Create 4 layer
 mkdir -p src/Services/AssessmentService
@@ -29,8 +46,8 @@ dotnet add src/Services/AssessmentService/AssessmentService.API package Swashbuc
 
 
 - Application
-dotnet add src/Services/AssessmentService/AssessmentService.Application package AutoMapper --version 15.1.0
-dotnet add src/Services/AssessmentService/AssessmentService.Application package AutoMapper.Extensions.Microsoft.DependencyInjection --version 12.0.1
+dotnet add src/Services/AssessmentService/AssessmentService.Application package AutoMapper --version 15.1.1
+dotnet add src/Services/AssessmentService/AssessmentService.Application package AutoMapper.Extensions.Microsoft.DependencyInjection --version 15.1.1
 dotnet add src/Services/AssessmentService/AssessmentService.Application package FluentValidation --version 12.1.0
 dotnet add src/Services/AssessmentService/AssessmentService.Application package FluentValidation.DependencyInjectionExtensions --version 12.1.0
 dotnet add src/Services/AssessmentService/AssessmentService.Application package MediatR --version 13.1.0
@@ -59,7 +76,7 @@ dotnet add package Google.GenAI
 + docker compose -f docker/docker-compose.yml up --build
 - Cleam & Rebuild
 + docker compose -f docker/docker-compose.yml down -v
-+ docker compose -f docker/docker-compose.yml up -d --build
++ docker compose -f docker/do*cker-compose.yml up -d --build*
 + docker exec ollama ollama pull llama3.1:8b
 + docker compose -f docker/docker-compose.yml up
 

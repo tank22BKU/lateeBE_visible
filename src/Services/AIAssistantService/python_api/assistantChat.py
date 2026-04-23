@@ -6,7 +6,8 @@ import app as app_module
 from config import SYSTEM_PROMPT, logger
 import time, json
 from fastapi.responses import StreamingResponse
-
+import os
+from openai import OpenAI
 
 # --------------------
 # Utility: build messages for LLM
@@ -164,6 +165,235 @@ async def assistant_stream(req: AssistantRequest):
             # HISTORY_STORE.append(req.doctor_id, req.question, full_answer)
 
             # Send metadata cuối cùng
+            final_data = {
+                "type": "done",
+                "source_documents": source_docs if source_docs else None,
+                "full_answer": full_answer,
+            }
+            yield f"data: {json.dumps(final_data, ensure_ascii=False)}\n\n"
+
+        except Exception as e:
+            error_data = {"type": "error", "message": str(e)}
+            yield f"data: {json.dumps(error_data)}\n\n"
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+        },
+    )
+
+
+async def assistant_stream_hf(req: AssistantRequest):
+
+    try:
+        start = time.time()
+        logger.info(f"[START][HF] question={req.question}")
+
+        client = OpenAI(
+            base_url="https://router.huggingface.co/v1",
+            api_key=os.getenv("HF_API_KEY"),
+        )
+
+        if app_module.IS_RERUNNING:
+            app_module.IS_RERUNNING = False
+            app_module.HISTORY_STORE.clear(req.doctor_id)
+
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"HF LLM not available: {e}")
+
+    # =====================
+    # Build messages (reuse)
+    # =====================
+    assistant_hist = app_module.HISTORY_STORE.get(req.doctor_id) or []
+
+    lc_messages = build_messages(
+        SYSTEM_PROMPT,
+        assistant_hist,
+        req.patient_history or [],
+        req.question,
+        req.use_rag,
+        )
+
+    # 👉 convert LangChain message → OpenAI format
+    def convert_messages(messages):
+        result = []
+        for m in messages:
+            if isinstance(m, SystemMessage):
+                role = "system"
+            elif isinstance(m, HumanMessage):
+                role = "user"
+            elif isinstance(m, AIMessage):
+                role = "assistant"
+            else:
+                continue
+
+            result.append({"role": role, "content": m.content})
+        return result
+
+    messages = convert_messages(lc_messages)
+
+    # =====================
+    # RAG (giữ nguyên)
+    # =====================
+    source_docs = []
+    if app_module.RETRIEVER and req.use_rag:
+        try:
+            docs = app_module.RETRIEVER.invoke(req.question)
+            ctx = "\n\n".join(d.page_content for d in docs[:3])
+
+            messages[-1]["content"] = (
+                f"Dựa vào các tài liệu sau:\n{ctx}\n\nCâu hỏi: {req.question}"
+            )
+
+            source_docs = [
+                getattr(d, "metadata", {}).get("source", None)
+                or (d.page_content[:200])
+                for d in docs[:3]
+            ]
+        except Exception:
+            pass
+
+    # =====================
+    # Streaming
+    # =====================
+    async def generate() -> AsyncGenerator[str, None]:
+        full_answer = ""
+
+        try:
+            stream = client.chat.completions.create(
+                model="meta-llama/Llama-3.1-8B-Instruct:novita",
+                messages=messages,
+                stream=True,
+            )
+
+            for chunk in stream:
+                if chunk.choices and chunk.choices[0].delta:
+                    token = chunk.choices[0].delta.content
+                    if token:
+                        full_answer += token
+
+                        data = {"type": "token", "content": token}
+                        yield f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+            duration = time.time() - start
+            logger.info(f"[END][HF] duration={duration:.2f}s")
+
+            final_data = {
+                "type": "done",
+                "source_documents": source_docs if source_docs else None,
+                "full_answer": full_answer,
+            }
+            yield f"data: {json.dumps(final_data, ensure_ascii=False)}\n\n"
+
+        except Exception as e:
+            error_data = {"type": "error", "message": str(e)}
+            yield f"data: {json.dumps(error_data)}\n\n"
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+        },
+    )
+
+async def assistant_stream_hf(req: AssistantRequest):
+
+    try:
+        start = time.time()
+        logger.info(f"[START][HF] question={req.question}")
+
+        client = OpenAI(
+            base_url="https://router.huggingface.co/v1",
+            api_key=os.getenv("HF_TOKEN"),
+        )
+
+        if app_module.IS_RERUNNING:
+            app_module.IS_RERUNNING = False
+            app_module.HISTORY_STORE.clear(req.doctor_id)
+
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"HF LLM not available: {e}")
+
+    # =====================
+    # Build messages (reuse)
+    # =====================
+    assistant_hist = app_module.HISTORY_STORE.get(req.doctor_id) or []
+
+    lc_messages = build_messages(
+        SYSTEM_PROMPT,
+        assistant_hist,
+        req.patient_history or [],
+        req.question,
+        req.use_rag,
+        )
+
+    #convert LangChain message → OpenAI format
+    def convert_messages(messages):
+        result = []
+        for m in messages:
+            if isinstance(m, SystemMessage):
+                role = "system"
+            elif isinstance(m, HumanMessage):
+                role = "user"
+            elif isinstance(m, AIMessage):
+                role = "assistant"
+            else:
+                continue
+
+            result.append({"role": role, "content": m.content})
+        return result
+
+    messages = convert_messages(lc_messages)
+
+    # RAG
+    source_docs = []
+    if app_module.RETRIEVER and req.use_rag:
+        try:
+            docs = app_module.RETRIEVER.invoke(req.question)
+            ctx = "\n\n".join(d.page_content for d in docs[:3])
+
+            messages[-1]["content"] = (
+                f"Dựa vào các tài liệu sau:\n{ctx}\n\nCâu hỏi: {req.question}"
+            )
+
+            source_docs = [
+                getattr(d, "metadata", {}).get("source", None)
+                or (d.page_content[:200])
+                for d in docs[:3]
+            ]
+        except Exception:
+            pass
+
+    # =====================
+    # Streaming
+    # =====================
+    async def generate() -> AsyncGenerator[str, None]:
+        full_answer = ""
+
+        try:
+            stream = client.chat.completions.create(
+                model="meta-llama/Llama-3.1-8B-Instruct:novita",
+                messages=messages,
+                stream=True,
+            )
+
+            for chunk in stream:
+                if chunk.choices and chunk.choices[0].delta:
+                    token = chunk.choices[0].delta.content
+                    if token:
+                        full_answer += token
+
+                        data = {"type": "token", "content": token}
+                        yield f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+            duration = time.time() - start
+            logger.info(f"[END][HF] duration={duration:.2f}s")
+
             final_data = {
                 "type": "done",
                 "source_documents": source_docs if source_docs else None,
