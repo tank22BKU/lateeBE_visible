@@ -1,6 +1,12 @@
 ﻿-- Tắt kiểm tra khóa ngoại để tránh lỗi thứ tự chèn dữ liệu
 SET FOREIGN_KEY_CHECKS = 0;
 
+-- Seed user đăng nhập ban đầu (mật khẩu plain-text sẽ được tự động nâng cấp thành BCrypt sau lần login đầu tiên)
+INSERT INTO users (user_id, username, email, password_hash, role, is_active)
+VALUES ('USR_ADMIN_001', 'admin', 'admin@latee.local', 'Admin@123', 'Admin', TRUE),
+       ('USR_LEARNER_001', 'learner001', 'learner001@latee.local', 'Learner001@123', 'Learner', TRUE)
+ON DUPLICATE KEY UPDATE updated_at = CURRENT_TIMESTAMP;
+
 -- 1. INSERT DỮ LIỆU BÀI KIỂM TRA (assessments)
 -- Đã thêm generation_prompt và bọc clinical_case_id trong dấu nháy đơn
 INSERT INTO assessments (

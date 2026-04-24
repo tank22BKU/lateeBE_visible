@@ -84,7 +84,12 @@ dotnet add package Google.GenAI
 -Ở RoadmapService.../../appsettings.json thêm gemini api key 
 
 ### Khi sửa ocelot.json
+Build lại Gateway và các deps của nó
 docker compose -f docker/docker-compose.yml up -d --build api-gateway
+Build lại Gateway mà không kéo theo các deps
+docker compose -f docker/docker-compose.yml build api-gateway
+docker compose -f docker/docker-compose.yml up -d --no-deps api-gateway
+
 docker compose -f docker/docker-compose.yml up -d --build ai-assistant
 
 - Tương tự khi sửa 1 service nào thì build lại service đó
@@ -109,6 +114,13 @@ docker exec ollama ollama list
 
 ### Swagger UI
 http://localhost:5000/swagger/index.html
+
+-AUTH Swagger UI
+http://localhost:5000/swagger/auth/index.html
+
+### Test Account
+- Username: admin
+- Password: Admin@123
 
 ### Example gateway
 http://localhost:5000/clinical-case/api/clinical-cases?status=active&page=1&pageSize=20
