@@ -1,6 +1,27 @@
 ﻿-- Tắt kiểm tra khóa ngoại để tránh lỗi thứ tự chèn dữ liệu
 SET FOREIGN_KEY_CHECKS = 0;
 
+INSERT INTO users (userid, name, email, phone, role, password) VALUES
+('USR001', 'Tan Dang', 'tan.dang@latee.edu.vn', '0901234567', 'Learner', 'hashed_pass_1'),
+('USR002', 'Tu Nguyen', 'tu.nguyen@latee.edu.vn', '0907654321', 'Expert', 'hashed_pass_2'),
+('ADM001', 'Admin Latee', 'admin@latee.edu.vn', '028111222', 'Admin', 'hashed_pass_3');
+
+INSERT INTO clinicalcases (clinicalcaseid, patientid, title, type, status) VALUES
+('CASE_283374', 'PAT_001', 'Đau bụng hố chậu phải cấp tính', 'Abdominal Pathologies', 'active');
+
+INSERT INTO practice_sessions (id, learnerid, clinicalcaseid, duration, status) VALUES
+('SESS_001', 'USR001', 'CASE_283374', 15, 'Completed');
+
+INSERT INTO evaluation_results (result_id, session_id, user_id, clinical_case_id, vp_conversation_log, ai_reasoning_log, final_diagnosis, overall_score) VALUES
+('RES_001', 'SESS_001', 'USR001', 'CASE_283374', '{"chat": "Log..."}', '{"reasoning": "Log..."}', 'Viêm ruột thừa cấp', 16.5);
+
+INSERT INTO epa_scores (score_id, result_id, epa_id, entrustment_level, numerical_score, feedback_detail) VALUES
+('SCR_01', 'RES_001', 'EPA 1', 4, 18.00, 'Khai thác đủ 7 thuộc tính triệu chứng (OLD CART).'),
+('SCR_02', 'RES_001', 'EPA 2', 3, 15.00, 'Danh sách chẩn đoán đúng hướng nhưng thiếu Red Flags.');
+
+INSERT INTO evaluation_warnings (warning_id, result_id, label, description) VALUES
+('WARN_01', 'RES_001', 'Vi phạm đạo đức', 'Sử dụng ngôn từ không chuẩn mực.');
+
 -- 1. INSERT DỮ LIỆU BÀI KIỂM TRA (assessments)
 -- Đã thêm generation_prompt và bọc clinical_case_id trong dấu nháy đơn
 INSERT INTO assessments (

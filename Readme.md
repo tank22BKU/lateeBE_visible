@@ -1,54 +1,54 @@
 ﻿### How to create new service
 
 ### Create 4 layer
-mkdir -p src/Services/AssessmentService
-cd src/Services/AssessmentService
+mkdir -p src/Services/EvaluationService
+cd src/Services/EvaluationService
 
-dotnet new webapi -n AssessmentService.API --framework net9.0
-dotnet new classlib -n AssessmentService.Domain --framework net9.0
-dotnet new classlib -n AssessmentService.Application --framework net9.0
-dotnet new classlib -n AssessmentService.Infrastructure --framework net9.0
+dotnet new webapi -n EvaluationService.API --framework net9.0
+dotnet new classlib -n EvaluationService.Domain --framework net9.0
+dotnet new classlib -n EvaluationService.Application --framework net9.0
+dotnet new classlib -n EvaluationService.Infrastructure --framework net9.0
 
 cd ../../../
-dotnet sln add src\Services\AssessmentService\AssessmentService.API\AssessmentService.API.csproj
-dotnet sln add src\Services\AssessmentService\AssessmentService.Domain\AssessmentService.Domain.csproj
-dotnet sln add src\Services\AssessmentService\AssessmentService.Application\AssessmentService.Application.csproj
-dotnet sln add src\Services\AssessmentService\AssessmentService.Infrastructure\AssessmentService.Infrastructure.csproj
+dotnet sln add src\Services\EvaluationService\EvaluationService.API\EvaluationService.API.csproj
+dotnet sln add src\Services\EvaluationService\EvaluationService.Domain\EvaluationService.Domain.csproj
+dotnet sln add src\Services\EvaluationService\EvaluationService.Application\EvaluationService.Application.csproj
+dotnet sln add src\Services\EvaluationService\EvaluationService.Infrastructure\EvaluationService.Infrastructure.csproj
 
 
 ### Set dependency injection
-dotnet add src\Services\AssessmentService\AssessmentService.API\AssessmentService.API.csproj reference src\Services\AssessmentService\AssessmentService.Application\AssessmentService.Application.csproj
-dotnet add src\Services\AssessmentService\AssessmentService.Application\AssessmentService.Application.csproj reference src\Services\AssessmentService\AssessmentService.Domain\AssessmentService.Domain.csproj
-dotnet add src\Services\AssessmentService\AssessmentService.Infrastructure\AssessmentService.Infrastructure.csproj reference src\Services\AssessmentService\AssessmentService.Domain\AssessmentService.Domain.csproj
-dotnet add src\Services\AssessmentService\AssessmentService.API\AssessmentService.API.csproj reference src\Services\AssessmentService\AssessmentService.Infrastructure\AssessmentService.Infrastructure.csproj
+dotnet add src\Services\EvaluationService\EvaluationService.API\EvaluationService.API.csproj reference src\Services\EvaluationService\EvaluationService.Application\EvaluationService.Application.csproj
+dotnet add src\Services\EvaluationService\EvaluationService.Application\EvaluationService.Application.csproj reference src\Services\EvaluationService\EvaluationService.Domain\EvaluationService.Domain.csproj
+dotnet add src\Services\EvaluationService\EvaluationService.Infrastructure\EvaluationService.Infrastructure.csproj reference src\Services\EvaluationService\EvaluationService.Domain\EvaluationService.Domain.csproj
+dotnet add src\Services\EvaluationService\EvaluationService.API\EvaluationService.API.csproj reference src\Services\EvaluationService\EvaluationService.Infrastructure\EvaluationService.Infrastructure.csproj
 
 
 ### Include packages
 - API
-dotnet add src/Services/AssessmentService/AssessmentService.API package Swashbuckle.AspNetCore
+dotnet add src/Services/EvaluationService/EvaluationService.API package Swashbuckle.AspNetCore
 
 
 - Application
-dotnet add src/Services/AssessmentService/AssessmentService.Application package AutoMapper --version 15.1.0
-dotnet add src/Services/AssessmentService/AssessmentService.Application package AutoMapper.Extensions.Microsoft.DependencyInjection --version 12.0.1
-dotnet add src/Services/AssessmentService/AssessmentService.Application package FluentValidation --version 12.1.0
-dotnet add src/Services/AssessmentService/AssessmentService.Application package FluentValidation.DependencyInjectionExtensions --version 12.1.0
-dotnet add src/Services/AssessmentService/AssessmentService.Application package MediatR --version 13.1.0
-dotnet add src/Services/AssessmentService/AssessmentService.Application package Microsoft.EntityFrameworkCore --version 9.0.0
+dotnet add src/Services/EvaluationService/EvaluationService.Application package AutoMapper --version 15.1.0
+dotnet add src/Services/EvaluationService/EvaluationService.Application package AutoMapper.Extensions.Microsoft.DependencyInjection --version 12.0.1
+dotnet add src/Services/EvaluationService/EvaluationService.Application package FluentValidation --version 12.1.0
+dotnet add src/Services/EvaluationService/EvaluationService.Application package FluentValidation.DependencyInjectionExtensions --version 12.1.0
+dotnet add src/Services/EvaluationService/EvaluationService.Application package MediatR --version 13.1.0
+dotnet add src/Services/EvaluationService/EvaluationService.Application package Microsoft.EntityFrameworkCore --version 9.0.0
 
 
 - Domain
 
 - Infrastructure
-dotnet add src/Services/AssessmentService/AssessmentService.Infrastructure package Pomelo.EntityFrameworkCore.MySql --version 9.0.0
-dotnet add src/Services/AssessmentService/AssessmentService.Infrastructure package Microsoft.EntityFrameworkCore --version 9.0.0
-dotnet add src/Services/AssessmentService/AssessmentService.Infrastructure package Microsoft.EntityFrameworkCore.Design --version 9.0.0
-dotnet add src/Services/AssessmentService/AssessmentService.Infrastructure package Microsoft.EntityFrameworkCore.Tools --version 9.0.0
+dotnet add src/Services/EvaluationService/EvaluationService.Infrastructure package Pomelo.EntityFrameworkCore.MySql --version 9.0.0
+dotnet add src/Services/EvaluationService/EvaluationService.Infrastructure package Microsoft.EntityFrameworkCore --version 9.0.0
+dotnet add src/Services/EvaluationService/EvaluationService.Infrastructure package Microsoft.EntityFrameworkCore.Design --version 9.0.0
+dotnet add src/Services/EvaluationService/EvaluationService.Infrastructure package Microsoft.EntityFrameworkCore.Tools --version 9.0.0
 
 
 ### add .sln for detail service
-cd src/Services/AssessmentService
-dotnet new sln -n AssessmentService
+cd src/Services/EvaluationService
+dotnet new sln -n EvaluationService
 
 ### Gemini API 
 dotnet add package Google.GenAI

@@ -186,9 +186,19 @@
         condition: service_healthy
     environment:
       - OLLAMA_HOST=http://ollama:11434
-    entrypoint: [ "/bin/sh", "-c" ]
-    command: >
-      ollama pull llama3.1:8b && ollama run llama3.1:8b "ping"
+    entrypoint: [ "/bin/sh"]
+    command: 
+      - "-c"
+      - |
+        echo "Waiting for Ollama API..."
+        until ollama list > /dev/null 2>&1; do sleep 2; done
+        
+        if ! ollama list | grep -q "llama3.1:8b"; then
+          echo "Pulling Llama 3.1 8B..."
+          ollama pull llama3.1:8b
+        else
+          echo "Model already exists. Done."
+        fi
     restart: "no"
     networks:
       - latee-network
@@ -241,6 +251,22 @@
     networks:
       - latee-network
 
+  evaluation:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.Evaluation
+    container_name: evaluation-api
+    ports:
+      - "8007:8080"
+    env_file:
+      - ../.env
+    depends_on:
+      - mysql
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__EvaluationDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+    networks:
+      - latee-network
   api-gateway:
     build:
       context: ..
@@ -256,6 +282,7 @@
       - ai-assistant
       - assessment
       - roadmap
+      - evaluation
     environment:
       ASPNETCORE_ENVIRONMENT: Development
     networks:

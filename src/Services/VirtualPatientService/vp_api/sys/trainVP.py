@@ -97,7 +97,6 @@ peft_config = LoraConfig(
 def formatting_prompts_func(example):
     output_texts = []
     for message_list in example['messages']:
-        # Sử dụng chat template của Llama 3
         text = tokenizer.apply_chat_template(message_list, tokenize=False, add_generation_prompt=False)
         output_texts.append(text)
     return output_texts
@@ -109,35 +108,33 @@ training_args = TrainingArguments(
     output_dir="./results",
     
     # --- Cấu hình Hyperparameters ---
-    num_train_epochs=3,             # Số vòng lặp
+    num_train_epochs=3,            
     per_device_train_batch_size=1,  
     gradient_accumulation_steps=8, 
     learning_rate=2e-4,
-    
-    # --- Tối ưu bộ nhớ ---
     fp16=True,                      
     optim="paged_adamw_8bit",       
     gradient_checkpointing=True,    
     
-    # --- Cấu hình Đánh giá & Lưu (QUAN TRỌNG CHO 80/20) ---
+    # --- Cấu hình Đánh giá ---
     eval_strategy="steps",    
-    eval_steps=50,                  # Cứ 50 bước train thì kiểm tra trên tập Test 1 lần
+    eval_steps=50,                  
     per_device_eval_batch_size=1,   
     
     save_strategy="steps",          
     save_steps=50,
-    load_best_model_at_end=True,    # Sau khi xong, quay về checkpoint tốt nhất (dựa trên loss)
-    metric_for_best_model="eval_loss", # Dùng loss thấp nhất để xác định "tốt nhất"
+    load_best_model_at_end=True,    
+    metric_for_best_model="eval_loss", 
     
     # --- Logging ---
     logging_steps=10,
-    report_to="none"                # Đổi thành "wandb" nếu muốn theo dõi biểu đồ
+    report_to="none"                
 )
 
 trainer = SFTTrainer(
     model=model,
     train_dataset=train_dataset,
-    eval_dataset=eval_dataset,      # Truyền tập test vào đây
+    eval_dataset=eval_dataset,     
     peft_config=peft_config,
     max_seq_length=512,            
     formatting_func=formatting_prompts_func,
@@ -148,20 +145,18 @@ trainer = SFTTrainer(
 # ==========================================
 # 7. TRAINING & SAVE
 # ==========================================
-print("--> Bắt đầu Training...")
+print("==> Bắt đầu Training...")
 train_result = trainer.train() 
 
-print("--> Training kết thúc.")
+print("==> Training kết thúc.")
 
-# Lưu metrics
 metrics = train_result.metrics
 trainer.log_metrics("train", metrics)
 trainer.save_metrics("train", metrics)
 trainer.save_state() 
 
 print(f"--> Đang lưu model tốt nhất vào: {NEW_MODEL_NAME}")
-# Lưu Model (chỉ lưu Adapter LoRA nhẹ)
 trainer.model.save_pretrained(NEW_MODEL_NAME)
 tokenizer.save_pretrained(NEW_MODEL_NAME)
 
-print("HOÀN TẤT! Bạn có thể load model này để test.")
+print("Done! Có thể load model này để test.")
