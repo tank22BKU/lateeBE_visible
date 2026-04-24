@@ -141,3 +141,37 @@ CREATE TABLE assessment_issues (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_issue_question FOREIGN KEY (question_id) REFERENCES assessment_questions(question_id) ON DELETE CASCADE
 );
+
+-- Evaluation related tables
+CREATE TABLE evaluation_results
+(
+    result_id           VARCHAR(50) PRIMARY KEY,
+    user_id             VARCHAR(50) NOT NULL,
+    clinical_case_id    VARCHAR(50) NOT NULL,
+    module_id           VARCHAR(50) DEFAULT 'EPA_STANDARD_V1',
+    vp_conversation_log JSON,
+    ai_reasoning_log    JSON,
+    final_diagnosis     TEXT,
+    overall_score       DECIMAL(5, 2),
+    created_at          TIMESTAMP   DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE evaluation_warnings
+(
+    warning_id  VARCHAR(50) PRIMARY KEY,
+    result_id   VARCHAR(50) NOT NULL,
+    label       VARCHAR(100),
+    description TEXT,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_eval_warning FOREIGN KEY (result_id) REFERENCES evaluation_results (result_id) ON DELETE CASCADE
+);
+
+CREATE TABLE epa_scores
+(
+    score_id          VARCHAR(50) PRIMARY KEY,
+    result_id         VARCHAR(50) NOT NULL,
+    epa_id            VARCHAR(20) NOT NULL,
+    entrustment_level INT,
+    numerical_score   DECIMAL(5, 2),
+    feedback_detail   TEXT,
+    CONSTRAINT fk_eval_epa FOREIGN KEY (result_id) REFERENCES evaluation_results (result_id) ON DELETE CASCADE
+);

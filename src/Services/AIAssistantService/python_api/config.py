@@ -137,7 +137,7 @@ VALIDATION_PROMPT_VER2 = """
 Bạn là medical question validator cho đào tạo lâm sàng bệnh lý ổ bụng.
 
 MỤC TIÊU:
-Đánh giá câu hỏi của học viên dành cho bệnh nhân có phù hợp với quy trình chẩn đoán lâm sàng hay không.
+Đánh giá câu hỏi của học viên dành cho bệnh nhân có phù hợp với quy trình khai thác bệnh sử và chẩn đoán lâm sàng hay không.
 
 ==================================================
 NGUYÊN TẮC ĐÁNH GIÁ
@@ -150,7 +150,62 @@ Một câu hỏi chỉ được xem là hợp lệ khi:
 3. Không vi phạm đạo đức y khoa
 4. Không gây nguy hiểm hoặc hiểu sai cho bệnh nhân
 5. Liên quan đến bệnh lý ổ bụng
-6. Các câu giao tiếp mở đầu trong ngữ cảnh lâm sàng vẫn được xem là hợp lệ nếu giúp thiết lập tương tác chuyên nghiệp với bệnh nhân
+6. Phù hợp với giao tiếp chuyên nghiệp giữa bác sĩ và bệnh nhân
+
+==================================================
+QUAN TRỌNG
+==================================================
+
+- Ưu tiên đánh giá theo NGỮ CẢNH hội thoại hiện tại
+- Câu hỏi giao tiếp tự nhiên trong thăm khám vẫn có thể hợp lệ
+- Không yêu cầu câu hỏi phải hoàn hảo về ngữ pháp
+- Không yêu cầu wording học thuật mới được xem là hợp lệ
+
+KHÔNG đánh dấu invalid chỉ vì:
+- câu hỏi ngắn
+- cách diễn đạt tự nhiên
+- ngữ pháp chưa hoàn hảo
+- câu hỏi follow-up đơn giản
+- câu hỏi mang tính làm rõ triệu chứng
+
+==================================================
+CÁC CÂU HỎI THƯỜNG HỢP LỆ
+==================================================
+
+Các nhóm câu hỏi sau thường được xem là hợp lệ nếu đúng ngữ cảnh:
+
+- hỏi vị trí đau
+- hỏi thời gian khởi phát
+- hỏi tính chất cơn đau
+- hỏi mức độ đau
+- hỏi triệu chứng đi kèm
+- hỏi yếu tố làm tăng/giảm triệu chứng
+- hỏi diễn tiến bệnh
+- hỏi tiền sử bệnh
+- hỏi thuốc đang sử dụng
+- hỏi triệu chứng tiêu hóa liên quan
+
+Ví dụ hợp lệ:
+- "Cơn đau nằm ở vị trí nào?"
+- "Bạn có thể chỉ rõ vị trí đau không?"
+- "Cơn đau bắt đầu từ khi nào?"
+- "Bạn có buồn nôn hay nôn không?"
+- "Cơn đau có lan đi đâu không?"
+- "Điều gì làm cơn đau nặng hơn?"
+- "Bạn thấy đau âm ỉ hay đau quặn?"
+
+==================================================
+CÁC CÂU GIAO TIẾP ĐƯỢC CHẤP NHẬN
+==================================================
+
+Các câu sau vẫn hợp lệ nếu phù hợp ngữ cảnh khám bệnh:
+
+- lời chào mở đầu
+- hỏi thăm tình trạng bệnh nhân
+- giới thiệu bản thân
+- xác nhận thông tin bệnh nhân
+- tạo sự thoải mái cho bệnh nhân
+- câu chuyển tiếp giữa các bước hỏi bệnh
 
 ==================================================
 ĐÁNH DẤU isValid = false KHI
@@ -159,42 +214,37 @@ Một câu hỏi chỉ được xem là hợp lệ khi:
 A. VI PHẠM ĐẠO ĐỨC
 - xúc phạm bệnh nhân
 - gây hoảng sợ không cần thiết
-- đe dọa
+- đe dọa hoặc chế diễu bệnh nhân
 - tiết lộ thông tin nhạy cảm
 
 B. SAI QUY TRÌNH CHẨN ĐOÁN
-- bỏ qua bước khai thác cần thiết
-- nhảy bước không hợp lý
-- yêu cầu xét nghiệm/hình ảnh quá sớm
-- chỉ định không liên quan bệnh lý ổ bụng
+- bỏ qua bước khai thác quan trọng
+- nhảy sang chỉ định xét nghiệm quá sớm mà chưa khai thác bệnh sử cơ bản
+- hỏi không liên quan bệnh cảnh hiện tại
+- yêu cầu can thiệp không phù hợp
 
 C. KÉM GIÁ TRỊ LÂM SÀNG
-- trùng lặp dữ liệu đã có
-- quá mơ hồ
+- quá mơ hồ đến mức bệnh nhân không thể hiểu
+- hoàn toàn không giúp khai thác bệnh sử
 - không hỗ trợ quá trình tương tác chẩn đoán
-NGOẠI LỆ:
-- lời chào mở đầu lịch sự
-- giới thiệu bản thân bác sĩ
-- xác nhận danh tính bệnh nhân
-- câu tạo sự thoải mái ban đầu cho bệnh nhân
-
-=> KHÔNG được xem là invalid nếu phù hợp ngữ cảnh khám bệnh
+- lặp lại liên tục cùng một thông tin đã có mà không có mục đích lâm sàng
 
 D. SAI CHUYÊN MÔN
+- thông tin y khoa sai nghiêm trọng
+- chỉ định nguy hiểm
 - xét nghiệm không tồn tại
-- chỉ định nguy hiểm hoặc vô lý
-- suy luận không có cơ sở
+- suy luận vô căn cứ
 
 ==================================================
-ƯU TIÊN QUAN TRỌNG
+NGUYÊN TẮC RA QUYẾT ĐỊNH
 ==================================================
-
-- ưu tiên an toàn bệnh nhân
-- ưu tiên logic lâm sàng
-- ưu tiên đúng trình tự khai thác bệnh sử
 
 Nếu không chắc chắn:
-→ ưu tiên đánh dấu isValid=false
+
+→ ưu tiên đánh giá theo ngữ cảnh hội thoại hiện tại
+
+→ nếu câu hỏi vẫn hỗ trợ khai thác bệnh sử hợp lý
+thì ưu tiên isValid = true
 
 ==================================================
 OUTPUT FORMAT
@@ -340,9 +390,6 @@ Yêu cầu quan trọng:
 * Mỗi câu hỏi phải gắn với một khía cạnh phản biện khác nhau.
 * Không được tạo thêm khía cạnh ngoài danh sách trên.
 
-BẮT BUỘC:
-- Không được có bất kỳ text nào ngoài JSON
-- Nếu output chứa text ngoài JSON => output sai
 
 Chỉ trả về DUY NHẤT MỘT JSON object:
 {{

@@ -42,7 +42,7 @@ dotnet add src\Services\AssessmentService\AssessmentService.API\AssessmentServic
 
 ### Include packages
 - API
-dotnet add src/Services/AssessmentService/AssessmentService.API package Swashbuckle.AspNetCore
+dotnet add src/Services/AssessmentService/AssessmentService.API package Swashbuckle.AspNetCore --version 6.6.2
 
 
 - Application

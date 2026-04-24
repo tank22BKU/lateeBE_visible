@@ -6,12 +6,12 @@ using RoadmapService.Application.Queries.GetClinicalCases;
 namespace RoadmapService.API.Controllers;
 
 [ApiController]
-[Route("api/clinical-cases")]
-public class ClinicalCasesController : ControllerBase
+[Route("api/roadmap")]
+public class RoadmapController : ControllerBase
 {
     private readonly IMediator _mediator;
 
-    public ClinicalCasesController(IMediator mediator)
+    public RoadmapController(IMediator mediator)
     {
         _mediator = mediator;
     }
