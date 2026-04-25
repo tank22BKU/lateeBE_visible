@@ -3,6 +3,7 @@ using MediatR;
 using EvaluationService.Application.Commands.SubmitEvaluation;
 using EvaluationService.Application.Commands.DeleteEvaluation;
 using EvaluationService.Application.Queries.GetReport;
+using EvaluationService.Application.Queries.GetHistory;
 
 namespace EvaluationService.API.Controllers;
 
@@ -14,7 +15,10 @@ public class EvaluationController : ControllerBase {
 
     [HttpPost("submit")]
     public async Task<IActionResult> Submit([FromBody] SubmitEvaluationCommand cmd) 
-        => Ok(await _mediator.Send(cmd));
+    {
+        var result = await _mediator.Send(cmd);
+        return Ok(new { message = "Evaluation saved successfully.", data = result });
+    }
 
     [HttpGet("{userId}/history")]
     public async Task<IActionResult> GetHistory(string userId) 
@@ -28,7 +32,7 @@ public class EvaluationController : ControllerBase {
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id) {
-        await _mediator.Send(new DeleteEvaluationCommand(id));
-        return NoContent();
+        var deleted = await _mediator.Send(new DeleteEvaluationCommand(id));
+        return deleted ? NoContent() : NotFound();
     }
 }

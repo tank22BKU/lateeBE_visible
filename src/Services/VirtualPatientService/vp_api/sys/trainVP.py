@@ -19,9 +19,9 @@ from dotenv import load_dotenv
 
 # Load biến môi trường
 load_dotenv()
-hf_token = os.getenv("HF_TOKEN")
+hf_token = os.getenv("HUGGINGFACE_TOKEN")
 if not hf_token:
-    print("Cảnh báo: Không tìm thấy HF_TOKEN. Hãy chắc chắn bạn đã login hoặc set biến môi trường.")
+    print("Cảnh báo: Không tìm thấy HUGGINGFACE_TOKEN. Hãy chắc chắn bạn đã login hoặc set biến môi trường.")
 else:
     login(token=hf_token)
 

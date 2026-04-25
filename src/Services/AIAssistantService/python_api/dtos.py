@@ -113,16 +113,20 @@ class QuestionValidationRequest(BaseModel):
         default_factory=list
     )  # Lịch sử hội thoại để hiểu ngữ cảnh
 
+class QuestionValidationResponse(BaseModel):
+    isValid: bool
+    reason: str = Field(default="", max_length=300,)
+    suggestion: str = Field(default="", max_length=500,)
+    severity: str = Field(default="medium",)
+    category: str = Field(default="unknown",)
+    confidence: float = Field(default=0.5, ge=0.0, le=1.0,)
+
 
 class ValidationFlag(BaseModel):
     isValid: bool
     reason: str
     suggestion: Optional[str] = ""
-
-
-class QuestionValidationResponse(BaseModel):
-    flag: ValidationFlag
-
+    
 
 class ClinicalReasoningInteraction(BaseModel):
     dimension: str

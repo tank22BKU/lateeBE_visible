@@ -41,8 +41,8 @@
       - mysql
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: "Server=latee-mysql;Port=3306;Database=latee;Uid=user;Pwd=pass;AllowPublicKeyRetrieval=True"
-      GeminiAi__ApiKey: ${GEMINI_API_KEY} 
+      ConnectionStrings__AssessmentDb: "Server=latee-mysql;Port=3306;Database=latee;Uid=user;Pwd=pass;AllowPublicKeyRetrieval=True"
+      GeminiAi__ApiKey: ${GEMINI_API_KEY}
     env_file:
       - ../.env
     networks:
@@ -73,7 +73,7 @@
       dockerfile: docker/Dockerfile.VirtualPatient.Python
     container_name: vp-python-api
     ports:
-      - "8005:8080" 
+      - "8005:8080"
     depends_on:
       ollama-warmup-vp:
         condition: service_completed_successfully
@@ -90,7 +90,7 @@
     image: ollama/ollama:latest
     container_name: ollama-vp
     ports:
-      - "11435:11434" 
+      - "11435:11434"
     volumes:
       - ollama_vp_data:/root/.ollama
       - ./Llama-3.1-Virtual-Patient-MimicIV_Ver2.0:/root/.ollama/adapters_setup:ro
@@ -99,8 +99,9 @@
       - latee-network
     environment:
       - OLLAMA_NUM_PARALLEL=1
-      - OLLAMA_FLASH_ATTENTION=1 
-      - OLLAMA_MAX_LOADED_MODELS=1 
+      - OLLAMA_FLASH_ATTENTION=1
+      - OLLAMA_MAX_LOADED_MODELS=1
+      - OLLAMA_NUM_GPU=1
     deploy:
       resources:
         reservations:
@@ -116,13 +117,13 @@
       ollama-vp:
         condition: service_started
     volumes:
-      - ollama_vp_data:/root/.ollama  
+      - ollama_data:/root/.ollama
       - ./Llama-3.1-Virtual-Patient-MimicIV_Ver2.0:/root/.ollama/adapters_setup:ro
       - ./ollama_vp_setup:/root/.ollama/setup:ro
     environment:
       - OLLAMA_HOST=http://ollama-vp:11434
     entrypoint: [ "/bin/sh" ]
-    command: 
+    command:
       - "-c"
       - |
         echo "Waiting for Ollama API..."
@@ -202,6 +203,73 @@
     restart: "no"
     networks:
       - latee-network
+  
+  #  ollama:
+  #    image: ollama/ollama:latest
+  #    container_name: ollama
+  #    ports:
+  #      - "11434:11434"
+  #    volumes:
+  #      - ollama_data:/root/.ollama
+  #    networks:
+  #      - latee-network
+  #    environment:
+  #      - OLLAMA_NUM_PARALLEL=2
+  #      - OLLAMA_FLASH_ATTENTION=1
+  #      - OLLAMA_NUM_GPU=1
+  #      - OLLAMA_MAX_LOADED_MODELS=1
+  #      - OLLAMA_KEEP_ALIVE=15m
+  #      - OLLAMA_NUM_THREAD=2
+  #      - OLLAMA_NUM_CTX=4096
+  #      - OLLAMA_LOG_LEVEL=warn
+  #    deploy:
+  #      resources:
+  #        reservations:
+  #          devices:
+  #            - driver: nvidia
+  #              count: 1
+  #              capabilities: [ gpu ]
+  #    healthcheck:
+  #      test: [ "CMD", "ollama", "list" ]
+  #      interval: 120s
+  #      timeout: 5s
+  #      retries: 5
+  #      start_period: 30s
+  #
+  #  ollama-warmup:
+  #    image: ollama/ollama:latest
+  #    container_name: ollama-warmup
+  #    depends_on:
+  #      ollama:
+  #        condition: service_healthy
+  #    environment:
+  #      - OLLAMA_HOST=http://ollama:11434
+  #    entrypoint: [ "/bin/sh", "-c" ]
+  #    command:
+  #      - "-c"
+  #      - |
+  #        echo "Waiting for Ollama API..."
+  #        until ollama list > /dev/null 2>&1; do sleep 2; done
+  #        
+  #        if ! ollama list | grep -q "llama3.1:8b"; then
+  #            ollama pull llama3.1:8b
+  #        else
+  #          echo "Model already exists"
+  #        fi
+  #
+  #        echo "Verifying model is available..."
+  #        until ollama list | grep -q "llama3.1:8b"; do
+  #          sleep 2
+  #        done
+  #
+  #        echo "Warmup model..."
+  #        ollama run llama3.1:8b "hello"
+  #
+  #        echo "Warmup completed successfully!"
+  #      
+  #    restart: "no"
+  #    networks:
+  #      - latee-network
 
   ai-assistant:
     build:
@@ -215,12 +283,12 @@
       - ../src/Services/AIAssistantService/python_api:/src
     env_file:
       - ../.env
-    depends_on:
-      ollama:
-        condition: service_started
-      ollama-warmup:
-        condition: service_completed_successfully
-    command: uvicorn app:app --host 0.0.0.0 --port 8000 --workers 2
+    #    depends_on:
+    #      ollama:
+    #        condition: service_started
+    #      ollama-warmup:
+    #        condition: service_completed_successfully
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
       interval: 120s
@@ -250,14 +318,13 @@
       ConnectionStrings__RoadmapDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
     networks:
       - latee-network
-
   evaluation:
     build:
       context: ..
       dockerfile: docker/Dockerfile.Evaluation
     container_name: evaluation-api
     ports:
-      - "8007:8080"
+      - "8008:8080"
     env_file:
       - ../.env
     depends_on:
@@ -267,6 +334,23 @@
       ConnectionStrings__EvaluationDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
     networks:
       - latee-network
+  practice-session:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.PracticeSession
+    container_name: practice-session-api
+    ports:
+      - "8007:8080"
+    env_file:
+      - ../.env
+    depends_on:
+      - mysql
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__PracticeSessionDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+    networks:
+      - latee-network
+
   api-gateway:
     build:
       context: ..
@@ -283,6 +367,7 @@
       - assessment
       - roadmap
       - evaluation
+      - practice-session
     environment:
       ASPNETCORE_ENVIRONMENT: Development
     networks:
@@ -299,7 +384,7 @@
 volumes:
   mysql_data:
   ollama_data:
-  ollama_vp_data: 
+  ollama_vp_data:
 
 networks:
   latee-network:

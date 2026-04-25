@@ -23,107 +23,6 @@ CREATE TABLE notifications (
     CONSTRAINT fk_noti_user FOREIGN KEY (userid) REFERENCES users(userid) ON DELETE CASCADE
 );
 
-------------------------------------
-------------------------------------
-
-CREATE TABLE knowledge_resources (
-    id VARCHAR(50) PRIMARY KEY,
-    expertid VARCHAR(50) NOT NULL,
-    title VARCHAR(255) NOT NULL,
-    content TEXT,
-    link TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_resource_expert FOREIGN KEY (expertid) REFERENCES users(userid)
-);
-
-CREATE TABLE roadmaps (
-    id VARCHAR(50) PRIMARY KEY,
-    learnerid VARCHAR(50) NOT NULL,
-    content TEXT,
-    version VARCHAR(20),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_roadmap_learner FOREIGN KEY (learnerid) REFERENCES users(userid) ON DELETE CASCADE
-);
-
-
-------------------------------------
-------------------------------------
-
-CREATE TABLE practice_sessions (
-    id VARCHAR(50) PRIMARY KEY,
-    learnerid VARCHAR(50) NOT NULL,
-    clinicalcaseid VARCHAR(20) NOT NULL,
-    start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    end_time TIMESTAMP NULL,
-    duration INT, 
-    is_active BOOLEAN DEFAULT TRUE,
-    status ENUM('Practicing', 'Completed', 'Abandoned') DEFAULT 'Practicing',
-    CONSTRAINT fk_practice_learner FOREIGN KEY (learnerid) REFERENCES users(userid),
-    CONSTRAINT fk_practice_case FOREIGN KEY (clinicalcaseid) REFERENCES clinicalcases(clinicalcaseid)
-);
-
-CREATE TABLE evaluation_results (
-    result_id VARCHAR(50) PRIMARY KEY,
-    session_id VARCHAR(50) NOT NULL,
-    user_id VARCHAR(50) NOT NULL,
-    clinical_case_id VARCHAR(50) NOT NULL,
-    module_id VARCHAR(50) DEFAULT 'EPA_STANDARD_V1', 
-    vp_conversation_log JSON,   
-    ai_reasoning_log JSON,      
-    final_diagnosis TEXT,       
-    overall_score DECIMAL(5,2),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_eval_session FOREIGN KEY (session_id) REFERENCES practice_sessions(id) ON DELETE CASCADE
-);
-
-CREATE TABLE epa_scores (
-    score_id VARCHAR(50) PRIMARY KEY,
-    result_id VARCHAR(50) NOT NULL,
-    epa_id VARCHAR(20) NOT NULL,
-    entrustment_level INT,       
-    numerical_score DECIMAL(5,2),
-    feedback_detail TEXT,        
-    CONSTRAINT fk_eval_epa FOREIGN KEY (result_id) REFERENCES evaluation_results(result_id) ON DELETE CASCADE
-);
-
-CREATE TABLE evaluation_warnings (
-    warning_id VARCHAR(50) PRIMARY KEY,
-    result_id VARCHAR(50) NOT NULL,
-    label VARCHAR(100),        
-    description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_eval_warning FOREIGN KEY (result_id) REFERENCES evaluation_results(result_id) ON DELETE CASCADE
-);
-
-------------------------------------
-------------------------------------
-
-
-CREATE TABLE guidelines (
-    id VARCHAR(50) PRIMARY KEY,
-    expertid VARCHAR(50) NOT NULL,
-    title VARCHAR(255),
-    description TEXT,
-    content TEXT, 
-    version VARCHAR(20),
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_guideline_expert FOREIGN KEY (expertid) REFERENCES users(userid)
-);
-
-CREATE TABLE system_feedbacks (
-    id VARCHAR(50) PRIMARY KEY,
-    senderid VARCHAR(50) NOT NULL,
-    description TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_feedback_sender FOREIGN KEY (senderid) REFERENCES users(userid)
-);
-
-
-
-------------------------------------
-------------------------------------
-
 CREATE TABLE patients (
     patientid VARCHAR(50) PRIMARY KEY,
     clinical_case_id VARCHAR(50), 
@@ -195,8 +94,103 @@ CREATE TABLE radiologyreport (
 );
 
 
-------------------------------------
-------------------------------------
+
+CREATE TABLE knowledge_resources (
+    id VARCHAR(50) PRIMARY KEY,
+    expertid VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    content TEXT,
+    link TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_resource_expert FOREIGN KEY (expertid) REFERENCES users(userid)
+);
+
+CREATE TABLE roadmaps (
+    id VARCHAR(50) PRIMARY KEY,
+    learnerid VARCHAR(50) NOT NULL,
+    content TEXT,
+    version VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_roadmap_learner FOREIGN KEY (learnerid) REFERENCES users(userid) ON DELETE CASCADE
+);
+
+
+
+
+CREATE TABLE practice_sessions (
+    id VARCHAR(50) PRIMARY KEY,
+    learnerid VARCHAR(50) NOT NULL,
+    clinicalcaseid VARCHAR(20) NOT NULL,
+    start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    end_time TIMESTAMP NULL,
+    duration INT, 
+    is_active BOOLEAN DEFAULT TRUE,
+    status ENUM('Practicing', 'Completed', 'Abandoned') DEFAULT 'Practicing',
+    CONSTRAINT fk_practice_learner FOREIGN KEY (learnerid) REFERENCES users(userid),
+    CONSTRAINT fk_practice_to_patient FOREIGN KEY (clinicalcaseid) REFERENCES patients(patientid) ON DELETE CASCADE
+);
+
+CREATE TABLE evaluation_results (
+    result_id VARCHAR(50) PRIMARY KEY,
+    session_id VARCHAR(50) NOT NULL,
+    user_id VARCHAR(50) NOT NULL,
+    clinical_case_id VARCHAR(50) NOT NULL,
+    module_id VARCHAR(50) DEFAULT 'EPA_STANDARD_V1', 
+    case_type VARCHAR(50) DEFAULT 'Diagnosis',
+    discussion_type VARCHAR(50) DEFAULT 'Message Type',
+    duration_text VARCHAR(50) DEFAULT 'N/A',
+    vp_conversation_log JSON,   
+    ai_reasoning_log JSON,      
+    final_diagnosis TEXT,       
+    overall_score DECIMAL(5,2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_eval_session FOREIGN KEY (session_id) REFERENCES practice_sessions(id) ON DELETE CASCADE
+);
+
+CREATE TABLE epa_scores (
+    score_id VARCHAR(50) PRIMARY KEY,
+    result_id VARCHAR(50) NOT NULL,
+    epa_id VARCHAR(20) NOT NULL,
+    entrustment_level INT,       
+    numerical_score DECIMAL(5,2),
+    feedback_detail TEXT,        
+    CONSTRAINT fk_eval_epa FOREIGN KEY (result_id) REFERENCES evaluation_results(result_id) ON DELETE CASCADE
+);
+
+CREATE TABLE evaluation_warnings (
+    warning_id VARCHAR(50) PRIMARY KEY,
+    result_id VARCHAR(50) NOT NULL,
+    label VARCHAR(100),        
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_eval_warning FOREIGN KEY (result_id) REFERENCES evaluation_results(result_id) ON DELETE CASCADE
+);
+
+
+
+
+CREATE TABLE guidelines (
+    id VARCHAR(50) PRIMARY KEY,
+    expertid VARCHAR(50) NOT NULL,
+    title VARCHAR(255),
+    description TEXT,
+    content TEXT, 
+    version VARCHAR(20),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_guideline_expert FOREIGN KEY (expertid) REFERENCES users(userid)
+);
+
+CREATE TABLE system_feedbacks (
+    id VARCHAR(50) PRIMARY KEY,
+    senderid VARCHAR(50) NOT NULL,
+    description TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_feedback_sender FOREIGN KEY (senderid) REFERENCES users(userid)
+);
+
+
+
 
 CREATE TABLE assessments (
     assessment_id VARCHAR(50) PRIMARY KEY,

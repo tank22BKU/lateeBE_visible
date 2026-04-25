@@ -1,4 +1,21 @@
-﻿### How to create new service
+﻿### How to configure
+- fill HUGGINGFACE_TOKEN in .env
+- fill RoadmapService.API/appsettings.json with Google Gemini API key
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "Gemini": {
+    "ApiKey": "Google Gemini API key here",
+    "Model": "gemini-2.5-flash"
+  }
+}
+
+### How to create new service
 
 ### Create 4 layer
 mkdir -p src/Services/EvaluationService
@@ -26,6 +43,7 @@ dotnet add src\Services\EvaluationService\EvaluationService.API\EvaluationServic
 ### Include packages
 - API
 dotnet add src/Services/EvaluationService/EvaluationService.API package Swashbuckle.AspNetCore
+dotnet add src/Services/AssessmentService/AssessmentService.API package Swashbuckle.AspNetCore --version 6.6.2
 
 
 - Application
@@ -35,6 +53,12 @@ dotnet add src/Services/EvaluationService/EvaluationService.Application package 
 dotnet add src/Services/EvaluationService/EvaluationService.Application package FluentValidation.DependencyInjectionExtensions --version 12.1.0
 dotnet add src/Services/EvaluationService/EvaluationService.Application package MediatR --version 13.1.0
 dotnet add src/Services/EvaluationService/EvaluationService.Application package Microsoft.EntityFrameworkCore --version 9.0.0
+dotnet add src/Services/AssessmentService/AssessmentService.Application package AutoMapper --version 15.1.1
+dotnet add src/Services/AssessmentService/AssessmentService.Application package AutoMapper.Extensions.Microsoft.DependencyInjection --version 15.1.1
+dotnet add src/Services/AssessmentService/AssessmentService.Application package FluentValidation --version 12.1.0
+dotnet add src/Services/AssessmentService/AssessmentService.Application package FluentValidation.DependencyInjectionExtensions --version 12.1.0
+dotnet add src/Services/AssessmentService/AssessmentService.Application package MediatR --version 13.1.0
+dotnet add src/Services/AssessmentService/AssessmentService.Application package Microsoft.EntityFrameworkCore --version 9.0.0
 
 
 - Domain
@@ -59,7 +83,7 @@ dotnet add package Google.GenAI
 + docker compose -f docker/docker-compose.yml up --build
 - Cleam & Rebuild
 + docker compose -f docker/docker-compose.yml down -v
-+ docker compose -f docker/docker-compose.yml up -d --build
++ docker compose -f docker/do*cker-compose.yml up -d --build*
 + docker exec ollama ollama pull llama3.1:8b
 + docker compose -f docker/docker-compose.yml up
 
@@ -98,4 +122,7 @@ http://localhost:5000/clinical-case/api/clinical-cases?status=active&page=1&page
 
 
 http://localhost:5000/ai-assistant/assistant 
+
+
+
 

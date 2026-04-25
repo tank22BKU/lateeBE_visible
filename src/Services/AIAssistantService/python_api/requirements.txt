@@ -3,8 +3,9 @@ langchain-core
 langchain-community
 langchain-ollama
 langchain-text-splitters
+langchain_huggingface
 faiss-cpu
-# transformers>=4.33.2
+###transformers>=4.33.2
 sentence-transformers
 fastapi
 pydantic
@@ -12,3 +13,4 @@ uvicorn
 cachetools
 redis
 python-dotenv
+openai
