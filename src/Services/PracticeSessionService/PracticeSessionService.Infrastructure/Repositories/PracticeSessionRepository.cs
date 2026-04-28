@@ -14,17 +14,30 @@ public class PracticeSessionRepository : IPracticeSessionRepository
         _db = db;
     }
     
-    public async Task<PracticeSessionResult> GetByIdAsync(string id)
+    public async Task<PracticeSessionResult?> GetByIdAsync(string id)
     {
-        return await _db.PracticeSessions
+        return await _db.EvaluationResults
             .Include(x => x.Warnings)
             .FirstOrDefaultAsync(x => x.ResultId == id);
     }
 
+    public async Task<PracticeSession?> GetSessionByIdAsync(string id)
+    {
+        return await _db.PracticeSessions
+            .Include(x => x.EvaluationResults)
+            .FirstOrDefaultAsync(x => x.Id == id);
+    }
+
     public async Task<string> AddAsync(PracticeSessionResult entity)
     {
-         _db.PracticeSessions.Add(entity);
-         await _db.SaveChangesAsync();
-         return entity.ResultId;
+        _db.EvaluationResults.Add(entity);
+        await _db.SaveChangesAsync();
+        return entity.ResultId;
+    }
+    public async Task<string> AddSessionAsync(PracticeSession entity)
+    {
+        _db.PracticeSessions.Add(entity);
+        await _db.SaveChangesAsync();
+        return entity.Id;
     }
 }

@@ -22,6 +22,7 @@ public class SubmitEvaluationHandler
         var entity = new PracticeSessionResult
         {
             ResultId = request.ResultId,
+            SessionId = request.SessionId,
             UserId = request.UserId,
             ClinicalCaseId = request.ClinicalCaseId,
             ModuleId = request.ModuleId,

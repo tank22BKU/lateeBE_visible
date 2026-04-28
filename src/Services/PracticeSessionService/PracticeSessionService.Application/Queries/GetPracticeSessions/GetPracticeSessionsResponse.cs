@@ -4,6 +4,7 @@ namespace PracticeSessionService.Application.Queries.GetPracticeSessions;
 public class GetPracticeSessionsResponse
 {
     public string ResultId { get; set; } = default!;
+    public string SessionId { get; set; } = default!;
     public string UserId { get; set; } = default!;
     public string ClinicalCaseId { get; set; } = default!;
 

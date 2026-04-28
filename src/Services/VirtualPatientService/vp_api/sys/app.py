@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 # 1. CẤU HÌNH & HẰNG SỐ
 # ==========================================
 load_dotenv()
-hf_token = os.getenv("HF_TOKEN")
+hf_token = os.getenv("HUGGINGFACE_TOKEN")
 if hf_token: login(token=hf_token)
 
 st.set_page_config(page_title="Latee - Virtual Patient System", page_icon="🩺", layout="wide")

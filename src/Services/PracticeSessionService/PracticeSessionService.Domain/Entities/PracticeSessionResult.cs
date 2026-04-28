@@ -10,6 +10,9 @@ public class PracticeSessionResult
     [Column("result_id")]
     public string ResultId { get; set; } = default!;
 
+    [Column("session_id")]
+    public string SessionId { get; set; } = default!;
+
     [Column("user_id")]
     public string UserId { get; set; } = default!;
 

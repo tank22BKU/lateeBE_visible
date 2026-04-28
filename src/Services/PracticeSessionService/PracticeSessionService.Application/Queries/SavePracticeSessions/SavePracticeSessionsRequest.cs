@@ -7,6 +7,7 @@ namespace PracticeSessionService.Application.Queries.SavePracticeSessions;
 public class SavePracticeSessionsRequest : IRequest<SavePracticeSessionsResponse>
 {
     public string ResultId { get; set; } = default!;
+    public string SessionId { get; set; } = default!;
     public string UserId { get; set; } = default!;
     public string ClinicalCaseId { get; set; } = default!;
 

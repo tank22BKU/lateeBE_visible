@@ -1,5 +1,5 @@
 ﻿x-auth-env: &auth-env
-  Security__AuthorizationEnabled: ${AUTHORIZATION_ENABLED:-true}
+  Security__AuthorizationEnabled: ${AUTHORIZATION_ENABLED:-false}
   Jwt__Issuer: ${JWT_ISSUER:-latee-auth}
   Jwt__Audience: ${JWT_AUDIENCE:-latee-clients}
   Jwt__SigningKey: ${JWT_SIGNING_KEY:-latee_super_secret_signing_key_2026_change_me}
@@ -51,7 +51,7 @@ services:
       - mysql
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: "Server=latee-mysql;Port=3306;Database=latee;Uid=user;Pwd=pass;AllowPublicKeyRetrieval=True"
+      ConnectionStrings__AssessmentDb: "Server=latee-mysql;Port=3306;Database=latee;Uid=user;Pwd=pass;AllowPublicKeyRetrieval=True"
       GeminiAi__ApiKey: ${GEMINI_API_KEY}
       <<: *auth-env
     env_file:
@@ -159,7 +159,7 @@ services:
   # =========================================================
   # AI Assistant, Gateway, Redis...
   # =========================================================
-
+  
   #  ollama:
   #    image: ollama/ollama:latest
   #    container_name: ollama
@@ -275,7 +275,22 @@ services:
       <<: *auth-env
     networks:
       - latee-network
-
+  evaluation:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.Evaluation
+    container_name: evaluation-api
+    ports:
+      - "8008:8080"
+    env_file:
+      - ../.env
+    depends_on:
+      - mysql
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__EvaluationDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+    networks:
+      - latee-network
   practice-session:
     build:
       context: ..
@@ -289,7 +304,7 @@ services:
       - mysql
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__RoadmapDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      ConnectionStrings__PracticeSessionDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
       <<: *auth-env
     networks:
       - latee-network
@@ -311,6 +326,8 @@ services:
       - ai-assistant
       - assessment
       - roadmap
+      - evaluation
+      - practice-session
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__AuthDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"

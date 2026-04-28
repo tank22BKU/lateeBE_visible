@@ -28,6 +28,7 @@ public class GetPracticeSessionHandler
         return new GetPracticeSessionsResponse
         {
             ResultId = entity.ResultId,
+            SessionId = entity.SessionId,
             UserId = entity.UserId,
             ClinicalCaseId = entity.ClinicalCaseId,
 

@@ -2,6 +2,7 @@
 using MediatR;
 using PracticeSessionService.Application.Queries.GetPracticeSessions;
 using PracticeSessionService.Application.Queries.SavePracticeSessions;
+using PracticeSessionService.Application.Commands.CreatePracticeSession;
 
 namespace PracticeSessionService.API.Controllers;
 
@@ -16,6 +17,12 @@ public class ClinicalCasesController : ControllerBase
         _mediator = mediator;
     }
 
+    [HttpPost]
+    public async Task<IActionResult> CreatePracticeSession([FromBody] CreatePracticeSessionCommand request)
+    {
+        var result = await _mediator.Send(request);
+        return Ok(result);
+    }
     [HttpPost("submit")]
     public async Task<IActionResult> SavePracticeSession(
         [FromBody] SavePracticeSessionsRequest request

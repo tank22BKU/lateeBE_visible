@@ -73,6 +73,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PracticeSessionService.Appl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PracticeSessionService.Infrastructure", "src\Services\PracticeSessionService\PracticeSessionService.Infrastructure\PracticeSessionService.Infrastructure.csproj", "{00C7CC02-564B-4FE8-BFB6-95218AB485C7}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EvaluationService", "EvaluationService", "{28BBF88D-A44B-433C-4324-0373DE243F7D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvaluationService.API", "src\Services\EvaluationService\EvaluationService.API\EvaluationService.API.csproj", "{0EAAB129-096A-45F3-8381-9C8DE9BE3F0C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvaluationService.Domain", "src\Services\EvaluationService\EvaluationService.Domain\EvaluationService.Domain.csproj", "{44AFF186-02EF-446D-A95E-02BD90A42165}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvaluationService.Application", "src\Services\EvaluationService\EvaluationService.Application\EvaluationService.Application.csproj", "{D78C6976-6934-4BE9-9E3B-B4C25061F81E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvaluationService.Infrastructure", "src\Services\EvaluationService\EvaluationService.Infrastructure\EvaluationService.Infrastructure.csproj", "{00C7CC02-564B-4FE8-BFB6-95218AB485C7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

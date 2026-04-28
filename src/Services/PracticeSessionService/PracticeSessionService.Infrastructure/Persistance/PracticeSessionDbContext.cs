@@ -10,13 +10,58 @@ public class PracticeSessionDbContext : DbContext
     {
     }
 
-    public DbSet<PracticeSessionResult> PracticeSessions => Set<PracticeSessionResult>();
-
+    public DbSet<PracticeSession> PracticeSessions => Set<PracticeSession>();
+    public DbSet<PracticeSessionResult> EvaluationResults => Set<PracticeSessionResult>();
     public DbSet<EvaluationWarning> EvaluationWarnings => Set<EvaluationWarning>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
         base.OnModelCreating(b);
+
+        b.Entity<PracticeSession>(entity =>
+        {
+            entity.ToTable("practice_sessions");
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id)
+                .HasColumnName("id")
+                .HasMaxLength(50)
+                .ValueGeneratedNever()
+                .IsRequired();
+
+            entity.Property(x => x.LearnerId)
+                .HasColumnName("learnerid")
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(x => x.ClinicalCaseId)
+                .HasColumnName("clinicalcaseid")
+                .HasMaxLength(20)
+                .IsRequired();
+
+            entity.Property(x => x.StartTime)
+                .HasColumnName("start_time")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.Property(x => x.EndTime)
+                .HasColumnName("end_time");
+
+            entity.Property(x => x.Duration)
+                .HasColumnName("duration");
+
+            entity.Property(x => x.IsActive)
+                .HasColumnName("is_active")
+                .HasDefaultValue(true);
+
+            entity.Property(x => x.Status)
+                .HasColumnName("status")
+                .HasDefaultValue("Practicing");
+
+            entity.HasMany(x => x.EvaluationResults)
+                .WithOne()
+                .HasForeignKey(e => e.SessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         b.Entity<PracticeSessionResult>(entity =>
         {
@@ -26,6 +71,11 @@ public class PracticeSessionDbContext : DbContext
 
             entity.Property(x => x.ResultId)
                 .HasColumnName("result_id")
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(x => x.SessionId)
+                .HasColumnName("session_id")
                 .HasMaxLength(50)
                 .IsRequired();
 

@@ -1,11 +1,24 @@
 ﻿-- Tắt kiểm tra khóa ngoại để tránh lỗi thứ tự chèn dữ liệu
 SET FOREIGN_KEY_CHECKS = 0;
 
--- Seed user đăng nhập ban đầu (mật khẩu plain-text sẽ được tự động nâng cấp thành BCrypt sau lần login đầu tiên)
-INSERT INTO users (user_id, username, email, password_hash, role, is_active)
-VALUES ('USR_ADMIN_001', 'admin', 'admin@latee.local', 'Admin@123', 'Admin', TRUE),
-       ('USR_LEARNER_001', 'learner001', 'learner001@latee.local', 'Learner001@123', 'Learner', TRUE)
-ON DUPLICATE KEY UPDATE updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO users (userid, name, email, phone, role, password) VALUES
+('USR001', 'Tan Dang', 'tan.dang@latee.edu.vn', '0901234567', 'Learner', 'hashed_pass_1'),
+('USR002', 'Tu Nguyen', 'tu.nguyen@latee.edu.vn', '0907654321', 'Expert', 'hashed_pass_2'),
+('ADM001', 'Admin Latee', 'admin@latee.edu.vn', '028111222', 'Admin', 'hashed_pass_3');
+
+INSERT INTO practice_sessions (id, learnerid, clinicalcaseid, duration, status) VALUES
+('SESS_001', 'USR001', '10482767', 15, 'Completed');
+
+INSERT INTO evaluation_results (result_id, session_id, user_id, clinical_case_id, vp_conversation_log, ai_reasoning_log, final_diagnosis, overall_score) VALUES
+('RES_001', 'SESS_001', 'USR001', '10482767', '{"chat": "Log..."}', '{"reasoning": "Log..."}', 'Viêm ruột thừa cấp', 16.5);
+
+INSERT INTO epa_scores (score_id, result_id, epa_id, entrustment_level, numerical_score, feedback_detail) VALUES
+('SCR_01', 'RES_001', 'EPA 1', 4, 18.00, 'Khai thác đủ 7 thuộc tính triệu chứng (OLD CART).'),
+('SCR_02', 'RES_001', 'EPA 2', 3, 15.00, 'Danh sách chẩn đoán đúng hướng nhưng thiếu Red Flags.');
+
+INSERT INTO evaluation_warnings (warning_id, result_id, label, description) VALUES
+('WARN_01', 'RES_001', 'Vi phạm đạo đức', 'Sử dụng ngôn từ không chuẩn mực.');
 
 -- 1. INSERT DỮ LIỆU BÀI KIỂM TRA (assessments)
 -- Đã thêm generation_prompt và bọc clinical_case_id trong dấu nháy đơn
@@ -89,7 +102,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10013502', 'CASE_10013502', 'Joseph Thomas', 50, 'Male', 'he/him', 
+    '10013502', '10013502', 'Joseph Thomas', 50, 'Male', 'he/him', 
     'Caucasian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 50-year-old Man. Relevant behavioral factors include: high anxiety, low-fiber diet, delays seeking surgical consultation, regular medical checkups, limited family support.',
     'Chronic abdominal pain',
@@ -104,7 +117,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10016673', 'CASE_10016673', 'Lisa Smith', 72, 'Female', 'she/her', 
+    '10016673', '10016673', 'Lisa Smith', 72, 'Female', 'she/her', 
     'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 72-year-old Woman. Relevant behavioral factors include: depressive mood, former smoker, self-medication, non-compliant with dietary restriction, low socioeconomic status.',
     'Intermittent abdominal pain',
@@ -119,7 +132,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10022584', 'CASE_10022584', 'Charles Martin', 91, 'Male', 'he/him', 
+    '10022584', '10022584', 'Charles Martin', 91, 'Male', 'he/him', 
     'Caucasian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 91-year-old Man. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, self-medication, chronic alcohol consumption, high pain tolerance.',
     'Chronic abdominal pain',
@@ -134,7 +147,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10025862', 'CASE_10025862', 'Jessica Smith', 61, 'Female', 'she/her', 
+    '10025862', '10025862', 'Jessica Smith', 61, 'Female', 'she/her', 
     'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 61-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, poor medication adherence, heavy smoker, low pain tolerance.',
     'Nausea and abdominal pain',
@@ -149,7 +162,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10031940', 'CASE_10031940', 'Mary Taylor', 58, 'Female', 'she/her', 
+    '10031940', '10031940', 'Mary Taylor', 58, 'Female', 'she/her', 
     'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 58-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high-fat diet, self-medication, health anxiety, limited family support.',
     'Severe abdominal pain',
@@ -164,7 +177,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10034272', 'CASE_10034272', 'Michael Miller', 69, 'Male', 'he/him', 
+    '10034272', '10034272', 'Michael Miller', 69, 'Male', 'he/him', 
     'Hispanic', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 69-year-old Man. Relevant behavioral factors include: high work-related stress, non-compliant with dietary restriction, high pain tolerance, delayed hospital presentation, social smoker.',
     'Chronic abdominal pain',
@@ -179,7 +192,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10040056', 'CASE_10040056', 'William Brown', 31, 'Male', 'he/him', 
+    '10040056', '10040056', 'William Brown', 31, 'Male', 'he/him', 
     'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 31-year-old Man. Relevant behavioral factors include: high work-related stress, depressive mood, good medication adherence, ignores early abdominal pain, low-fiber diet.',
     'Intermittent abdominal pain',
@@ -194,7 +207,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10040626', 'CASE_10040626', 'Susan Thomas', 29, 'Female', 'she/her', 
+    '10040626', '10040626', 'Susan Thomas', 29, 'Female', 'she/her', 
     'Caucasian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 29-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, high-fat diet, ignores early abdominal pain, health anxiety.',
     'Intermittent abdominal pain',
@@ -209,7 +222,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10042037', 'CASE_10042037', 'Thomas Lopez', 55, 'Male', 'he/him', 
+    '10042037', '10042037', 'Thomas Lopez', 55, 'Male', 'he/him', 
     'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 55-year-old Man. Relevant behavioral factors include: physically demanding job, stress-related symptoms, delays seeking surgical consultation, physically active, regular medical checkups.',
     'Chronic abdominal pain',
@@ -224,7 +237,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10046241', 'CASE_10046241', 'Michael Hernandez', 53, 'Male', 'he/him', 
+    '10046241', '10046241', 'Michael Hernandez', 53, 'Male', 'he/him', 
     'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 53-year-old Man. Relevant behavioral factors include: depressive mood, good medication adherence, limited access to healthcare, irregular meal patterns, non-compliant with dietary restriction.',
     'Intermittent abdominal pain',
@@ -239,7 +252,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10052530', 'CASE_10052530', 'Daniel Thomas', 22, 'Male', 'he/him', 
+    '10052530', '10052530', 'Daniel Thomas', 22, 'Male', 'he/him', 
     'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 22-year-old Man. Relevant behavioral factors include: high anxiety, ignores early abdominal pain, irregular meal patterns, delayed hospital presentation, limited family support.',
     'Chronic abdominal pain',
@@ -254,7 +267,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10056223', 'CASE_10056223', 'William Miller', 48, 'Male', 'he/him', 
+    '10056223', '10056223', 'William Miller', 48, 'Male', 'he/him', 
     'Unknown', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 48-year-old Man. Relevant behavioral factors include: high anxiety, good medication adherence, sedentary lifestyle, delays seeking surgical consultation, low socioeconomic status.',
     'Chronic abdominal pain',
@@ -269,7 +282,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10058856', 'CASE_10058856', 'Emily Rodriguez', 73, 'Female', 'she/her', 
+    '10058856', '10058856', 'Emily Rodriguez', 73, 'Female', 'she/her', 
     'African American', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 73-year-old Woman. Relevant behavioral factors include: high work-related stress, high-fat diet, delays seeking surgical consultation, low pain tolerance, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -284,7 +297,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10069551', 'CASE_10069551', 'Jessica Gonzalez', 33, 'Female', 'she/her', 
+    '10069551', '10069551', 'Jessica Gonzalez', 33, 'Female', 'she/her', 
     'Unknown', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 33-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, former smoker, health anxiety, frequent emergency department visits.',
     'Nausea and abdominal pain',
@@ -299,7 +312,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10070247', 'CASE_10070247', 'Richard Anderson', 43, 'Male', 'he/him', 
+    '10070247', '10070247', 'Richard Anderson', 43, 'Male', 'he/him', 
     'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 43-year-old Man. Relevant behavioral factors include: uses painkillers excessively, limited access to healthcare, irregular meal patterns, frequent emergency department visits, low pain tolerance.',
     'Severe abdominal pain',
@@ -314,7 +327,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10071659', 'CASE_10071659', 'Matthew Jones', 34, 'Male', 'he/him', 
+    '10071659', '10071659', 'Matthew Jones', 34, 'Male', 'he/him', 
     'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 34-year-old Man. Relevant behavioral factors include: avoids medical care, high anxiety, former smoker, ignores early abdominal pain, limited family support.',
     'Intermittent abdominal pain',
@@ -329,7 +342,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10073256', 'CASE_10073256', 'Anthony Garcia', 68, 'Male', 'he/him', 
+    '10073256', '10073256', 'Anthony Garcia', 68, 'Male', 'he/him', 
     'Unknown', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 68-year-old Man. Relevant behavioral factors include: ignores early abdominal pain, chronic alcohol consumption, high pain tolerance, delayed hospital presentation, limited family support.',
     'Chronic abdominal pain',
@@ -344,7 +357,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10074010', 'CASE_10074010', 'Richard Davis', 65, 'Male', 'he/him', 
+    '10074010', '10074010', 'Richard Davis', 65, 'Male', 'he/him', 
     'African American', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 65-year-old Man. Relevant behavioral factors include: continues eating despite nausea, low socioeconomic status, poor medication adherence, binge drinking, low pain tolerance.',
     'Nausea and abdominal pain',
@@ -359,7 +372,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10074282', 'CASE_10074282', 'Susan Williams', 82, 'Female', 'she/her', 
+    '10074282', '10074282', 'Susan Williams', 82, 'Female', 'she/her', 
     'Caucasian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 82-year-old Woman. Relevant behavioral factors include: lives alone, good medication adherence, chronic alcohol consumption, delays seeking surgical consultation, poor insight into illness.',
     'Chronic abdominal pain',
@@ -374,7 +387,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10076263', 'CASE_10076263', 'Margaret Taylor', 42, 'Female', 'she/her', 
+    '10076263', '10076263', 'Margaret Taylor', 42, 'Female', 'she/her', 
     'Caucasian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 42-year-old Woman. Relevant behavioral factors include: poor insight into illness, ignores early abdominal pain, self-medication, physically active, low socioeconomic status.',
     'Intermittent abdominal pain',
@@ -389,7 +402,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10079467', 'CASE_10079467', 'Emily Jackson', 33, 'Female', 'she/her', 
+    '10079467', '10079467', 'Emily Jackson', 33, 'Female', 'she/her', 
     'Asian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 33-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, frequent emergency department visits, heavy smoker, low pain tolerance.',
     'Nausea and abdominal pain',
@@ -404,7 +417,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10080679', 'CASE_10080679', 'Richard Jackson', 28, 'Male', 'he/him', 
+    '10080679', '10080679', 'Richard Jackson', 28, 'Male', 'he/him', 
     'Unknown', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 28-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, continues eating despite nausea, high anxiety, chronic alcohol consumption.',
     'Nausea and abdominal pain',
@@ -419,7 +432,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10085111', 'CASE_10085111', 'Donald Rodriguez', 18, 'Male', 'he/him', 
+    '10085111', '10085111', 'Donald Rodriguez', 18, 'Male', 'he/him', 
     'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 18-year-old Man. Relevant behavioral factors include: high work-related stress, high anxiety, irregular meal patterns, delays seeking surgical consultation, regular medical checkups.',
     'Chronic abdominal pain',
@@ -434,7 +447,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10097289', 'CASE_10097289', 'William Moore', 38, 'Male', 'he/him', 
+    '10097289', '10097289', 'William Moore', 38, 'Male', 'he/him', 
     'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 38-year-old Man. Relevant behavioral factors include: limited access to healthcare, non-compliant with dietary restriction, frequent emergency department visits, heavy smoker, low pain tolerance.',
     'Intermittent abdominal pain',
@@ -449,7 +462,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10099750', 'CASE_10099750', 'Richard Lopez', 29, 'Male', 'he/him', 
+    '10099750', '10099750', 'Richard Lopez', 29, 'Male', 'he/him', 
     'Asian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 29-year-old Man. Relevant behavioral factors include: continues eating despite nausea, high anxiety, binge drinking, low socioeconomic status, delayed hospital presentation.',
     'Nausea and abdominal pain',
@@ -464,7 +477,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10101174', 'CASE_10101174', 'Ashley Wilson', 60, 'Female', 'she/her', 
+    '10101174', '10101174', 'Ashley Wilson', 60, 'Female', 'she/her', 
     'Hispanic', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 60-year-old Woman. Relevant behavioral factors include: self-medication, health anxiety, chronic alcohol consumption, delays seeking surgical consultation, limited family support.',
     'Chronic abdominal pain',
@@ -479,7 +492,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10104732', 'CASE_10104732', 'Robert Martin', 49, 'Male', 'he/him', 
+    '10104732', '10104732', 'Robert Martin', 49, 'Male', 'he/him', 
     'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 49-year-old Man. Relevant behavioral factors include: uses painkillers excessively, lives alone, good medication adherence, stress-related symptoms, chronic alcohol consumption.',
     'Chronic abdominal pain',
@@ -494,7 +507,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10108132', 'CASE_10108132', 'Mark Lopez', 28, 'Male', 'he/him', 
+    '10108132', '10108132', 'Mark Lopez', 28, 'Male', 'he/him', 
     'Caucasian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 28-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, frequent emergency department visits, binge drinking, low pain tolerance.',
     'Nausea and abdominal pain',
@@ -509,7 +522,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10119863', 'CASE_10119863', 'John Martin', 67, 'Male', 'he/him', 
+    '10119863', '10119863', 'John Martin', 67, 'Male', 'he/him', 
     'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 67-year-old Man. Relevant behavioral factors include: uses painkillers excessively, lives alone, high anxiety, good medication adherence, physically active.',
     'Severe abdominal pain',
@@ -524,7 +537,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10120826', 'CASE_10120826', 'Charles Garcia', 80, 'Male', 'he/him', 
+    '10120826', '10120826', 'Charles Garcia', 80, 'Male', 'he/him', 
     'African American', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 80-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, uses painkillers excessively, high anxiety, heavy smoker.',
     'Severe abdominal pain',
@@ -539,7 +552,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10124189', 'CASE_10124189', 'Daniel Anderson', 18, 'Male', 'he/him', 
+    '10124189', '10124189', 'Daniel Anderson', 18, 'Male', 'he/him', 
     'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 18-year-old Man. Relevant behavioral factors include: depressive mood, sedentary lifestyle, delays seeking surgical consultation, low socioeconomic status, regular medical checkups.',
     'Chronic abdominal pain',
@@ -554,7 +567,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10132759', 'CASE_10132759', 'Matthew Hernandez', 64, 'Male', 'he/him', 
+    '10132759', '10132759', 'Matthew Hernandez', 64, 'Male', 'he/him', 
     'Asian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 64-year-old Man. Relevant behavioral factors include: continues eating despite nausea, poor insight into illness, good medication adherence, irregular meal patterns, low socioeconomic status.',
     'Nausea and abdominal pain',
@@ -569,7 +582,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10139369', 'CASE_10139369', 'Richard Lopez', 22, 'Male', 'he/him', 
+    '10139369', '10139369', 'Richard Lopez', 22, 'Male', 'he/him', 
     'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 22-year-old Man. Relevant behavioral factors include: avoids medical care, stress-related symptoms, limited access to healthcare, delays seeking surgical consultation, chronic alcohol consumption.',
     'Chronic abdominal pain',
@@ -584,7 +597,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10144406', 'CASE_10144406', 'David Hernandez', 65, 'Male', 'he/him', 
+    '10144406', '10144406', 'David Hernandez', 65, 'Male', 'he/him', 
     'Caucasian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 65-year-old Man. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, good medication adherence, heavy smoker, low pain tolerance.',
     'Severe abdominal pain',
@@ -599,7 +612,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10149959', 'CASE_10149959', 'Susan Rodriguez', 73, 'Female', 'she/her', 
+    '10149959', '10149959', 'Susan Rodriguez', 73, 'Female', 'she/her', 
     'Asian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 73-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, sedentary lifestyle, limited access to healthcare, frequent emergency department visits, low pain tolerance.',
     'Nausea and abdominal pain',
@@ -614,7 +627,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10154376', 'CASE_10154376', 'Donna Davis', 19, 'Female', 'she/her', 
+    '10154376', '10154376', 'Donna Davis', 19, 'Female', 'she/her', 
     'Unknown', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 19-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, poor medication adherence, high pain tolerance, physically active, limited family support.',
     'Severe abdominal pain',
@@ -629,7 +642,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10156068', 'CASE_10156068', 'William Martinez', 21, 'Male', 'he/him', 
+    '10156068', '10156068', 'William Martinez', 21, 'Male', 'he/him', 
     'African American', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 21-year-old Man. Relevant behavioral factors include: avoids medical care, sedentary lifestyle, limited access to healthcare, delays seeking surgical consultation, poor insight into illness.',
     'Chronic abdominal pain',
@@ -644,7 +657,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10158488', 'CASE_10158488', 'Nancy Johnson', 81, 'Female', 'she/her', 
+    '10158488', '10158488', 'Nancy Johnson', 81, 'Female', 'she/her', 
     'African American', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 81-year-old Woman. Relevant behavioral factors include: high work-related stress, irregular meal patterns, delays seeking surgical consultation, poor insight into illness, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -659,7 +672,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10159832', 'CASE_10159832', 'Sarah Jones', 49, 'Female', 'she/her', 
+    '10159832', '10159832', 'Sarah Jones', 49, 'Female', 'she/her', 
     'Asian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 49-year-old Woman. Relevant behavioral factors include: high work-related stress, stress-related symptoms, self-medication, delays seeking surgical consultation, physically active.',
     'Chronic abdominal pain',
@@ -674,7 +687,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10165155', 'CASE_10165155', 'Anthony Rodriguez', 22, 'Male', 'he/him', 
+    '10165155', '10165155', 'Anthony Rodriguez', 22, 'Male', 'he/him', 
     'African American', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 22-year-old Man. Relevant behavioral factors include: low pain tolerance, ignores early abdominal pain, physically active, low socioeconomic status, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -689,7 +702,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10174466', 'CASE_10174466', 'Robert Brown', 60, 'Male', 'he/him', 
+    '10174466', '10174466', 'Robert Brown', 60, 'Male', 'he/him', 
     'Caucasian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 60-year-old Man. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, high-fat diet, self-medication, high pain tolerance.',
     'Severe abdominal pain',
@@ -704,7 +717,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10176741', 'CASE_10176741', 'Anthony Brown', 71, 'Male', 'he/him', 
+    '10176741', '10176741', 'Anthony Brown', 71, 'Male', 'he/him', 
     'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 71-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, ignores early abdominal pain, high pain tolerance, binge drinking.',
     'Intermittent abdominal pain',
@@ -719,7 +732,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10182104', 'CASE_10182104', 'Matthew Jones', 72, 'Male', 'he/him', 
+    '10182104', '10182104', 'Matthew Jones', 72, 'Male', 'he/him', 
     'Hispanic', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 72-year-old Man. Relevant behavioral factors include: high anxiety, irregular meal patterns, delays seeking surgical consultation, poor medication adherence, limited family support.',
     'Chronic abdominal pain',
@@ -734,7 +747,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10185476', 'CASE_10185476', 'Michael Smith', 40, 'Male', 'he/him', 
+    '10185476', '10185476', 'Michael Smith', 40, 'Male', 'he/him', 
     'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 40-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, high anxiety, self-medication, heavy smoker.',
     'Nausea and abdominal pain',
@@ -749,7 +762,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10186201', 'CASE_10186201', 'Nancy Jackson', 91, 'Female', 'she/her', 
+    '10186201', '10186201', 'Nancy Jackson', 91, 'Female', 'she/her', 
     'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 91-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, stress-related symptoms, chronic alcohol consumption, frequent emergency department visits.',
     'Nausea and abdominal pain',
@@ -764,7 +777,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10189947', 'CASE_10189947', 'Ashley Martin', 32, 'Female', 'she/her', 
+    '10189947', '10189947', 'Ashley Martin', 32, 'Female', 'she/her', 
     'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 32-year-old Woman. Relevant behavioral factors include: good medication adherence, stress-related symptoms, ignores early abdominal pain, limited access to healthcare, low-fiber diet.',
     'Intermittent abdominal pain',
@@ -779,7 +792,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10205542', 'CASE_10205542', 'Sandra Jackson', 50, 'Female', 'she/her', 
+    '10205542', '10205542', 'Sandra Jackson', 50, 'Female', 'she/her', 
     'African American', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 50-year-old Woman. Relevant behavioral factors include: former smoker, limited access to healthcare, delays seeking surgical consultation, low pain tolerance, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -794,7 +807,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10207476', 'CASE_10207476', 'Nancy Taylor', 63, 'Female', 'she/her', 
+    '10207476', '10207476', 'Nancy Taylor', 63, 'Female', 'she/her', 
     'Asian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 63-year-old Woman. Relevant behavioral factors include: avoids medical care, low pain tolerance, ignores early abdominal pain, low-fiber diet, low socioeconomic status.',
     'Intermittent abdominal pain',
@@ -809,7 +822,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10208867', 'CASE_10208867', 'Kimberly Wilson', 32, 'Female', 'she/her', 
+    '10208867', '10208867', 'Kimberly Wilson', 32, 'Female', 'she/her', 
     'African American', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 32-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, stress-related symptoms, low socioeconomic status, delayed hospital presentation, social smoker.',
     'Chronic abdominal pain',
@@ -824,7 +837,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10217918', 'CASE_10217918', 'William Smith', 20, 'Male', 'he/him', 
+    '10217918', '10217918', 'William Smith', 20, 'Male', 'he/him', 
     'Hispanic', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 20-year-old Man. Relevant behavioral factors include: avoids medical care, physically demanding job, high anxiety, delays seeking surgical consultation, heavy smoker.',
     'Chronic abdominal pain',
@@ -839,7 +852,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10229195', 'CASE_10229195', 'Daniel Martin', 36, 'Male', 'he/him', 
+    '10229195', '10229195', 'Daniel Martin', 36, 'Male', 'he/him', 
     'Unknown', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 36-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, night shift worker, high anxiety, frequent emergency department visits.',
     'Nausea and abdominal pain',
@@ -854,7 +867,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10234917', 'CASE_10234917', 'Jessica Moore', 77, 'Female', 'she/her', 
+    '10234917', '10234917', 'Jessica Moore', 77, 'Female', 'she/her', 
     'Asian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 77-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, night shift worker, depressive mood, good medication adherence, limited access to healthcare.',
     'Severe abdominal pain',
@@ -869,7 +882,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10235987', 'CASE_10235987', 'Margaret Thomas', 46, 'Female', 'she/her', 
+    '10235987', '10235987', 'Margaret Thomas', 46, 'Female', 'she/her', 
     'African American', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 46-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, high anxiety, former smoker, regular medical checkups.',
     'Nausea and abdominal pain',
@@ -884,7 +897,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10239566', 'CASE_10239566', 'Emily Martin', 62, 'Female', 'she/her', 
+    '10239566', '10239566', 'Emily Martin', 62, 'Female', 'she/her', 
     'Caucasian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 62-year-old Woman. Relevant behavioral factors include: stress-related symptoms, self-medication, delays seeking surgical consultation, low-fiber diet, low socioeconomic status.',
     'Chronic abdominal pain',
@@ -899,7 +912,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10251549', 'CASE_10251549', 'Joseph Anderson', 91, 'Male', 'he/him', 
+    '10251549', '10251549', 'Joseph Anderson', 91, 'Male', 'he/him', 
     'Unknown', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 91-year-old Man. Relevant behavioral factors include: physically demanding job, high pain tolerance, non-compliant with dietary restriction, poor medication adherence, low-fiber diet.',
     'Intermittent abdominal pain',
@@ -914,7 +927,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10253027', 'CASE_10253027', 'Daniel Gonzalez', 27, 'Male', 'he/him', 
+    '10253027', '10253027', 'Daniel Gonzalez', 27, 'Male', 'he/him', 
     'Hispanic', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 27-year-old Man. Relevant behavioral factors include: physically demanding job, night shift worker, high anxiety, good medication adherence, delays seeking surgical consultation.',
     'Chronic abdominal pain',
@@ -929,7 +942,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10260237', 'CASE_10260237', 'Emily Brown', 32, 'Female', 'she/her', 
+    '10260237', '10260237', 'Emily Brown', 32, 'Female', 'she/her', 
     'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 32-year-old Woman. Relevant behavioral factors include: physically demanding job, night shift worker, stress-related symptoms, self-medication, delays seeking surgical consultation.',
     'Chronic abdominal pain',
@@ -944,7 +957,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10266394', 'CASE_10266394', 'John Anderson', 20, 'Male', 'he/him', 
+    '10266394', '10266394', 'John Anderson', 20, 'Male', 'he/him', 
     'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 20-year-old Man. Relevant behavioral factors include: limited access to healthcare, health anxiety, delays seeking surgical consultation, frequent emergency department visits, social smoker.',
     'Chronic abdominal pain',
@@ -959,7 +972,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10267238', 'CASE_10267238', 'Richard Miller', 33, 'Male', 'he/him', 
+    '10267238', '10267238', 'Richard Miller', 33, 'Male', 'he/him', 
     'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 33-year-old Man. Relevant behavioral factors include: good medication adherence, limited access to healthcare, delays seeking surgical consultation, physically active, poor insight into illness.',
     'Chronic abdominal pain',
@@ -974,7 +987,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10276303', 'CASE_10276303', 'Kimberly Miller', 37, 'Female', 'she/her', 
+    '10276303', '10276303', 'Kimberly Miller', 37, 'Female', 'she/her', 
     'African American', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 37-year-old Woman. Relevant behavioral factors include: physically demanding job, high-fat diet, depressive mood, self-medication, non-compliant with dietary restriction.',
     'Intermittent abdominal pain',
@@ -989,7 +1002,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10279161', 'CASE_10279161', 'Anthony Moore', 48, 'Male', 'he/him', 
+    '10279161', '10279161', 'Anthony Moore', 48, 'Male', 'he/him', 
     'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 48-year-old Man. Relevant behavioral factors include: physically demanding job, good medication adherence, non-compliant with dietary restriction, high pain tolerance, heavy smoker.',
     'Intermittent abdominal pain',
@@ -1004,7 +1017,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10286771', 'CASE_10286771', 'Charles Thomas', 57, 'Male', 'he/him', 
+    '10286771', '10286771', 'Charles Thomas', 57, 'Male', 'he/him', 
     'Unknown', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 57-year-old Man. Relevant behavioral factors include: continues eating despite nausea, poor medication adherence, health anxiety, low-fiber diet, limited family support.',
     'Nausea and abdominal pain',
@@ -1019,7 +1032,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10287966', 'CASE_10287966', 'Lisa Wilson', 50, 'Female', 'she/her', 
+    '10287966', '10287966', 'Lisa Wilson', 50, 'Female', 'she/her', 
     'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 50-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, depressive mood, chronic alcohol consumption, low socioeconomic status, regular medical checkups.',
     'Chronic abdominal pain',
@@ -1034,7 +1047,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10288579', 'CASE_10288579', 'Richard Martin', 22, 'Male', 'he/him', 
+    '10288579', '10288579', 'Richard Martin', 22, 'Male', 'he/him', 
     'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 22-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high anxiety, good medication adherence, chronic alcohol consumption, low socioeconomic status.',
     'Chronic abdominal pain',
@@ -1049,7 +1062,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10288778', 'CASE_10288778', 'Jessica Hernandez', 65, 'Female', 'she/her', 
+    '10288778', '10288778', 'Jessica Hernandez', 65, 'Female', 'she/her', 
     'Asian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 65-year-old Woman. Relevant behavioral factors include: avoids medical care, physically demanding job, non-compliant with dietary restriction, binge drinking, poor insight into illness.',
     'Intermittent abdominal pain',
@@ -1064,7 +1077,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10297466', 'CASE_10297466', 'Donald Brown', 66, 'Male', 'he/him', 
+    '10297466', '10297466', 'Donald Brown', 66, 'Male', 'he/him', 
     'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 66-year-old Man. Relevant behavioral factors include: avoids medical care, physically demanding job, delays seeking surgical consultation, low-fiber diet, poor insight into illness.',
     'Chronic abdominal pain',
@@ -1079,7 +1092,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10298888', 'CASE_10298888', 'Lisa Lopez', 28, 'Female', 'she/her', 
+    '10298888', '10298888', 'Lisa Lopez', 28, 'Female', 'she/her', 
     'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 28-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, ignores early abdominal pain, low-fiber diet, low pain tolerance.',
     'Intermittent abdominal pain',
@@ -1094,7 +1107,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10299002', 'CASE_10299002', 'Robert Hernandez', 69, 'Male', 'he/him', 
+    '10299002', '10299002', 'Robert Hernandez', 69, 'Male', 'he/him', 
     'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 69-year-old Man. Relevant behavioral factors include: high work-related stress, night shift worker, depressive mood, delays seeking surgical consultation, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -1109,7 +1122,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10299815', 'CASE_10299815', 'Susan Williams', 59, 'Female', 'she/her', 
+    '10299815', '10299815', 'Susan Williams', 59, 'Female', 'she/her', 
     'Unknown', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 59-year-old Woman. Relevant behavioral factors include: high work-related stress, former smoker, non-compliant with dietary restriction, high pain tolerance, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -1124,7 +1137,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10304284', 'CASE_10304284', 'Jessica Rodriguez', 37, 'Female', 'she/her', 
+    '10304284', '10304284', 'Jessica Rodriguez', 37, 'Female', 'she/her', 
     'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 37-year-old Woman. Relevant behavioral factors include: lives alone, high anxiety, ignores early abdominal pain, low-fiber diet, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -1139,7 +1152,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10305345', 'CASE_10305345', 'Mary Williams', 29, 'Female', 'she/her', 
+    '10305345', '10305345', 'Mary Williams', 29, 'Female', 'she/her', 
     'Unknown', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 29-year-old Woman. Relevant behavioral factors include: high anxiety, good medication adherence, non-compliant with dietary restriction, binge drinking, limited family support.',
     'Intermittent abdominal pain',
@@ -1154,7 +1167,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10305478', 'CASE_10305478', 'Christopher Moore', 54, 'Male', 'he/him', 
+    '10305478', '10305478', 'Christopher Moore', 54, 'Male', 'he/him', 
     'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 54-year-old Man. Relevant behavioral factors include: physically demanding job, irregular meal patterns, delays seeking surgical consultation, high pain tolerance, frequent emergency department visits.',
     'Chronic abdominal pain',
@@ -1169,7 +1182,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10306702', 'CASE_10306702', 'Mark Gonzalez', 86, 'Male', 'he/him', 
+    '10306702', '10306702', 'Mark Gonzalez', 86, 'Male', 'he/him', 
     'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 86-year-old Man. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, physically demanding job, high anxiety, physically active.',
     'Nausea and abdominal pain',
@@ -1184,7 +1197,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10313992', 'CASE_10313992', 'Lisa Rodriguez', 43, 'Female', 'she/her', 
+    '10313992', '10313992', 'Lisa Rodriguez', 43, 'Female', 'she/her', 
     'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 43-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, uses painkillers excessively, high anxiety, binge drinking.',
     'Severe abdominal pain',
@@ -1199,7 +1212,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10314106', 'CASE_10314106', 'Michael Davis', 54, 'Male', 'he/him', 
+    '10314106', '10314106', 'Michael Davis', 54, 'Male', 'he/him', 
     'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 54-year-old Man. Relevant behavioral factors include: physically demanding job, night shift worker, good medication adherence, delays seeking surgical consultation, low pain tolerance.',
     'Chronic abdominal pain',
@@ -1214,7 +1227,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10314359', 'CASE_10314359', 'Michael Rodriguez', 27, 'Male', 'he/him', 
+    '10314359', '10314359', 'Michael Rodriguez', 27, 'Male', 'he/him', 
     'Unknown', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 27-year-old Man. Relevant behavioral factors include: uses painkillers excessively, good medication adherence, limited access to healthcare, irregular meal patterns, high pain tolerance.',
     'Severe abdominal pain',
@@ -1229,7 +1242,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10317029', 'CASE_10317029', 'Thomas Martinez', 26, 'Male', 'he/him', 
+    '10317029', '10317029', 'Thomas Martinez', 26, 'Male', 'he/him', 
     'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 26-year-old Man. Relevant behavioral factors include: uses painkillers excessively, night shift worker, high anxiety, frequent emergency department visits, low socioeconomic status.',
     'Severe abdominal pain',
@@ -1244,7 +1257,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10317338', 'CASE_10317338', 'Ashley Garcia', 25, 'Female', 'she/her', 
+    '10317338', '10317338', 'Ashley Garcia', 25, 'Female', 'she/her', 
     'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 25-year-old Woman. Relevant behavioral factors include: ignores early abdominal pain, irregular meal patterns, high pain tolerance, regular medical checkups, limited family support.',
     'Intermittent abdominal pain',
@@ -1259,7 +1272,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10317946', 'CASE_10317946', 'Kimberly Jackson', 31, 'Female', 'she/her', 
+    '10317946', '10317946', 'Kimberly Jackson', 31, 'Female', 'she/her', 
     'African American', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 31-year-old Woman. Relevant behavioral factors include: stress-related symptoms, ignores early abdominal pain, irregular meal patterns, low socioeconomic status, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -1274,7 +1287,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10324282', 'CASE_10324282', 'Matthew Hernandez', 31, 'Male', 'he/him', 
+    '10324282', '10324282', 'Matthew Hernandez', 31, 'Male', 'he/him', 
     'Asian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 31-year-old Man. Relevant behavioral factors include: physically demanding job, high anxiety, ignores early abdominal pain, poor medication adherence, binge drinking.',
     'Intermittent abdominal pain',
@@ -1289,7 +1302,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10327710', 'CASE_10327710', 'Lisa Moore', 20, 'Female', 'she/her', 
+    '10327710', '10327710', 'Lisa Moore', 20, 'Female', 'she/her', 
     'Asian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 20-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, high anxiety, limited access to healthcare, frequent emergency department visits, social smoker.',
     'Nausea and abdominal pain',
@@ -1304,7 +1317,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10335293', 'CASE_10335293', 'Donna Lopez', 80, 'Female', 'she/her', 
+    '10335293', '10335293', 'Donna Lopez', 80, 'Female', 'she/her', 
     'African American', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 80-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, limited access to healthcare, health anxiety, delayed hospital presentation, social smoker.',
     'Chronic abdominal pain',
@@ -1319,7 +1332,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10347234', 'CASE_10347234', 'Ashley Moore', 91, 'Female', 'she/her', 
+    '10347234', '10347234', 'Ashley Moore', 91, 'Female', 'she/her', 
     'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 91-year-old Woman. Relevant behavioral factors include: physically demanding job, good medication adherence, irregular meal patterns, delays seeking surgical consultation, low pain tolerance.',
     'Chronic abdominal pain',
@@ -1334,7 +1347,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10347411', 'CASE_10347411', 'Michael Johnson', 25, 'Male', 'he/him', 
+    '10347411', '10347411', 'Michael Johnson', 25, 'Male', 'he/him', 
     'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 25-year-old Man. Relevant behavioral factors include: social smoker, ignores early abdominal pain, frequent emergency department visits, poor insight into illness, limited family support.',
     'Intermittent abdominal pain',
@@ -1349,7 +1362,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10350771', 'CASE_10350771', 'Mary Anderson', 64, 'Female', 'she/her', 
+    '10350771', '10350771', 'Mary Anderson', 64, 'Female', 'she/her', 
     'African American', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 64-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high anxiety, limited access to healthcare, low-fiber diet, frequent emergency department visits.',
     'Severe abdominal pain',
@@ -1364,7 +1377,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10354450', 'CASE_10354450', 'Mark Jackson', 30, 'Male', 'he/him', 
+    '10354450', '10354450', 'Mark Jackson', 30, 'Male', 'he/him', 
     'Asian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 30-year-old Man. Relevant behavioral factors include: physically demanding job, stress-related symptoms, sedentary lifestyle, non-compliant with dietary restriction, poor medication adherence.',
     'Intermittent abdominal pain',
@@ -1379,7 +1392,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10360554', 'CASE_10360554', 'Mary Wilson', 39, 'Female', 'she/her', 
+    '10360554', '10360554', 'Mary Wilson', 39, 'Female', 'she/her', 
     'Asian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 39-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, chronic alcohol consumption, low pain tolerance, regular medical checkups, limited family support.',
     'Nausea and abdominal pain',
@@ -1394,7 +1407,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10360824', 'CASE_10360824', 'Linda Hernandez', 20, 'Female', 'she/her', 
+    '10360824', '10360824', 'Linda Hernandez', 20, 'Female', 'she/her', 
     'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 20-year-old Woman. Relevant behavioral factors include: lives alone, depressive mood, ignores early abdominal pain, binge drinking, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -1409,7 +1422,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10373195', 'CASE_10373195', 'Donna Wilson', 26, 'Female', 'she/her', 
+    '10373195', '10373195', 'Donna Wilson', 26, 'Female', 'she/her', 
     'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 26-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, night shift worker, low pain tolerance, good medication adherence, low socioeconomic status.',
     'Severe abdominal pain',
@@ -1424,7 +1437,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10374847', 'CASE_10374847', 'Matthew Moore', 79, 'Male', 'he/him', 
+    '10374847', '10374847', 'Matthew Moore', 79, 'Male', 'he/him', 
     'African American', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 79-year-old Man. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, poor medication adherence, low pain tolerance, social smoker.',
     'Nausea and abdominal pain',
@@ -1439,7 +1452,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10379372', 'CASE_10379372', 'William Smith', 22, 'Male', 'he/him', 
+    '10379372', '10379372', 'William Smith', 22, 'Male', 'he/him', 
     'Caucasian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 22-year-old Man. Relevant behavioral factors include: avoids medical care, high anxiety, lives alone, ignores early abdominal pain, binge drinking.',
     'Intermittent abdominal pain',
@@ -1454,7 +1467,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10381914', 'CASE_10381914', 'Michael Williams', 45, 'Male', 'he/him', 
+    '10381914', '10381914', 'Michael Williams', 45, 'Male', 'he/him', 
     'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 45-year-old Man. Relevant behavioral factors include: high pain tolerance, limited access to healthcare, delays seeking surgical consultation, chronic alcohol consumption, frequent emergency department visits.',
     'Chronic abdominal pain',
@@ -1469,7 +1482,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10383228', 'CASE_10383228', 'Jessica Jones', 21, 'Female', 'she/her', 
+    '10383228', '10383228', 'Jessica Jones', 21, 'Female', 'she/her', 
     'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 21-year-old Woman. Relevant behavioral factors include: physically demanding job, high-fat diet, good medication adherence, ignores early abdominal pain, high pain tolerance.',
     'Intermittent abdominal pain',
@@ -1484,7 +1497,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10384457', 'CASE_10384457', 'Emily Smith', 18, 'Female', 'she/her', 
+    '10384457', '10384457', 'Emily Smith', 18, 'Female', 'she/her', 
     'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 18-year-old Woman. Relevant behavioral factors include: night shift worker, limited access to healthcare, delays seeking surgical consultation, frequent emergency department visits, low pain tolerance.',
     'Chronic abdominal pain',
@@ -1499,7 +1512,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10392369', 'CASE_10392369', 'Donald Wilson', 77, 'Male', 'he/him', 
+    '10392369', '10392369', 'Donald Wilson', 77, 'Male', 'he/him', 
     'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 77-year-old Man. Relevant behavioral factors include: high work-related stress, high anxiety, delays seeking surgical consultation, heavy smoker, regular medical checkups.',
     'Chronic abdominal pain',
@@ -1514,7 +1527,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10395376', 'CASE_10395376', 'Charles Rodriguez', 45, 'Male', 'he/him', 
+    '10395376', '10395376', 'Charles Rodriguez', 45, 'Male', 'he/him', 
     'Unknown', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 45-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, continues eating despite nausea, night shift worker, low pain tolerance.',
     'Nausea and abdominal pain',
@@ -1529,7 +1542,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10395875', 'CASE_10395875', 'Emily Moore', 61, 'Female', 'she/her', 
+    '10395875', '10395875', 'Emily Moore', 61, 'Female', 'she/her', 
     'Unknown', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 61-year-old Woman. Relevant behavioral factors include: physically demanding job, high anxiety, former smoker, delays seeking surgical consultation, regular medical checkups.',
     'Chronic abdominal pain',
@@ -1544,7 +1557,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10396026', 'CASE_10396026', 'Mary Thomas', 25, 'Female', 'she/her', 
+    '10396026', '10396026', 'Mary Thomas', 25, 'Female', 'she/her', 
     'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 25-year-old Woman. Relevant behavioral factors include: high work-related stress, non-compliant with dietary restriction, high pain tolerance, frequent emergency department visits, heavy smoker.',
     'Intermittent abdominal pain',
@@ -1559,7 +1572,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10400743', 'CASE_10400743', 'Dorothy Martinez', 76, 'Female', 'she/her', 
+    '10400743', '10400743', 'Dorothy Martinez', 76, 'Female', 'she/her', 
     'African American', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 76-year-old Woman. Relevant behavioral factors include: high work-related stress, high anxiety, non-compliant with dietary restriction, frequent emergency department visits, heavy smoker.',
     'Intermittent abdominal pain',
@@ -1574,7 +1587,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10406155', 'CASE_10406155', 'Margaret Martinez', 38, 'Female', 'she/her', 
+    '10406155', '10406155', 'Margaret Martinez', 38, 'Female', 'she/her', 
     'Asian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 38-year-old Woman. Relevant behavioral factors include: avoids medical care, high anxiety, high-fat diet, limited access to healthcare, delays seeking surgical consultation.',
     'Chronic abdominal pain',
@@ -1589,7 +1602,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10407324', 'CASE_10407324', 'Dorothy Rodriguez', 43, 'Female', 'she/her', 
+    '10407324', '10407324', 'Dorothy Rodriguez', 43, 'Female', 'she/her', 
     'Asian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 43-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, high-fat diet, good medication adherence, low pain tolerance.',
     'Nausea and abdominal pain',
@@ -1604,7 +1617,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10411654', 'CASE_10411654', 'Margaret Martinez', 41, 'Female', 'she/her', 
+    '10411654', '10411654', 'Margaret Martinez', 41, 'Female', 'she/her', 
     'Asian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 41-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, irregular meal patterns, low pain tolerance, delayed hospital presentation.',
     'Nausea and abdominal pain',
@@ -1619,7 +1632,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10414036', 'CASE_10414036', 'Margaret Moore', 63, 'Female', 'she/her', 
+    '10414036', '10414036', 'Margaret Moore', 63, 'Female', 'she/her', 
     'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 63-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, former smoker, stress-related symptoms, regular medical checkups.',
     'Nausea and abdominal pain',
@@ -1634,7 +1647,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10416197', 'CASE_10416197', 'Mark Thomas', 33, 'Male', 'he/him', 
+    '10416197', '10416197', 'Mark Thomas', 33, 'Male', 'he/him', 
     'Asian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 33-year-old Man. Relevant behavioral factors include: uses painkillers excessively, night shift worker, stress-related symptoms, frequent emergency department visits, limited family support.',
     'Severe abdominal pain',
@@ -1649,7 +1662,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10417473', 'CASE_10417473', 'Christopher Lopez', 23, 'Male', 'he/him', 
+    '10417473', '10417473', 'Christopher Lopez', 23, 'Male', 'he/him', 
     'Caucasian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 23-year-old Man. Relevant behavioral factors include: non-compliant with dietary restriction, low socioeconomic status, poor medication adherence, binge drinking, poor insight into illness.',
     'Intermittent abdominal pain',
@@ -1664,7 +1677,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10421990', 'CASE_10421990', 'Robert Wilson', 37, 'Male', 'he/him', 
+    '10421990', '10421990', 'Robert Wilson', 37, 'Male', 'he/him', 
     'African American', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 37-year-old Man. Relevant behavioral factors include: avoids medical care, physically demanding job, former smoker, non-compliant with dietary restriction, poor insight into illness.',
     'Intermittent abdominal pain',
@@ -1679,7 +1692,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10429123', 'CASE_10429123', 'Richard Brown', 34, 'Male', 'he/him', 
+    '10429123', '10429123', 'Richard Brown', 34, 'Male', 'he/him', 
     'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 34-year-old Man. Relevant behavioral factors include: uses painkillers excessively, good medication adherence, stress-related symptoms, irregular meal patterns, low socioeconomic status.',
     'Severe abdominal pain',
@@ -1694,7 +1707,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10430976', 'CASE_10430976', 'Michael Anderson', 35, 'Male', 'he/him', 
+    '10430976', '10430976', 'Michael Anderson', 35, 'Male', 'he/him', 
     'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 35-year-old Man. Relevant behavioral factors include: depressive mood, limited access to healthcare, non-compliant with dietary restriction, low-fiber diet, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -1709,7 +1722,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10433146', 'CASE_10433146', 'Ashley Hernandez', 62, 'Female', 'she/her', 
+    '10433146', '10433146', 'Ashley Hernandez', 62, 'Female', 'she/her', 
     'Asian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 62-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, frequent emergency department visits, poor insight into illness, social smoker.',
     'Nausea and abdominal pain',
@@ -1724,7 +1737,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10441211', 'CASE_10441211', 'Mark Anderson', 37, 'Male', 'he/him', 
+    '10441211', '10441211', 'Mark Anderson', 37, 'Male', 'he/him', 
     'Hispanic', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 37-year-old Man. Relevant behavioral factors include: continues eating despite nausea, lives alone, good medication adherence, heavy smoker, low pain tolerance.',
     'Nausea and abdominal pain',
@@ -1739,7 +1752,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10441330', 'CASE_10441330', 'Ashley Davis', 36, 'Female', 'she/her', 
+    '10441330', '10441330', 'Ashley Davis', 36, 'Female', 'she/her', 
     'African American', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 36-year-old Woman. Relevant behavioral factors include: ignores early abdominal pain, limited access to healthcare, binge drinking, low pain tolerance, regular medical checkups.',
     'Intermittent abdominal pain',
@@ -1754,7 +1767,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10448910', 'CASE_10448910', 'Thomas Garcia', 80, 'Male', 'he/him', 
+    '10448910', '10448910', 'Thomas Garcia', 80, 'Male', 'he/him', 
     'African American', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 80-year-old Man. Relevant behavioral factors include: uses painkillers excessively, frequent emergency department visits, physically active, low pain tolerance, limited family support.',
     'Severe abdominal pain',
@@ -1769,7 +1782,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10456934', 'CASE_10456934', 'Daniel Johnson', 39, 'Male', 'he/him', 
+    '10456934', '10456934', 'Daniel Johnson', 39, 'Male', 'he/him', 
     'African American', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 39-year-old Man. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, high-fat diet, self-medication, poor insight into illness.',
     'Nausea and abdominal pain',
@@ -1784,7 +1797,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10458345', 'CASE_10458345', 'Anthony Hernandez', 64, 'Male', 'he/him', 
+    '10458345', '10458345', 'Anthony Hernandez', 64, 'Male', 'he/him', 
     'African American', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 64-year-old Man. Relevant behavioral factors include: high pain tolerance, ignores early abdominal pain, poor medication adherence, chronic alcohol consumption, limited family support.',
     'Chronic abdominal pain',
@@ -1799,7 +1812,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10469621', 'CASE_10469621', 'Donna Martin', 71, 'Female', 'she/her', 
+    '10469621', '10469621', 'Donna Martin', 71, 'Female', 'she/her', 
     'African American', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 71-year-old Woman. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, lives alone, health anxiety, physically active.',
     'Severe abdominal pain',
@@ -1814,7 +1827,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10472364', 'CASE_10472364', 'Anthony Gonzalez', 51, 'Male', 'he/him', 
+    '10472364', '10472364', 'Anthony Gonzalez', 51, 'Male', 'he/him', 
     'Asian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 51-year-old Man. Relevant behavioral factors include: good medication adherence, non-compliant with dietary restriction, high pain tolerance, physically active, limited family support.',
     'Intermittent abdominal pain',
@@ -1829,7 +1842,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10473631', 'CASE_10473631', 'Donald Lopez', 69, 'Male', 'he/him', 
+    '10473631', '10473631', 'Donald Lopez', 69, 'Male', 'he/him', 
     'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 69-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, sedentary lifestyle, non-compliant with dietary restriction, low pain tolerance.',
     'Intermittent abdominal pain',
@@ -1844,7 +1857,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10482767', 'CASE_10482767', 'Ashley Miller', 33, 'Female', 'she/her', 
+    '10482767', '10482767', 'Ashley Miller', 33, 'Female', 'she/her', 
     'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 33-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, depressive mood, poor medication adherence, low-fiber diet, low socioeconomic status.',
     'Nausea and abdominal pain',
@@ -1859,7 +1872,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10490439', 'CASE_10490439', 'Daniel Martin', 53, 'Male', 'he/him', 
+    '10490439', '10490439', 'Daniel Martin', 53, 'Male', 'he/him', 
     'Hispanic', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 53-year-old Man. Relevant behavioral factors include: former smoker, self-medication, limited access to healthcare, delays seeking surgical consultation, low pain tolerance.',
     'Chronic abdominal pain',
@@ -1874,7 +1887,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10511804', 'CASE_10511804', 'Christopher Johnson', 20, 'Male', 'he/him', 
+    '10511804', '10511804', 'Christopher Johnson', 20, 'Male', 'he/him', 
     'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 20-year-old Man. Relevant behavioral factors include: poor medication adherence, delays seeking surgical consultation, chronic alcohol consumption, poor insight into illness, limited family support.',
     'Chronic abdominal pain',
@@ -1889,7 +1902,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10522176', 'CASE_10522176', 'Nancy Davis', 54, 'Female', 'she/her', 
+    '10522176', '10522176', 'Nancy Davis', 54, 'Female', 'she/her', 
     'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 54-year-old Woman. Relevant behavioral factors include: physically demanding job, stress-related symptoms, non-compliant with dietary restriction, frequent emergency department visits, binge drinking.',
     'Intermittent abdominal pain',
@@ -1904,7 +1917,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10523090', 'CASE_10523090', 'Emily Rodriguez', 49, 'Female', 'she/her', 
+    '10523090', '10523090', 'Emily Rodriguez', 49, 'Female', 'she/her', 
     'Hispanic', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 49-year-old Woman. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, depressive mood, former smoker, limited family support.',
     'Severe abdominal pain',
@@ -1919,7 +1932,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10544163', 'CASE_10544163', 'Daniel Anderson', 91, 'Male', 'he/him', 
+    '10544163', '10544163', 'Daniel Anderson', 91, 'Male', 'he/him', 
     'African American', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 91-year-old Man. Relevant behavioral factors include: avoids medical care, depressive mood, lives alone, former smoker, ignores early abdominal pain.',
     'Intermittent abdominal pain',
@@ -1934,7 +1947,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10548551', 'CASE_10548551', 'Richard Gonzalez', 31, 'Male', 'he/him', 
+    '10548551', '10548551', 'Richard Gonzalez', 31, 'Male', 'he/him', 
     'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 31-year-old Man. Relevant behavioral factors include: depressive mood, sedentary lifestyle, delays seeking surgical consultation, frequent emergency department visits, limited family support.',
     'Chronic abdominal pain',
@@ -1949,7 +1962,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10548564', 'CASE_10548564', 'Sarah Smith', 65, 'Female', 'she/her', 
+    '10548564', '10548564', 'Sarah Smith', 65, 'Female', 'she/her', 
     'Unknown', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 65-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, stress-related symptoms, limited access to healthcare, low-fiber diet, regular medical checkups.',
     'Severe abdominal pain',
@@ -1964,7 +1977,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10559181', 'CASE_10559181', 'Linda Jackson', 34, 'Female', 'she/her', 
+    '10559181', '10559181', 'Linda Jackson', 34, 'Female', 'she/her', 
     'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 34-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, high anxiety, heavy smoker, regular medical checkups.',
     'Nausea and abdominal pain',
@@ -1979,7 +1992,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10569306', 'CASE_10569306', 'Donna Moore', 65, 'Female', 'she/her', 
+    '10569306', '10569306', 'Donna Moore', 65, 'Female', 'she/her', 
     'Unknown', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 65-year-old Woman. Relevant behavioral factors include: lives alone, high anxiety, good medication adherence, ignores early abdominal pain, chronic alcohol consumption.',
     'Chronic abdominal pain',
@@ -1994,7 +2007,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10570419', 'CASE_10570419', 'Joseph Rodriguez', 54, 'Male', 'he/him', 
+    '10570419', '10570419', 'Joseph Rodriguez', 54, 'Male', 'he/him', 
     'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 54-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, irregular meal patterns, poor insight into illness, delayed hospital presentation.',
     'Nausea and abdominal pain',
@@ -2009,7 +2022,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10583974', 'CASE_10583974', 'Charles Gonzalez', 21, 'Male', 'he/him', 
+    '10583974', '10583974', 'Charles Gonzalez', 21, 'Male', 'he/him', 
     'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 21-year-old Man. Relevant behavioral factors include: good medication adherence, former smoker, ignores early abdominal pain, health anxiety, low socioeconomic status.',
     'Intermittent abdominal pain',
@@ -2024,7 +2037,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10584867', 'CASE_10584867', 'Charles Lopez', 64, 'Male', 'he/him', 
+    '10584867', '10584867', 'Charles Lopez', 64, 'Male', 'he/him', 
     'Caucasian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 64-year-old Man. Relevant behavioral factors include: physically demanding job, non-compliant with dietary restriction, irregular meal patterns, health anxiety, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -2039,7 +2052,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10584942', 'CASE_10584942', 'Robert Miller', 70, 'Male', 'he/him', 
+    '10584942', '10584942', 'Robert Miller', 70, 'Male', 'he/him', 
     'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 70-year-old Man. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, night shift worker, health anxiety, low socioeconomic status.',
     'Nausea and abdominal pain',
@@ -2054,7 +2067,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10588094', 'CASE_10588094', 'Donald Anderson', 66, 'Male', 'he/him', 
+    '10588094', '10588094', 'Donald Anderson', 66, 'Male', 'he/him', 
     'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 66-year-old Man. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, former smoker, poor insight into illness, regular medical checkups.',
     'Severe abdominal pain',
@@ -2069,7 +2082,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10590989', 'CASE_10590989', 'Nancy Martin', 22, 'Female', 'she/her', 
+    '10590989', '10590989', 'Nancy Martin', 22, 'Female', 'she/her', 
     'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 22-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, stress-related symptoms, non-compliant with dietary restriction, heavy smoker.',
     'Intermittent abdominal pain',
@@ -2084,7 +2097,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10592815', 'CASE_10592815', 'Donald Garcia', 63, 'Male', 'he/him', 
+    '10592815', '10592815', 'Donald Garcia', 63, 'Male', 'he/him', 
     'African American', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 63-year-old Man. Relevant behavioral factors include: lives alone, ignores early abdominal pain, low-fiber diet, high pain tolerance, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -2099,7 +2112,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10597796', 'CASE_10597796', 'Dorothy Jones', 33, 'Female', 'she/her', 
+    '10597796', '10597796', 'Dorothy Jones', 33, 'Female', 'she/her', 
     'Unknown', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 33-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, good medication adherence, former smoker, high pain tolerance.',
     'Nausea and abdominal pain',
@@ -2114,7 +2127,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10598999', 'CASE_10598999', 'Richard Taylor', 48, 'Male', 'he/him', 
+    '10598999', '10598999', 'Richard Taylor', 48, 'Male', 'he/him', 
     'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 48-year-old Man. Relevant behavioral factors include: high anxiety, non-compliant with dietary restriction, irregular meal patterns, regular medical checkups, limited family support.',
     'Intermittent abdominal pain',
@@ -2129,7 +2142,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10601314', 'CASE_10601314', 'Emily Anderson', 36, 'Female', 'she/her', 
+    '10601314', '10601314', 'Emily Anderson', 36, 'Female', 'she/her', 
     'African American', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 36-year-old Woman. Relevant behavioral factors include: low pain tolerance, ignores early abdominal pain, low socioeconomic status, regular medical checkups, social smoker.',
     'Intermittent abdominal pain',
@@ -2144,7 +2157,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10610402', 'CASE_10610402', 'William Moore', 19, 'Male', 'he/him', 
+    '10610402', '10610402', 'William Moore', 19, 'Male', 'he/him', 
     'Unknown', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 19-year-old Man. Relevant behavioral factors include: continues eating despite nausea, former smoker, health anxiety, delayed hospital presentation, limited family support.',
     'Nausea and abdominal pain',
@@ -2159,7 +2172,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10611684', 'CASE_10611684', 'Ashley Anderson', 30, 'Female', 'she/her', 
+    '10611684', '10611684', 'Ashley Anderson', 30, 'Female', 'she/her', 
     'Asian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 30-year-old Woman. Relevant behavioral factors include: high-fat diet, delays seeking surgical consultation, low pain tolerance, regular medical checkups, limited family support.',
     'Chronic abdominal pain',
@@ -2174,7 +2187,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10623883', 'CASE_10623883', 'Jessica Brown', 28, 'Female', 'she/her', 
+    '10623883', '10623883', 'Jessica Brown', 28, 'Female', 'she/her', 
     'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 28-year-old Woman. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, physically demanding job, health anxiety, low-fiber diet.',
     'Severe abdominal pain',
@@ -2189,7 +2202,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10624168', 'CASE_10624168', 'Ashley Martinez', 44, 'Female', 'she/her', 
+    '10624168', '10624168', 'Ashley Martinez', 44, 'Female', 'she/her', 
     'Asian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 44-year-old Woman. Relevant behavioral factors include: high-fat diet, limited access to healthcare, delays seeking surgical consultation, frequent emergency department visits, low pain tolerance.',
     'Chronic abdominal pain',
@@ -2204,7 +2217,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10625923', 'CASE_10625923', 'Jessica Martinez', 69, 'Female', 'she/her', 
+    '10625923', '10625923', 'Jessica Martinez', 69, 'Female', 'she/her', 
     'Caucasian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 69-year-old Woman. Relevant behavioral factors include: high work-related stress, ignores early abdominal pain, chronic alcohol consumption, frequent emergency department visits, poor insight into illness.',
     'Chronic abdominal pain',
@@ -2219,7 +2232,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10629801', 'CASE_10629801', 'Dorothy Johnson', 43, 'Female', 'she/her', 
+    '10629801', '10629801', 'Dorothy Johnson', 43, 'Female', 'she/her', 
     'Asian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 43-year-old Woman. Relevant behavioral factors include: avoids medical care, depressive mood, non-compliant with dietary restriction, low-fiber diet, low socioeconomic status.',
     'Intermittent abdominal pain',
@@ -2234,7 +2247,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10633573', 'CASE_10633573', 'Mary Gonzalez', 25, 'Female', 'she/her', 
+    '10633573', '10633573', 'Mary Gonzalez', 25, 'Female', 'she/her', 
     'Hispanic', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 25-year-old Woman. Relevant behavioral factors include: lives alone, self-medication, non-compliant with dietary restriction, heavy smoker, low pain tolerance.',
     'Intermittent abdominal pain',
@@ -2249,7 +2262,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10648030', 'CASE_10648030', 'Emily Taylor', 41, 'Female', 'she/her', 
+    '10648030', '10648030', 'Emily Taylor', 41, 'Female', 'she/her', 
     'African American', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 41-year-old Woman. Relevant behavioral factors include: high anxiety, sedentary lifestyle, limited access to healthcare, delays seeking surgical consultation, regular medical checkups.',
     'Chronic abdominal pain',
@@ -2264,7 +2277,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10652831', 'CASE_10652831', 'Dorothy Jones', 19, 'Female', 'she/her', 
+    '10652831', '10652831', 'Dorothy Jones', 19, 'Female', 'she/her', 
     'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 19-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, binge drinking, low pain tolerance, limited family support.',
     'Nausea and abdominal pain',
@@ -2279,7 +2292,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10653798', 'CASE_10653798', 'John Wilson', 76, 'Male', 'he/him', 
+    '10653798', '10653798', 'John Wilson', 76, 'Male', 'he/him', 
     'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 76-year-old Man. Relevant behavioral factors include: poor insight into illness, good medication adherence, former smoker, ignores early abdominal pain, low socioeconomic status.',
     'Intermittent abdominal pain',
@@ -2294,7 +2307,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10653951', 'CASE_10653951', 'Charles Lopez', 29, 'Male', 'he/him', 
+    '10653951', '10653951', 'Charles Lopez', 29, 'Male', 'he/him', 
     'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 29-year-old Man. Relevant behavioral factors include: good medication adherence, stress-related symptoms, delays seeking surgical consultation, binge drinking, limited family support.',
     'Chronic abdominal pain',
@@ -2309,7 +2322,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10656270', 'CASE_10656270', 'John Jackson', 66, 'Male', 'he/him', 
+    '10656270', '10656270', 'John Jackson', 66, 'Male', 'he/him', 
     'African American', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 66-year-old Man. Relevant behavioral factors include: high work-related stress, ignores early abdominal pain, irregular meal patterns, poor insight into illness, regular medical checkups.',
     'Intermittent abdominal pain',
@@ -2324,7 +2337,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10666123', 'CASE_10666123', 'Lisa Martinez', 49, 'Female', 'she/her', 
+    '10666123', '10666123', 'Lisa Martinez', 49, 'Female', 'she/her', 
     'African American', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 49-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, stress-related symptoms, irregular meal patterns, poor medication adherence.',
     'Nausea and abdominal pain',
@@ -2339,7 +2352,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10669036', 'CASE_10669036', 'Emily Wilson', 65, 'Female', 'she/her', 
+    '10669036', '10669036', 'Emily Wilson', 65, 'Female', 'she/her', 
     'Asian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 65-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, lives alone, sedentary lifestyle, low pain tolerance.',
     'Nausea and abdominal pain',
@@ -2354,7 +2367,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10669544', 'CASE_10669544', 'Daniel Taylor', 19, 'Male', 'he/him', 
+    '10669544', '10669544', 'Daniel Taylor', 19, 'Male', 'he/him', 
     'Caucasian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 19-year-old Man. Relevant behavioral factors include: avoids medical care, ignores early abdominal pain, limited access to healthcare, irregular meal patterns, low pain tolerance.',
     'Intermittent abdominal pain',
@@ -2369,7 +2382,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10670966', 'CASE_10670966', 'Linda Gonzalez', 46, 'Female', 'she/her', 
+    '10670966', '10670966', 'Linda Gonzalez', 46, 'Female', 'she/her', 
     'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 46-year-old Woman. Relevant behavioral factors include: physically demanding job, delays seeking surgical consultation, high pain tolerance, binge drinking, regular medical checkups.',
     'Chronic abdominal pain',
@@ -2384,7 +2397,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10676503', 'CASE_10676503', 'Kimberly Lopez', 25, 'Female', 'she/her', 
+    '10676503', '10676503', 'Kimberly Lopez', 25, 'Female', 'she/her', 
     'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 25-year-old Woman. Relevant behavioral factors include: former smoker, ignores early abdominal pain, high pain tolerance, regular medical checkups, limited family support.',
     'Intermittent abdominal pain',
@@ -2399,7 +2412,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10677644', 'CASE_10677644', 'Thomas Taylor', 54, 'Male', 'he/him', 
+    '10677644', '10677644', 'Thomas Taylor', 54, 'Male', 'he/him', 
     'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 54-year-old Man. Relevant behavioral factors include: high anxiety, sedentary lifestyle, non-compliant with dietary restriction, delayed hospital presentation, limited family support.',
     'Chronic abdominal pain',
@@ -2414,7 +2427,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10681550', 'CASE_10681550', 'Mary Taylor', 68, 'Female', 'she/her', 
+    '10681550', '10681550', 'Mary Taylor', 68, 'Female', 'she/her', 
     'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 68-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, depressive mood, good medication adherence, chronic alcohol consumption.',
     'Nausea and abdominal pain',
@@ -2429,7 +2442,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10683389', 'CASE_10683389', 'Margaret Martin', 61, 'Female', 'she/her', 
+    '10683389', '10683389', 'Margaret Martin', 61, 'Female', 'she/her', 
     'Unknown', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 61-year-old Woman. Relevant behavioral factors include: high work-related stress, depressive mood, irregular meal patterns, delays seeking surgical consultation, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -2444,7 +2457,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10687335', 'CASE_10687335', 'Charles Rodriguez', 45, 'Male', 'he/him', 
+    '10687335', '10687335', 'Charles Rodriguez', 45, 'Male', 'he/him', 
     'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 45-year-old Man. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, high anxiety, physically active, limited family support.',
     'Severe abdominal pain',
@@ -2459,7 +2472,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10689830', 'CASE_10689830', 'Thomas Taylor', 69, 'Male', 'he/him', 
+    '10689830', '10689830', 'Thomas Taylor', 69, 'Male', 'he/him', 
     'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 69-year-old Man. Relevant behavioral factors include: high-fat diet, ignores early abdominal pain, low socioeconomic status, frequent emergency department visits, low pain tolerance.',
     'Intermittent abdominal pain',
@@ -2474,7 +2487,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10694432', 'CASE_10694432', 'Daniel Lopez', 21, 'Male', 'he/him', 
+    '10694432', '10694432', 'Daniel Lopez', 21, 'Male', 'he/him', 
     'Caucasian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 21-year-old Man. Relevant behavioral factors include: high pain tolerance, delays seeking surgical consultation, low-fiber diet, frequent emergency department visits, limited family support.',
     'Chronic abdominal pain',
@@ -2489,7 +2502,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10699377', 'CASE_10699377', 'Joseph Wilson', 75, 'Male', 'he/him', 
+    '10699377', '10699377', 'Joseph Wilson', 75, 'Male', 'he/him', 
     'Asian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 75-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high-fat diet, limited access to healthcare, health anxiety, regular medical checkups.',
     'Severe abdominal pain',
@@ -2504,7 +2517,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10700979', 'CASE_10700979', 'Thomas Garcia', 19, 'Male', 'he/him', 
+    '10700979', '10700979', 'Thomas Garcia', 19, 'Male', 'he/him', 
     'Unknown', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 19-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, high-fat diet, poor medication adherence, poor insight into illness.',
     'Nausea and abdominal pain',
@@ -2519,7 +2532,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10703209', 'CASE_10703209', 'Jessica Johnson', 21, 'Female', 'she/her', 
+    '10703209', '10703209', 'Jessica Johnson', 21, 'Female', 'she/her', 
     'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 21-year-old Woman. Relevant behavioral factors include: good medication adherence, ignores early abdominal pain, limited access to healthcare, chronic alcohol consumption, high pain tolerance.',
     'Chronic abdominal pain',
@@ -2534,7 +2547,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10703784', 'CASE_10703784', 'Anthony Brown', 88, 'Male', 'he/him', 
+    '10703784', '10703784', 'Anthony Brown', 88, 'Male', 'he/him', 
     'Asian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 88-year-old Man. Relevant behavioral factors include: avoids medical care, physically demanding job, high anxiety, ignores early abdominal pain, heavy smoker.',
     'Intermittent abdominal pain',
@@ -2549,7 +2562,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10707726', 'CASE_10707726', 'Joseph Jackson', 28, 'Male', 'he/him', 
+    '10707726', '10707726', 'Joseph Jackson', 28, 'Male', 'he/him', 
     'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 28-year-old Man. Relevant behavioral factors include: avoids medical care, night shift worker, ignores early abdominal pain, health anxiety, limited family support.',
     'Intermittent abdominal pain',
@@ -2564,7 +2577,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10711330', 'CASE_10711330', 'William Garcia', 40, 'Male', 'he/him', 
+    '10711330', '10711330', 'William Garcia', 40, 'Male', 'he/him', 
     'Asian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 40-year-old Man. Relevant behavioral factors include: avoids medical care, high-fat diet, stress-related symptoms, non-compliant with dietary restriction, limited family support.',
     'Intermittent abdominal pain',
@@ -2579,7 +2592,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10717708', 'CASE_10717708', 'Thomas Williams', 42, 'Male', 'he/him', 
+    '10717708', '10717708', 'Thomas Williams', 42, 'Male', 'he/him', 
     'Caucasian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 42-year-old Man. Relevant behavioral factors include: uses painkillers excessively, lives alone, good medication adherence, stress-related symptoms, chronic alcohol consumption.',
     'Chronic abdominal pain',
@@ -2594,7 +2607,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10723288', 'CASE_10723288', 'Susan Wilson', 22, 'Female', 'she/her', 
+    '10723288', '10723288', 'Susan Wilson', 22, 'Female', 'she/her', 
     'Caucasian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 22-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, irregular meal patterns, health anxiety, poor medication adherence.',
     'Nausea and abdominal pain',
@@ -2609,7 +2622,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10727986', 'CASE_10727986', 'Richard Martin', 58, 'Male', 'he/him', 
+    '10727986', '10727986', 'Richard Martin', 58, 'Male', 'he/him', 
     'Asian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 58-year-old Man. Relevant behavioral factors include: continues eating despite nausea, health anxiety, low-fiber diet, low socioeconomic status, delayed hospital presentation.',
     'Nausea and abdominal pain',
@@ -2624,7 +2637,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10734159', 'CASE_10734159', 'Dorothy Wilson', 86, 'Female', 'she/her', 
+    '10734159', '10734159', 'Dorothy Wilson', 86, 'Female', 'she/her', 
     'Asian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 86-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, high anxiety, low socioeconomic status, social smoker.',
     'Nausea and abdominal pain',
@@ -2639,7 +2652,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10736128', 'CASE_10736128', 'Linda Johnson', 33, 'Female', 'she/her', 
+    '10736128', '10736128', 'Linda Johnson', 33, 'Female', 'she/her', 
     'Asian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 33-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, physically demanding job, chronic alcohol consumption, poor insight into illness.',
     'Nausea and abdominal pain',
@@ -2654,7 +2667,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10738224', 'CASE_10738224', 'Emily Johnson', 42, 'Female', 'she/her', 
+    '10738224', '10738224', 'Emily Johnson', 42, 'Female', 'she/her', 
     'Asian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 42-year-old Woman. Relevant behavioral factors include: stress-related symptoms, limited access to healthcare, irregular meal patterns, non-compliant with dietary restriction, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -2669,7 +2682,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10743310', 'CASE_10743310', 'Ashley Garcia', 39, 'Female', 'she/her', 
+    '10743310', '10743310', 'Ashley Garcia', 39, 'Female', 'she/her', 
     'African American', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 39-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, self-medication, high pain tolerance, physically active, limited family support.',
     'Severe abdominal pain',
@@ -2684,7 +2697,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10743605', 'CASE_10743605', 'Jessica Miller', 45, 'Female', 'she/her', 
+    '10743605', '10743605', 'Jessica Miller', 45, 'Female', 'she/her', 
     'Caucasian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 45-year-old Woman. Relevant behavioral factors include: avoids medical care, depressive mood, ignores early abdominal pain, limited access to healthcare, binge drinking.',
     'Intermittent abdominal pain',
@@ -2699,7 +2712,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10745469', 'CASE_10745469', 'Thomas Brown', 65, 'Male', 'he/him', 
+    '10745469', '10745469', 'Thomas Brown', 65, 'Male', 'he/him', 
     'Caucasian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 65-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high pain tolerance, frequent emergency department visits, physically active, low socioeconomic status.',
     'Severe abdominal pain',
@@ -2714,7 +2727,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10748922', 'CASE_10748922', 'Daniel Hernandez', 34, 'Male', 'he/him', 
+    '10748922', '10748922', 'Daniel Hernandez', 34, 'Male', 'he/him', 
     'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 34-year-old Man. Relevant behavioral factors include: poor insight into illness, high-fat diet, ignores early abdominal pain, low socioeconomic status, regular medical checkups.',
     'Intermittent abdominal pain',
@@ -2729,7 +2742,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10748951', 'CASE_10748951', 'Susan Thomas', 62, 'Female', 'she/her', 
+    '10748951', '10748951', 'Susan Thomas', 62, 'Female', 'she/her', 
     'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 62-year-old Woman. Relevant behavioral factors include: high anxiety, good medication adherence, irregular meal patterns, delays seeking surgical consultation, low socioeconomic status.',
     'Chronic abdominal pain',
@@ -2744,7 +2757,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10749568', 'CASE_10749568', 'Robert Miller', 59, 'Male', 'he/him', 
+    '10749568', '10749568', 'Robert Miller', 59, 'Male', 'he/him', 
     'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 59-year-old Man. Relevant behavioral factors include: good medication adherence, limited access to healthcare, delays seeking surgical consultation, high pain tolerance, heavy smoker.',
     'Chronic abdominal pain',
@@ -2759,7 +2772,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10754113', 'CASE_10754113', 'Joseph Jackson', 37, 'Male', 'he/him', 
+    '10754113', '10754113', 'Joseph Jackson', 37, 'Male', 'he/him', 
     'African American', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 37-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high anxiety, self-medication, limited access to healthcare, physically active.',
     'Severe abdominal pain',
@@ -2774,7 +2787,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10756982', 'CASE_10756982', 'Richard Davis', 37, 'Male', 'he/him', 
+    '10756982', '10756982', 'Richard Davis', 37, 'Male', 'he/him', 
     'Unknown', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 37-year-old Man. Relevant behavioral factors include: avoids medical care, sedentary lifestyle, health anxiety, delays seeking surgical consultation, low socioeconomic status.',
     'Chronic abdominal pain',
@@ -2789,7 +2802,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10758777', 'CASE_10758777', 'Margaret Johnson', 72, 'Female', 'she/her', 
+    '10758777', '10758777', 'Margaret Johnson', 72, 'Female', 'she/her', 
     'African American', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 72-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, limited access to healthcare, health anxiety, low-fiber diet, frequent emergency department visits.',
     'Severe abdominal pain',
@@ -2804,7 +2817,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10760019', 'CASE_10760019', 'Emily Jones', 19, 'Female', 'she/her', 
+    '10760019', '10760019', 'Emily Jones', 19, 'Female', 'she/her', 
     'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 19-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, high anxiety, high-fat diet, poor medication adherence.',
     'Severe abdominal pain',
@@ -2819,7 +2832,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10762875', 'CASE_10762875', 'Christopher Hernandez', 47, 'Male', 'he/him', 
+    '10762875', '10762875', 'Christopher Hernandez', 47, 'Male', 'he/him', 
     'Caucasian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 47-year-old Man. Relevant behavioral factors include: uses painkillers excessively, poor insight into illness, sedentary lifestyle, self-medication, low socioeconomic status.',
     'Severe abdominal pain',
@@ -2834,7 +2847,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10769030', 'CASE_10769030', 'Dorothy Thomas', 61, 'Female', 'she/her', 
+    '10769030', '10769030', 'Dorothy Thomas', 61, 'Female', 'she/her', 
     'African American', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 61-year-old Woman. Relevant behavioral factors include: former smoker, health anxiety, delays seeking surgical consultation, delayed hospital presentation, limited family support.',
     'Chronic abdominal pain',
@@ -2849,7 +2862,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10778867', 'CASE_10778867', 'Joseph Wilson', 52, 'Male', 'he/him', 
+    '10778867', '10778867', 'Joseph Wilson', 52, 'Male', 'he/him', 
     'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 52-year-old Man. Relevant behavioral factors include: physically demanding job, delays seeking surgical consultation, high pain tolerance, frequent emergency department visits, binge drinking.',
     'Chronic abdominal pain',
@@ -2864,7 +2877,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10781847', 'CASE_10781847', 'Michael Wilson', 30, 'Male', 'he/him', 
+    '10781847', '10781847', 'Michael Wilson', 30, 'Male', 'he/him', 
     'Hispanic', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 30-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high-fat diet, low socioeconomic status, poor medication adherence, poor insight into illness.',
     'Severe abdominal pain',
@@ -2879,7 +2892,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10783366', 'CASE_10783366', 'Sandra Jones', 43, 'Female', 'she/her', 
+    '10783366', '10783366', 'Sandra Jones', 43, 'Female', 'she/her', 
     'African American', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 43-year-old Woman. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, physically demanding job, depressive mood, physically active.',
     'Severe abdominal pain',
@@ -2894,7 +2907,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10785348', 'CASE_10785348', 'Margaret Brown', 33, 'Female', 'she/her', 
+    '10785348', '10785348', 'Margaret Brown', 33, 'Female', 'she/her', 
     'Unknown', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 33-year-old Woman. Relevant behavioral factors include: sedentary lifestyle, ignores early abdominal pain, high pain tolerance, low socioeconomic status, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -2909,7 +2922,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10786656', 'CASE_10786656', 'Susan Thomas', 75, 'Female', 'she/her', 
+    '10786656', '10786656', 'Susan Thomas', 75, 'Female', 'she/her', 
     'African American', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 75-year-old Woman. Relevant behavioral factors include: stress-related symptoms, ignores early abdominal pain, self-medication, chronic alcohol consumption, limited family support.',
     'Chronic abdominal pain',
@@ -2924,7 +2937,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10797056', 'CASE_10797056', 'Margaret Martin', 53, 'Female', 'she/her', 
+    '10797056', '10797056', 'Margaret Martin', 53, 'Female', 'she/her', 
     'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 53-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, high anxiety, chronic alcohol consumption, low socioeconomic status.',
     'Nausea and abdominal pain',
@@ -2939,7 +2952,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10798215', 'CASE_10798215', 'Lisa Thomas', 36, 'Female', 'she/her', 
+    '10798215', '10798215', 'Lisa Thomas', 36, 'Female', 'she/her', 
     'African American', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 36-year-old Woman. Relevant behavioral factors include: high work-related stress, ignores early abdominal pain, self-medication, physically active, poor insight into illness.',
     'Intermittent abdominal pain',
@@ -2954,7 +2967,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10811759', 'CASE_10811759', 'Mark Anderson', 31, 'Male', 'he/him', 
+    '10811759', '10811759', 'Mark Anderson', 31, 'Male', 'he/him', 
     'Caucasian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 31-year-old Man. Relevant behavioral factors include: continues eating despite nausea, lives alone, poor medication adherence, physically active, low pain tolerance.',
     'Nausea and abdominal pain',
@@ -2969,7 +2982,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10819799', 'CASE_10819799', 'William Davis', 76, 'Male', 'he/him', 
+    '10819799', '10819799', 'William Davis', 76, 'Male', 'he/him', 
     'Caucasian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 76-year-old Man. Relevant behavioral factors include: lives alone, depressive mood, self-medication, non-compliant with dietary restriction, heavy smoker.',
     'Intermittent abdominal pain',
@@ -2984,7 +2997,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10822797', 'CASE_10822797', 'Dorothy Jones', 71, 'Female', 'she/her', 
+    '10822797', '10822797', 'Dorothy Jones', 71, 'Female', 'she/her', 
     'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 71-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, poor insight into illness, physically active, low socioeconomic status, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -2999,7 +3012,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10823946', 'CASE_10823946', 'Karen Anderson', 86, 'Female', 'she/her', 
+    '10823946', '10823946', 'Karen Anderson', 86, 'Female', 'she/her', 
     'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 86-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, low pain tolerance, irregular meal patterns, low socioeconomic status, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -3014,7 +3027,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10825180', 'CASE_10825180', 'Christopher Lopez', 67, 'Male', 'he/him', 
+    '10825180', '10825180', 'Christopher Lopez', 67, 'Male', 'he/him', 
     'Asian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 67-year-old Man. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, frequent emergency department visits, heavy smoker, low pain tolerance.',
     'Severe abdominal pain',
@@ -3029,7 +3042,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10829493', 'CASE_10829493', 'Matthew Smith', 72, 'Male', 'he/him', 
+    '10829493', '10829493', 'Matthew Smith', 72, 'Male', 'he/him', 
     'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 72-year-old Man. Relevant behavioral factors include: lives alone, depressive mood, ignores early abdominal pain, poor medication adherence, heavy smoker.',
     'Intermittent abdominal pain',
@@ -3044,7 +3057,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10830214', 'CASE_10830214', 'Mark Garcia', 58, 'Male', 'he/him', 
+    '10830214', '10830214', 'Mark Garcia', 58, 'Male', 'he/him', 
     'Asian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 58-year-old Man. Relevant behavioral factors include: high-fat diet, limited access to healthcare, non-compliant with dietary restriction, frequent emergency department visits, poor insight into illness.',
     'Intermittent abdominal pain',
@@ -3059,7 +3072,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10830359', 'CASE_10830359', 'Emily Martinez', 53, 'Female', 'she/her', 
+    '10830359', '10830359', 'Emily Martinez', 53, 'Female', 'she/her', 
     'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 53-year-old Woman. Relevant behavioral factors include: physically demanding job, sedentary lifestyle, self-medication, non-compliant with dietary restriction, low pain tolerance.',
     'Intermittent abdominal pain',
@@ -3074,7 +3087,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10833304', 'CASE_10833304', 'Ashley Wilson', 62, 'Female', 'she/her', 
+    '10833304', '10833304', 'Ashley Wilson', 62, 'Female', 'she/her', 
     'Caucasian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 62-year-old Woman. Relevant behavioral factors include: lives alone, ignores early abdominal pain, high pain tolerance, frequent emergency department visits, binge drinking.',
     'Intermittent abdominal pain',
@@ -3089,7 +3102,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10833331', 'CASE_10833331', 'Christopher Moore', 20, 'Male', 'he/him', 
+    '10833331', '10833331', 'Christopher Moore', 20, 'Male', 'he/him', 
     'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 20-year-old Man. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, night shift worker, poor insight into illness, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -3104,7 +3117,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10835235', 'CASE_10835235', 'Lisa Garcia', 43, 'Female', 'she/her', 
+    '10835235', '10835235', 'Lisa Garcia', 43, 'Female', 'she/her', 
     'Caucasian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 43-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, poor insight into illness, regular medical checkups, social smoker.',
     'Nausea and abdominal pain',
@@ -3119,7 +3132,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10836349', 'CASE_10836349', 'Emily Brown', 43, 'Female', 'she/her', 
+    '10836349', '10836349', 'Emily Brown', 43, 'Female', 'she/her', 
     'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 43-year-old Woman. Relevant behavioral factors include: physically demanding job, self-medication, irregular meal patterns, non-compliant with dietary restriction, poor insight into illness.',
     'Intermittent abdominal pain',
@@ -3134,7 +3147,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10840520', 'CASE_10840520', 'Michael Garcia', 40, 'Male', 'he/him', 
+    '10840520', '10840520', 'Michael Garcia', 40, 'Male', 'he/him', 
     'Asian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 40-year-old Man. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, former smoker, high pain tolerance, limited family support.',
     'Severe abdominal pain',
@@ -3149,7 +3162,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10859519', 'CASE_10859519', 'Michael Brown', 40, 'Male', 'he/him', 
+    '10859519', '10859519', 'Michael Brown', 40, 'Male', 'he/him', 
     'Caucasian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 40-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, high anxiety, former smoker, self-medication.',
     'Nausea and abdominal pain',
@@ -3164,7 +3177,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10864816', 'CASE_10864816', 'Christopher Gonzalez', 46, 'Male', 'he/him', 
+    '10864816', '10864816', 'Christopher Gonzalez', 46, 'Male', 'he/him', 
     'Caucasian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 46-year-old Man. Relevant behavioral factors include: physically demanding job, non-compliant with dietary restriction, high pain tolerance, binge drinking, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -3179,7 +3192,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10874066', 'CASE_10874066', 'Karen Martinez', 53, 'Female', 'she/her', 
+    '10874066', '10874066', 'Karen Martinez', 53, 'Female', 'she/her', 
     'Caucasian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 53-year-old Woman. Relevant behavioral factors include: physically demanding job, non-compliant with dietary restriction, high pain tolerance, regular medical checkups, social smoker.',
     'Intermittent abdominal pain',
@@ -3194,7 +3207,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10875474', 'CASE_10875474', 'Dorothy Anderson', 23, 'Female', 'she/her', 
+    '10875474', '10875474', 'Dorothy Anderson', 23, 'Female', 'she/her', 
     'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 23-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, night shift worker, high pain tolerance, frequent emergency department visits, limited family support.',
     'Severe abdominal pain',
@@ -3209,7 +3222,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10875567', 'CASE_10875567', 'Sandra Davis', 38, 'Female', 'she/her', 
+    '10875567', '10875567', 'Sandra Davis', 38, 'Female', 'she/her', 
     'African American', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 38-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, uses painkillers excessively, depressive mood, social smoker.',
     'Severe abdominal pain',
@@ -3224,7 +3237,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10877914', 'CASE_10877914', 'Sandra Smith', 65, 'Female', 'she/her', 
+    '10877914', '10877914', 'Sandra Smith', 65, 'Female', 'she/her', 
     'Caucasian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 65-year-old Woman. Relevant behavioral factors include: poor insight into illness, sedentary lifestyle, self-medication, non-compliant with dietary restriction, low socioeconomic status.',
     'Intermittent abdominal pain',
@@ -3239,7 +3252,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10880579', 'CASE_10880579', 'Linda Miller', 57, 'Female', 'she/her', 
+    '10880579', '10880579', 'Linda Miller', 57, 'Female', 'she/her', 
     'Unknown', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 57-year-old Woman. Relevant behavioral factors include: high anxiety, lives alone, sedentary lifestyle, self-medication, non-compliant with dietary restriction.',
     'Intermittent abdominal pain',
@@ -3254,7 +3267,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10881070', 'CASE_10881070', 'Sandra Martin', 37, 'Female', 'she/her', 
+    '10881070', '10881070', 'Sandra Martin', 37, 'Female', 'she/her', 
     'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 37-year-old Woman. Relevant behavioral factors include: stress-related symptoms, ignores early abdominal pain, physically active, low socioeconomic status, regular medical checkups.',
     'Intermittent abdominal pain',
@@ -3269,7 +3282,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10885949', 'CASE_10885949', 'David Rodriguez', 29, 'Male', 'he/him', 
+    '10885949', '10885949', 'David Rodriguez', 29, 'Male', 'he/him', 
     'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 29-year-old Man. Relevant behavioral factors include: non-compliant with dietary restriction, irregular meal patterns, health anxiety, frequent emergency department visits, limited family support.',
     'Intermittent abdominal pain',
@@ -3284,7 +3297,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10888963', 'CASE_10888963', 'Linda Taylor', 59, 'Female', 'she/her', 
+    '10888963', '10888963', 'Linda Taylor', 59, 'Female', 'she/her', 
     'Caucasian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 59-year-old Woman. Relevant behavioral factors include: stress-related symptoms, sedentary lifestyle, limited access to healthcare, delays seeking surgical consultation, frequent emergency department visits.',
     'Chronic abdominal pain',
@@ -3299,7 +3312,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10892159', 'CASE_10892159', 'Mary Jones', 61, 'Female', 'she/her', 
+    '10892159', '10892159', 'Mary Jones', 61, 'Female', 'she/her', 
     'Unknown', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 61-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, depressive mood, poor medication adherence, low socioeconomic status, social smoker.',
     'Severe abdominal pain',
@@ -3314,7 +3327,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10895299', 'CASE_10895299', 'Jessica Rodriguez', 53, 'Female', 'she/her', 
+    '10895299', '10895299', 'Jessica Rodriguez', 53, 'Female', 'she/her', 
     'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 53-year-old Woman. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, night shift worker, lives alone, health anxiety.',
     'Severe abdominal pain',
@@ -3329,7 +3342,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10898075', 'CASE_10898075', 'Richard Martin', 47, 'Male', 'he/him', 
+    '10898075', '10898075', 'Richard Martin', 47, 'Male', 'he/him', 
     'African American', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 47-year-old Man. Relevant behavioral factors include: stress-related symptoms, non-compliant with dietary restriction, physically active, low socioeconomic status, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -3344,7 +3357,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10902160', 'CASE_10902160', 'Mary Johnson', 64, 'Female', 'she/her', 
+    '10902160', '10902160', 'Mary Johnson', 64, 'Female', 'she/her', 
     'Caucasian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 64-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high-fat diet, depressive mood, frequent emergency department visits, limited family support.',
     'Severe abdominal pain',
@@ -3359,7 +3372,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10904016', 'CASE_10904016', 'Richard Martin', 60, 'Male', 'he/him', 
+    '10904016', '10904016', 'Richard Martin', 60, 'Male', 'he/him', 
     'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 60-year-old Man. Relevant behavioral factors include: high-fat diet, stress-related symptoms, ignores early abdominal pain, limited access to healthcare, regular medical checkups.',
     'Intermittent abdominal pain',
@@ -3374,7 +3387,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10905906', 'CASE_10905906', 'William Anderson', 78, 'Male', 'he/him', 
+    '10905906', '10905906', 'William Anderson', 78, 'Male', 'he/him', 
     'Unknown', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 78-year-old Man. Relevant behavioral factors include: lives alone, depressive mood, good medication adherence, irregular meal patterns, non-compliant with dietary restriction.',
     'Intermittent abdominal pain',
@@ -3389,7 +3402,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10922167', 'CASE_10922167', 'Emily Jackson', 30, 'Female', 'she/her', 
+    '10922167', '10922167', 'Emily Jackson', 30, 'Female', 'she/her', 
     'Asian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 30-year-old Woman. Relevant behavioral factors include: lives alone, depressive mood, poor medication adherence, delays seeking surgical consultation, low-fiber diet.',
     'Chronic abdominal pain',
@@ -3404,7 +3417,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10926193', 'CASE_10926193', 'Sandra Taylor', 42, 'Female', 'she/her', 
+    '10926193', '10926193', 'Sandra Taylor', 42, 'Female', 'she/her', 
     'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 42-year-old Woman. Relevant behavioral factors include: lives alone, non-compliant with dietary restriction, frequent emergency department visits, binge drinking, poor insight into illness.',
     'Intermittent abdominal pain',
@@ -3419,7 +3432,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10943161', 'CASE_10943161', 'Karen Davis', 22, 'Female', 'she/her', 
+    '10943161', '10943161', 'Karen Davis', 22, 'Female', 'she/her', 
     'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 22-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, health anxiety, chronic alcohol consumption, frequent emergency department visits.',
     'Nausea and abdominal pain',
@@ -3434,7 +3447,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10956159', 'CASE_10956159', 'Sarah Thomas', 27, 'Female', 'she/her', 
+    '10956159', '10956159', 'Sarah Thomas', 27, 'Female', 'she/her', 
     'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 27-year-old Woman. Relevant behavioral factors include: limited access to healthcare, health anxiety, delays seeking surgical consultation, heavy smoker, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -3449,7 +3462,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10958256', 'CASE_10958256', 'Donna Smith', 43, 'Female', 'she/her', 
+    '10958256', '10958256', 'Donna Smith', 43, 'Female', 'she/her', 
     'Asian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 43-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, stress-related symptoms, chronic alcohol consumption, delayed hospital presentation, limited family support.',
     'Nausea and abdominal pain',
@@ -3464,7 +3477,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10958320', 'CASE_10958320', 'Linda Martinez', 20, 'Female', 'she/her', 
+    '10958320', '10958320', 'Linda Martinez', 20, 'Female', 'she/her', 
     'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 20-year-old Woman. Relevant behavioral factors include: avoids medical care, depressive mood, limited access to healthcare, non-compliant with dietary restriction, chronic alcohol consumption.',
     'Chronic abdominal pain',
@@ -3479,7 +3492,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10963257', 'CASE_10963257', 'Kimberly Miller', 50, 'Female', 'she/her', 
+    '10963257', '10963257', 'Kimberly Miller', 50, 'Female', 'she/her', 
     'Asian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 50-year-old Woman. Relevant behavioral factors include: high work-related stress, depressive mood, poor medication adherence, delays seeking surgical consultation, low-fiber diet.',
     'Chronic abdominal pain',
@@ -3494,7 +3507,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10964841', 'CASE_10964841', 'Susan Miller', 28, 'Female', 'she/her', 
+    '10964841', '10964841', 'Susan Miller', 28, 'Female', 'she/her', 
     'Hispanic', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 28-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, non-compliant with dietary restriction, high pain tolerance, binge drinking.',
     'Intermittent abdominal pain',
@@ -3509,7 +3522,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10965294', 'CASE_10965294', 'Thomas Smith', 21, 'Male', 'he/him', 
+    '10965294', '10965294', 'Thomas Smith', 21, 'Male', 'he/him', 
     'Unknown', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 21-year-old Man. Relevant behavioral factors include: lives alone, ignores early abdominal pain, poor medication adherence, health anxiety, chronic alcohol consumption.',
     'Chronic abdominal pain',
@@ -3524,7 +3537,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10965345', 'CASE_10965345', 'Robert Brown', 51, 'Male', 'he/him', 
+    '10965345', '10965345', 'Robert Brown', 51, 'Male', 'he/him', 
     'Asian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 51-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, uses painkillers excessively, depressive mood, heavy smoker.',
     'Severe abdominal pain',
@@ -3539,7 +3552,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10968286', 'CASE_10968286', 'John Martinez', 50, 'Male', 'he/him', 
+    '10968286', '10968286', 'John Martinez', 50, 'Male', 'he/him', 
     'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 50-year-old Man. Relevant behavioral factors include: high anxiety, self-medication, delays seeking surgical consultation, heavy smoker, limited family support.',
     'Chronic abdominal pain',
@@ -3554,7 +3567,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10983866', 'CASE_10983866', 'Robert Brown', 79, 'Male', 'he/him', 
+    '10983866', '10983866', 'Robert Brown', 79, 'Male', 'he/him', 
     'Hispanic', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 79-year-old Man. Relevant behavioral factors include: high work-related stress, depressive mood, ignores early abdominal pain, self-medication, chronic alcohol consumption.',
     'Chronic abdominal pain',
@@ -3569,7 +3582,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10984267', 'CASE_10984267', 'Lisa Davis', 28, 'Female', 'she/her', 
+    '10984267', '10984267', 'Lisa Davis', 28, 'Female', 'she/her', 
     'Hispanic', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 28-year-old Woman. Relevant behavioral factors include: physically demanding job, ignores early abdominal pain, high pain tolerance, binge drinking, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -3584,7 +3597,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10986405', 'CASE_10986405', 'Susan Jones', 29, 'Female', 'she/her', 
+    '10986405', '10986405', 'Susan Jones', 29, 'Female', 'she/her', 
     'Asian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 29-year-old Woman. Relevant behavioral factors include: high anxiety, lives alone, good medication adherence, former smoker, delays seeking surgical consultation.',
     'Chronic abdominal pain',
@@ -3599,7 +3612,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10994390', 'CASE_10994390', 'Linda Wilson', 24, 'Female', 'she/her', 
+    '10994390', '10994390', 'Linda Wilson', 24, 'Female', 'she/her', 
     'Unknown', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 24-year-old Woman. Relevant behavioral factors include: high work-related stress, former smoker, stress-related symptoms, non-compliant with dietary restriction, frequent emergency department visits.',
     'Intermittent abdominal pain',
@@ -3614,7 +3627,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10997457', 'CASE_10997457', 'Charles Hernandez', 23, 'Male', 'he/him', 
+    '10997457', '10997457', 'Charles Hernandez', 23, 'Male', 'he/him', 
     'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 23-year-old Man. Relevant behavioral factors include: high work-related stress, high-fat diet, non-compliant with dietary restriction, frequent emergency department visits, poor insight into illness.',
     'Intermittent abdominal pain',
@@ -3629,7 +3642,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '10998589', 'CASE_10998589', 'Daniel Taylor', 59, 'Male', 'he/him', 
+    '10998589', '10998589', 'Daniel Taylor', 59, 'Male', 'he/him', 
     'Unknown', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 59-year-old Man. Relevant behavioral factors include: low pain tolerance, good medication adherence, ignores early abdominal pain, low socioeconomic status, social smoker.',
     'Intermittent abdominal pain',
@@ -3644,7 +3657,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11000997', 'CASE_11000997', 'David Moore', 33, 'Male', 'he/him', 
+    '11000997', '11000997', 'David Moore', 33, 'Male', 'he/him', 
     'Hispanic', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 33-year-old Man. Relevant behavioral factors include: good medication adherence, limited access to healthcare, non-compliant with dietary restriction, binge drinking, poor insight into illness.',
     'Intermittent abdominal pain',
@@ -3659,7 +3672,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11004072', 'CASE_11004072', 'Anthony Lopez', 53, 'Male', 'he/him', 
+    '11004072', '11004072', 'Anthony Lopez', 53, 'Male', 'he/him', 
     'Asian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 53-year-old Man. Relevant behavioral factors include: high work-related stress, night shift worker, high anxiety, ignores early abdominal pain, regular medical checkups.',
     'Intermittent abdominal pain',
@@ -3674,7 +3687,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11012637', 'CASE_11012637', 'Anthony Wilson', 46, 'Male', 'he/him', 
+    '11012637', '11012637', 'Anthony Wilson', 46, 'Male', 'he/him', 
     'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 46-year-old Man. Relevant behavioral factors include: high anxiety, non-compliant with dietary restriction, low-fiber diet, regular medical checkups, limited family support.',
     'Intermittent abdominal pain',
@@ -3689,7 +3702,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11012879', 'CASE_11012879', 'John Davis', 54, 'Male', 'he/him', 
+    '11012879', '11012879', 'John Davis', 54, 'Male', 'he/him', 
     'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 54-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high-fat diet, low socioeconomic status, poor medication adherence, low pain tolerance.',
     'Severe abdominal pain',
@@ -3704,7 +3717,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11031190', 'CASE_11031190', 'David Taylor', 25, 'Male', 'he/him', 
+    '11031190', '11031190', 'David Taylor', 25, 'Male', 'he/him', 
     'Caucasian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 25-year-old Man. Relevant behavioral factors include: avoids medical care, high-fat diet, depressive mood, limited access to healthcare, non-compliant with dietary restriction.',
     'Intermittent abdominal pain',
@@ -3719,7 +3732,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11039753', 'CASE_11039753', 'Karen Rodriguez', 59, 'Female', 'she/her', 
+    '11039753', '11039753', 'Karen Rodriguez', 59, 'Female', 'she/her', 
     'Caucasian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 59-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, high-fat diet, self-medication, poor insight into illness.',
     'Nausea and abdominal pain',
@@ -3734,7 +3747,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11041085', 'CASE_11041085', 'Michael Williams', 53, 'Male', 'he/him', 
+    '11041085', '11041085', 'Michael Williams', 53, 'Male', 'he/him', 
     'Hispanic', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 53-year-old Man. Relevant behavioral factors include: physically demanding job, self-medication, delays seeking surgical consultation, health anxiety, chronic alcohol consumption.',
     'Chronic abdominal pain',
@@ -3749,7 +3762,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11044320', 'CASE_11044320', 'Richard Williams', 65, 'Male', 'he/him', 
+    '11044320', '11044320', 'Richard Williams', 65, 'Male', 'he/him', 
     'Asian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 65-year-old Man. Relevant behavioral factors include: uses painkillers excessively, limited access to healthcare, poor medication adherence, physically active, low pain tolerance.',
     'Severe abdominal pain',
@@ -3764,7 +3777,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11052273', 'CASE_11052273', 'Jessica Moore', 74, 'Female', 'she/her', 
+    '11052273', '11052273', 'Jessica Moore', 74, 'Female', 'she/her', 
     'Asian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 74-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, physically demanding job, depressive mood, sedentary lifestyle.',
     'Nausea and abdominal pain',
@@ -3779,7 +3792,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11059708', 'CASE_11059708', 'Michael Taylor', 21, 'Male', 'he/him', 
+    '11059708', '11059708', 'Michael Taylor', 21, 'Male', 'he/him', 
     'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 21-year-old Man. Relevant behavioral factors include: night shift worker, non-compliant with dietary restriction, health anxiety, delayed hospital presentation, limited family support.',
     'Chronic abdominal pain',
@@ -3794,7 +3807,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11063807', 'CASE_11063807', 'Margaret Lopez', 48, 'Female', 'she/her', 
+    '11063807', '11063807', 'Margaret Lopez', 48, 'Female', 'she/her', 
     'Caucasian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 48-year-old Woman. Relevant behavioral factors include: depressive mood, non-compliant with dietary restriction, poor medication adherence, low-fiber diet, limited family support.',
     'Intermittent abdominal pain',
@@ -3809,7 +3822,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11065944', 'CASE_11065944', 'Michael Martin', 49, 'Male', 'he/him', 
+    '11065944', '11065944', 'Michael Martin', 49, 'Male', 'he/him', 
     'Unknown', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 49-year-old Man. Relevant behavioral factors include: physically demanding job, depressive mood, good medication adherence, delays seeking surgical consultation, low-fiber diet.',
     'Chronic abdominal pain',
@@ -3824,7 +3837,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11066902', 'CASE_11066902', 'Lisa Gonzalez', 35, 'Female', 'she/her', 
+    '11066902', '11066902', 'Lisa Gonzalez', 35, 'Female', 'she/her', 
     'Unknown', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 35-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, lives alone, chronic alcohol consumption, high pain tolerance, frequent emergency department visits.',
     'Chronic abdominal pain',
@@ -3839,7 +3852,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11072749', 'CASE_11072749', 'Nancy Miller', 72, 'Female', 'she/her', 
+    '11072749', '11072749', 'Nancy Miller', 72, 'Female', 'she/her', 
     'Unknown', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 72-year-old Woman. Relevant behavioral factors include: physically demanding job, high-fat diet, depressive mood, self-medication, non-compliant with dietary restriction.',
     'Intermittent abdominal pain',
@@ -3854,7 +3867,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11087612', 'CASE_11087612', 'Robert Taylor', 54, 'Male', 'he/him', 
+    '11087612', '11087612', 'Robert Taylor', 54, 'Male', 'he/him', 
     'Unknown', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 54-year-old Man. Relevant behavioral factors include: depressive mood, good medication adherence, delays seeking surgical consultation, heavy smoker, low socioeconomic status.',
     'Chronic abdominal pain',
@@ -3869,7 +3882,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11095671', 'CASE_11095671', 'Linda Anderson', 27, 'Female', 'she/her', 
+    '11095671', '11095671', 'Linda Anderson', 27, 'Female', 'she/her', 
     'Caucasian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 27-year-old Woman. Relevant behavioral factors include: ignores early abdominal pain, chronic alcohol consumption, frequent emergency department visits, poor insight into illness, limited family support.',
     'Chronic abdominal pain',
@@ -3884,7 +3897,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11112100', 'CASE_11112100', 'Donald Johnson', 58, 'Male', 'he/him', 
+    '11112100', '11112100', 'Donald Johnson', 58, 'Male', 'he/him', 
     'African American', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 58-year-old Man. Relevant behavioral factors include: high work-related stress, night shift worker, non-compliant with dietary restriction, poor medication adherence, high pain tolerance.',
     'Intermittent abdominal pain',
@@ -3899,7 +3912,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11130122', 'CASE_11130122', 'Matthew Brown', 48, 'Male', 'he/him', 
+    '11130122', '11130122', 'Matthew Brown', 48, 'Male', 'he/him', 
     'Unknown', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 48-year-old Man. Relevant behavioral factors include: avoids medical care, high-fat diet, lives alone, delays seeking surgical consultation, low pain tolerance.',
     'Chronic abdominal pain',
@@ -3914,7 +3927,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11130436', 'CASE_11130436', 'Joseph Smith', 24, 'Male', 'he/him', 
+    '11130436', '11130436', 'Joseph Smith', 24, 'Male', 'he/him', 
     'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 24-year-old Man. Relevant behavioral factors include: non-compliant with dietary restriction, irregular meal patterns, poor medication adherence, poor insight into illness, limited family support.',
     'Intermittent abdominal pain',
@@ -3929,7 +3942,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11132868', 'CASE_11132868', 'Donald Miller', 44, 'Male', 'he/him', 
+    '11132868', '11132868', 'Donald Miller', 44, 'Male', 'he/him', 
     'African American', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 44-year-old Man. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, night shift worker, low pain tolerance, regular medical checkups.',
     'Nausea and abdominal pain',
@@ -3944,7 +3957,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11133934', 'CASE_11133934', 'Daniel Gonzalez', 34, 'Male', 'he/him', 
+    '11133934', '11133934', 'Daniel Gonzalez', 34, 'Male', 'he/him', 
     'Unknown', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 34-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, stress-related symptoms, ignores early abdominal pain, low-fiber diet.',
     'Intermittent abdominal pain',
@@ -3959,7 +3972,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11133971', 'CASE_11133971', 'Nancy Smith', 83, 'Female', 'she/her', 
+    '11133971', '11133971', 'Nancy Smith', 83, 'Female', 'she/her', 
     'Caucasian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 83-year-old Woman. Relevant behavioral factors include: lives alone, sedentary lifestyle, non-compliant with dietary restriction, health anxiety, poor medication adherence.',
     'Intermittent abdominal pain',
@@ -3974,7 +3987,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11137177', 'CASE_11137177', 'Joseph Anderson', 66, 'Male', 'he/him', 
+    '11137177', '11137177', 'Joseph Anderson', 66, 'Male', 'he/him', 
     'African American', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 66-year-old Man. Relevant behavioral factors include: high work-related stress, depressive mood, delays seeking surgical consultation, heavy smoker, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -3989,7 +4002,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11151591', 'CASE_11151591', 'Dorothy Jackson', 55, 'Female', 'she/her', 
+    '11151591', '11151591', 'Dorothy Jackson', 55, 'Female', 'she/her', 
     'African American', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 55-year-old Woman. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, high anxiety, poor medication adherence, chronic alcohol consumption.',
     'Chronic abdominal pain',
@@ -4004,7 +4017,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11154626', 'CASE_11154626', 'Richard Lopez', 74, 'Male', 'he/him', 
+    '11154626', '11154626', 'Richard Lopez', 74, 'Male', 'he/him', 
     'Caucasian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 74-year-old Man. Relevant behavioral factors include: lives alone, sedentary lifestyle, self-medication, ignores early abdominal pain, low pain tolerance.',
     'Intermittent abdominal pain',
@@ -4019,7 +4032,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11161405', 'CASE_11161405', 'Emily Smith', 55, 'Female', 'she/her', 
+    '11161405', '11161405', 'Emily Smith', 55, 'Female', 'she/her', 
     'Caucasian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 55-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, high anxiety, delays seeking surgical consultation, social smoker.',
     'Chronic abdominal pain',
@@ -4034,7 +4047,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11164899', 'CASE_11164899', 'David Taylor', 72, 'Male', 'he/him', 
+    '11164899', '11164899', 'David Taylor', 72, 'Male', 'he/him', 
     'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 72-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, night shift worker, frequent emergency department visits, low pain tolerance.',
     'Nausea and abdominal pain',
@@ -4049,7 +4062,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11165476', 'CASE_11165476', 'Jessica Taylor', 45, 'Female', 'she/her', 
+    '11165476', '11165476', 'Jessica Taylor', 45, 'Female', 'she/her', 
     'African American', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 45-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high anxiety, self-medication, low socioeconomic status, social smoker.',
     'Severe abdominal pain',
@@ -4064,7 +4077,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11168764', 'CASE_11168764', 'Mary Anderson', 22, 'Female', 'she/her', 
+    '11168764', '11168764', 'Mary Anderson', 22, 'Female', 'she/her', 
     'Unknown', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 22-year-old Woman. Relevant behavioral factors include: stress-related symptoms, non-compliant with dietary restriction, physically active, low socioeconomic status, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -4079,7 +4092,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11169343', 'CASE_11169343', 'Sandra Taylor', 21, 'Female', 'she/her', 
+    '11169343', '11169343', 'Sandra Taylor', 21, 'Female', 'she/her', 
     'Unknown', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 21-year-old Woman. Relevant behavioral factors include: sedentary lifestyle, ignores early abdominal pain, health anxiety, poor medication adherence, low socioeconomic status.',
     'Intermittent abdominal pain',
@@ -4094,7 +4107,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11171757', 'CASE_11171757', 'Mary Moore', 91, 'Female', 'she/her', 
+    '11171757', '11171757', 'Mary Moore', 91, 'Female', 'she/her', 
     'Asian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 91-year-old Woman. Relevant behavioral factors include: physically demanding job, sedentary lifestyle, ignores early abdominal pain, high pain tolerance, regular medical checkups.',
     'Intermittent abdominal pain',
@@ -4109,7 +4122,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11174184', 'CASE_11174184', 'David Rodriguez', 83, 'Male', 'he/him', 
+    '11174184', '11174184', 'David Rodriguez', 83, 'Male', 'he/him', 
     'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 83-year-old Man. Relevant behavioral factors include: ignores early abdominal pain, self-medication, heavy smoker, poor insight into illness, limited family support.',
     'Intermittent abdominal pain',
@@ -4124,7 +4137,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11174340', 'CASE_11174340', 'Sarah Miller', 79, 'Female', 'she/her', 
+    '11174340', '11174340', 'Sarah Miller', 79, 'Female', 'she/her', 
     'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 79-year-old Woman. Relevant behavioral factors include: avoids medical care, physically demanding job, depressive mood, delays seeking surgical consultation, chronic alcohol consumption.',
     'Chronic abdominal pain',
@@ -4139,7 +4152,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11174843', 'CASE_11174843', 'Donald Williams', 26, 'Male', 'he/him', 
+    '11174843', '11174843', 'Donald Williams', 26, 'Male', 'he/him', 
     'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 26-year-old Man. Relevant behavioral factors include: uses painkillers excessively, lives alone, health anxiety, low-fiber diet, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -4154,7 +4167,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11181505', 'CASE_11181505', 'John Moore', 32, 'Male', 'he/him', 
+    '11181505', '11181505', 'John Moore', 32, 'Male', 'he/him', 
     'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 32-year-old Man. Relevant behavioral factors include: high work-related stress, non-compliant with dietary restriction, health anxiety, low-fiber diet, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -4169,7 +4182,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11182240', 'CASE_11182240', 'Margaret Hernandez', 67, 'Female', 'she/her', 
+    '11182240', '11182240', 'Margaret Hernandez', 67, 'Female', 'she/her', 
     'African American', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 67-year-old Woman. Relevant behavioral factors include: high work-related stress, irregular meal patterns, non-compliant with dietary restriction, low pain tolerance, regular medical checkups.',
     'Intermittent abdominal pain',
@@ -4184,7 +4197,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11185210', 'CASE_11185210', 'Linda Wilson', 88, 'Female', 'she/her', 
+    '11185210', '11185210', 'Linda Wilson', 88, 'Female', 'she/her', 
     'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 88-year-old Woman. Relevant behavioral factors include: stress-related symptoms, limited access to healthcare, delays seeking surgical consultation, heavy smoker, regular medical checkups.',
     'Chronic abdominal pain',
@@ -4199,7 +4212,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11185241', 'CASE_11185241', 'Kimberly Martinez', 45, 'Female', 'she/her', 
+    '11185241', '11185241', 'Kimberly Martinez', 45, 'Female', 'she/her', 
     'Caucasian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 45-year-old Woman. Relevant behavioral factors include: delays seeking surgical consultation, poor medication adherence, binge drinking, poor insight into illness, limited family support.',
     'Chronic abdominal pain',
@@ -4214,7 +4227,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11190494', 'CASE_11190494', 'Daniel Thomas', 41, 'Male', 'he/him', 
+    '11190494', '11190494', 'Daniel Thomas', 41, 'Male', 'he/him', 
     'Hispanic', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 41-year-old Man. Relevant behavioral factors include: continues eating despite nausea, high pain tolerance, heavy smoker, low socioeconomic status, regular medical checkups.',
     'Nausea and abdominal pain',
@@ -4229,7 +4242,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11190737', 'CASE_11190737', 'Emily Brown', 52, 'Female', 'she/her', 
+    '11190737', '11190737', 'Emily Brown', 52, 'Female', 'she/her', 
     'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 52-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, high anxiety, poor medication adherence, binge drinking.',
     'Nausea and abdominal pain',
@@ -4244,7 +4257,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11197798', 'CASE_11197798', 'Nancy Jackson', 68, 'Female', 'she/her', 
+    '11197798', '11197798', 'Nancy Jackson', 68, 'Female', 'she/her', 
     'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 68-year-old Woman. Relevant behavioral factors include: social smoker, uses painkillers excessively, good medication adherence, high pain tolerance, limited family support.',
     'Severe abdominal pain',
@@ -4259,7 +4272,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11199428', 'CASE_11199428', 'Linda Rodriguez', 53, 'Female', 'she/her', 
+    '11199428', '11199428', 'Linda Rodriguez', 53, 'Female', 'she/her', 
     'Caucasian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 53-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, lives alone, stress-related symptoms, chronic alcohol consumption, frequent emergency department visits.',
     'Chronic abdominal pain',
@@ -4274,7 +4287,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11204526', 'CASE_11204526', 'Nancy Martinez', 60, 'Female', 'she/her', 
+    '11204526', '11204526', 'Nancy Martinez', 60, 'Female', 'she/her', 
     'Unknown', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 60-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, stress-related symptoms, sedentary lifestyle, limited access to healthcare, regular medical checkups.',
     'Nausea and abdominal pain',
@@ -4289,7 +4302,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11213607', 'CASE_11213607', 'Thomas Anderson', 89, 'Male', 'he/him', 
+    '11213607', '11213607', 'Thomas Anderson', 89, 'Male', 'he/him', 
     'African American', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 89-year-old Man. Relevant behavioral factors include: depressive mood, ignores early abdominal pain, irregular meal patterns, low socioeconomic status, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -4304,7 +4317,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11214417', 'CASE_11214417', 'Donald Taylor', 32, 'Male', 'he/him', 
+    '11214417', '11214417', 'Donald Taylor', 32, 'Male', 'he/him', 
     'African American', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 32-year-old Man. Relevant behavioral factors include: irregular meal patterns, delays seeking surgical consultation, health anxiety, frequent emergency department visits, limited family support.',
     'Chronic abdominal pain',
@@ -4319,7 +4332,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11215260', 'CASE_11215260', 'Daniel Martin', 39, 'Male', 'he/him', 
+    '11215260', '11215260', 'Daniel Martin', 39, 'Male', 'he/him', 
     'Asian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 39-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, sedentary lifestyle, high pain tolerance, frequent emergency department visits.',
     'Nausea and abdominal pain',
@@ -4334,7 +4347,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11227282', 'CASE_11227282', 'Margaret Rodriguez', 24, 'Female', 'she/her', 
+    '11227282', '11227282', 'Margaret Rodriguez', 24, 'Female', 'she/her', 
     'African American', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 24-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, irregular meal patterns, poor insight into illness, regular medical checkups.',
     'Nausea and abdominal pain',
@@ -4349,7 +4362,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11230823', 'CASE_11230823', 'Mary Martinez', 89, 'Female', 'she/her', 
+    '11230823', '11230823', 'Mary Martinez', 89, 'Female', 'she/her', 
     'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 89-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high pain tolerance, poor medication adherence, low-fiber diet, low socioeconomic status.',
     'Severe abdominal pain',
@@ -4364,7 +4377,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11231379', 'CASE_11231379', 'Thomas Davis', 69, 'Male', 'he/him', 
+    '11231379', '11231379', 'Thomas Davis', 69, 'Male', 'he/him', 
     'Unknown', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 69-year-old Man. Relevant behavioral factors include: depressive mood, sedentary lifestyle, ignores early abdominal pain, frequent emergency department visits, low socioeconomic status.',
     'Intermittent abdominal pain',
@@ -4379,7 +4392,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11235666', 'CASE_11235666', 'Charles Thomas', 49, 'Male', 'he/him', 
+    '11235666', '11235666', 'Charles Thomas', 49, 'Male', 'he/him', 
     'Unknown', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 49-year-old Man. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, self-medication, heavy smoker, poor insight into illness.',
     'Nausea and abdominal pain',
@@ -4394,7 +4407,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11241609', 'CASE_11241609', 'Joseph Gonzalez', 54, 'Male', 'he/him', 
+    '11241609', '11241609', 'Joseph Gonzalez', 54, 'Male', 'he/him', 
     'Unknown', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 54-year-old Man. Relevant behavioral factors include: uses painkillers excessively, lives alone, high anxiety, poor medication adherence, binge drinking.',
     'Severe abdominal pain',
@@ -4409,7 +4422,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11242610', 'CASE_11242610', 'Linda Jones', 18, 'Female', 'she/her', 
+    '11242610', '11242610', 'Linda Jones', 18, 'Female', 'she/her', 
     'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 18-year-old Woman. Relevant behavioral factors include: former smoker, self-medication, health anxiety, delays seeking surgical consultation, low socioeconomic status.',
     'Chronic abdominal pain',
@@ -4424,7 +4437,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11248793', 'CASE_11248793', 'Sandra Lopez', 57, 'Female', 'she/her', 
+    '11248793', '11248793', 'Sandra Lopez', 57, 'Female', 'she/her', 
     'Asian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 57-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, high anxiety, ignores early abdominal pain, irregular meal patterns.',
     'Intermittent abdominal pain',
@@ -4439,7 +4452,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11251623', 'CASE_11251623', 'Anthony Jackson', 56, 'Male', 'he/him', 
+    '11251623', '11251623', 'Anthony Jackson', 56, 'Male', 'he/him', 
     'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 56-year-old Man. Relevant behavioral factors include: physically demanding job, non-compliant with dietary restriction, poor medication adherence, physically active, poor insight into illness.',
     'Intermittent abdominal pain',
@@ -4454,7 +4467,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11258087', 'CASE_11258087', 'Margaret Lopez', 38, 'Female', 'she/her', 
+    '11258087', '11258087', 'Margaret Lopez', 38, 'Female', 'she/her', 
     'Asian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 38-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, limited access to healthcare, health anxiety, delayed hospital presentation, social smoker.',
     'Chronic abdominal pain',
@@ -4469,7 +4482,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11269082', 'CASE_11269082', 'Karen Jackson', 24, 'Female', 'she/her', 
+    '11269082', '11269082', 'Karen Jackson', 24, 'Female', 'she/her', 
     'Hispanic', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 24-year-old Woman. Relevant behavioral factors include: non-compliant with dietary restriction, low-fiber diet, high pain tolerance, frequent emergency department visits, limited family support.',
     'Intermittent abdominal pain',
@@ -4484,7 +4497,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11271666', 'CASE_11271666', 'Lisa Taylor', 26, 'Female', 'she/her', 
+    '11271666', '11271666', 'Lisa Taylor', 26, 'Female', 'she/her', 
     'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 26-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, limited access to healthcare, health anxiety, chronic alcohol consumption.',
     'Nausea and abdominal pain',
@@ -4499,7 +4512,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11275704', 'CASE_11275704', 'Karen Lopez', 75, 'Female', 'she/her', 
+    '11275704', '11275704', 'Karen Lopez', 75, 'Female', 'she/her', 
     'Caucasian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 75-year-old Woman. Relevant behavioral factors include: high work-related stress, depressive mood, non-compliant with dietary restriction, physically active, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -4514,7 +4527,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11277832', 'CASE_11277832', 'Daniel Taylor', 39, 'Male', 'he/him', 
+    '11277832', '11277832', 'Daniel Taylor', 39, 'Male', 'he/him', 
     'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 39-year-old Man. Relevant behavioral factors include: uses painkillers excessively, stress-related symptoms, self-medication, limited access to healthcare, physically active.',
     'Severe abdominal pain',
@@ -4529,7 +4542,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11289333', 'CASE_11289333', 'Sarah Thomas', 39, 'Female', 'she/her', 
+    '11289333', '11289333', 'Sarah Thomas', 39, 'Female', 'she/her', 
     'African American', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 39-year-old Woman. Relevant behavioral factors include: high work-related stress, ignores early abdominal pain, self-medication, health anxiety, heavy smoker.',
     'Intermittent abdominal pain',
@@ -4544,7 +4557,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11303674', 'CASE_11303674', 'Jessica Garcia', 46, 'Female', 'she/her', 
+    '11303674', '11303674', 'Jessica Garcia', 46, 'Female', 'she/her', 
     'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 46-year-old Woman. Relevant behavioral factors include: high anxiety, limited access to healthcare, non-compliant with dietary restriction, chronic alcohol consumption, regular medical checkups.',
     'Chronic abdominal pain',
@@ -4559,7 +4572,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11306665', 'CASE_11306665', 'Jessica Martinez', 62, 'Female', 'she/her', 
+    '11306665', '11306665', 'Jessica Martinez', 62, 'Female', 'she/her', 
     'African American', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 62-year-old Woman. Relevant behavioral factors include: lives alone, high anxiety, ignores early abdominal pain, self-medication, chronic alcohol consumption.',
     'Chronic abdominal pain',
@@ -4574,7 +4587,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11309272', 'CASE_11309272', 'David Brown', 35, 'Male', 'he/him', 
+    '11309272', '11309272', 'David Brown', 35, 'Male', 'he/him', 
     'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 35-year-old Man. Relevant behavioral factors include: avoids medical care, depressive mood, ignores early abdominal pain, limited access to healthcare, social smoker.',
     'Intermittent abdominal pain',
@@ -4589,7 +4602,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11309808', 'CASE_11309808', 'Susan Martin', 54, 'Female', 'she/her', 
+    '11309808', '11309808', 'Susan Martin', 54, 'Female', 'she/her', 
     'Caucasian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 54-year-old Woman. Relevant behavioral factors include: physically demanding job, delays seeking surgical consultation, heavy smoker, low pain tolerance, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -4604,7 +4617,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11313489', 'CASE_11313489', 'Ashley Miller', 68, 'Female', 'she/her', 
+    '11313489', '11313489', 'Ashley Miller', 68, 'Female', 'she/her', 
     'Caucasian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 68-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, high anxiety, sedentary lifestyle, poor medication adherence.',
     'Nausea and abdominal pain',
@@ -4619,7 +4632,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11324378', 'CASE_11324378', 'Sandra Anderson', 71, 'Female', 'she/her', 
+    '11324378', '11324378', 'Sandra Anderson', 71, 'Female', 'she/her', 
     'Unknown', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 71-year-old Woman. Relevant behavioral factors include: depressive mood, former smoker, self-medication, non-compliant with dietary restriction, low socioeconomic status.',
     'Intermittent abdominal pain',
@@ -4634,7 +4647,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11325145', 'CASE_11325145', 'Linda Rodriguez', 31, 'Female', 'she/her', 
+    '11325145', '11325145', 'Linda Rodriguez', 31, 'Female', 'she/her', 
     'Hispanic', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 31-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, self-medication, health anxiety, physically active.',
     'Severe abdominal pain',
@@ -4649,7 +4662,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11325242', 'CASE_11325242', 'Richard Wilson', 61, 'Male', 'he/him', 
+    '11325242', '11325242', 'Richard Wilson', 61, 'Male', 'he/him', 
     'Unknown', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 61-year-old Man. Relevant behavioral factors include: continues eating despite nausea, stress-related symptoms, chronic alcohol consumption, low socioeconomic status, regular medical checkups.',
     'Nausea and abdominal pain',
@@ -4664,7 +4677,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11333221', 'CASE_11333221', 'Emily Thomas', 91, 'Female', 'she/her', 
+    '11333221', '11333221', 'Emily Thomas', 91, 'Female', 'she/her', 
     'Hispanic', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 91-year-old Woman. Relevant behavioral factors include: low pain tolerance, good medication adherence, former smoker, ignores early abdominal pain, low socioeconomic status.',
     'Intermittent abdominal pain',
@@ -4679,7 +4692,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11337676', 'CASE_11337676', 'Ashley Johnson', 49, 'Female', 'she/her', 
+    '11337676', '11337676', 'Ashley Johnson', 49, 'Female', 'she/her', 
     'African American', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 49-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, good medication adherence, health anxiety, physically active.',
     'Nausea and abdominal pain',
@@ -4694,7 +4707,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11341524', 'CASE_11341524', 'Nancy Wilson', 74, 'Female', 'she/her', 
+    '11341524', '11341524', 'Nancy Wilson', 74, 'Female', 'she/her', 
     'African American', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 74-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, night shift worker, health anxiety, poor medication adherence, limited family support.',
     'Severe abdominal pain',
@@ -4709,7 +4722,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11345822', 'CASE_11345822', 'William Taylor', 59, 'Male', 'he/him', 
+    '11345822', '11345822', 'William Taylor', 59, 'Male', 'he/him', 
     'Hispanic', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 59-year-old Man. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, chronic alcohol consumption, frequent emergency department visits, poor insight into illness.',
     'Nausea and abdominal pain',
@@ -4724,7 +4737,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11353978', 'CASE_11353978', 'Sandra Lopez', 67, 'Female', 'she/her', 
+    '11353978', '11353978', 'Sandra Lopez', 67, 'Female', 'she/her', 
     'African American', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 67-year-old Woman. Relevant behavioral factors include: limited access to healthcare, delays seeking surgical consultation, poor medication adherence, physically active, low pain tolerance.',
     'Chronic abdominal pain',
@@ -4739,7 +4752,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11354070', 'CASE_11354070', 'Dorothy Wilson', 41, 'Female', 'she/her', 
+    '11354070', '11354070', 'Dorothy Wilson', 41, 'Female', 'she/her', 
     'African American', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 41-year-old Woman. Relevant behavioral factors include: high work-related stress, depressive mood, non-compliant with dietary restriction, chronic alcohol consumption, regular medical checkups.',
     'Chronic abdominal pain',
@@ -4754,7 +4767,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11361559', 'CASE_11361559', 'Robert Rodriguez', 51, 'Male', 'he/him', 
+    '11361559', '11361559', 'Robert Rodriguez', 51, 'Male', 'he/him', 
     'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 51-year-old Man. Relevant behavioral factors include: night shift worker, lives alone, good medication adherence, non-compliant with dietary restriction, high pain tolerance.',
     'Intermittent abdominal pain',
@@ -4769,7 +4782,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11364335', 'CASE_11364335', 'Daniel Rodriguez', 41, 'Male', 'he/him', 
+    '11364335', '11364335', 'Daniel Rodriguez', 41, 'Male', 'he/him', 
     'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 41-year-old Man. Relevant behavioral factors include: continues eating despite nausea, sedentary lifestyle, limited access to healthcare, low pain tolerance, regular medical checkups.',
     'Nausea and abdominal pain',
@@ -4784,7 +4797,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11364933', 'CASE_11364933', 'Margaret Jones', 57, 'Female', 'she/her', 
+    '11364933', '11364933', 'Margaret Jones', 57, 'Female', 'she/her', 
     'Unknown', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 57-year-old Woman. Relevant behavioral factors include: high-fat diet, ignores early abdominal pain, high pain tolerance, delayed hospital presentation, limited family support.',
     'Chronic abdominal pain',
@@ -4799,7 +4812,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11365171', 'CASE_11365171', 'Linda Hernandez', 20, 'Female', 'she/her', 
+    '11365171', '11365171', 'Linda Hernandez', 20, 'Female', 'she/her', 
     'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 20-year-old Woman. Relevant behavioral factors include: high work-related stress, self-medication, irregular meal patterns, non-compliant with dietary restriction, poor insight into illness.',
     'Intermittent abdominal pain',
@@ -4814,7 +4827,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11377991', 'CASE_11377991', 'Ashley Jones', 31, 'Female', 'she/her', 
+    '11377991', '11377991', 'Ashley Jones', 31, 'Female', 'she/her', 
     'Unknown', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 31-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, stress-related symptoms, frequent emergency department visits, heavy smoker, low socioeconomic status.',
     'Nausea and abdominal pain',
@@ -4829,7 +4842,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11381948', 'CASE_11381948', 'Lisa Garcia', 21, 'Female', 'she/her', 
+    '11381948', '11381948', 'Lisa Garcia', 21, 'Female', 'she/her', 
     'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 21-year-old Woman. Relevant behavioral factors include: lives alone, stress-related symptoms, sedentary lifestyle, non-compliant with dietary restriction, frequent emergency department visits.',
     'Intermittent abdominal pain',
@@ -4844,7 +4857,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11382387', 'CASE_11382387', 'Robert Gonzalez', 51, 'Male', 'he/him', 
+    '11382387', '11382387', 'Robert Gonzalez', 51, 'Male', 'he/him', 
     'African American', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 51-year-old Man. Relevant behavioral factors include: high work-related stress, depressive mood, self-medication, non-compliant with dietary restriction, binge drinking.',
     'Intermittent abdominal pain',
@@ -4859,7 +4872,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11397896', 'CASE_11397896', 'Emily Rodriguez', 57, 'Female', 'she/her', 
+    '11397896', '11397896', 'Emily Rodriguez', 57, 'Female', 'she/her', 
     'Caucasian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 57-year-old Woman. Relevant behavioral factors include: lives alone, good medication adherence, delays seeking surgical consultation, high pain tolerance, social smoker.',
     'Chronic abdominal pain',
@@ -4874,7 +4887,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11404878', 'CASE_11404878', 'Anthony Brown', 55, 'Male', 'he/him', 
+    '11404878', '11404878', 'Anthony Brown', 55, 'Male', 'he/him', 
     'Unknown', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 55-year-old Man. Relevant behavioral factors include: physically demanding job, delays seeking surgical consultation, high pain tolerance, physically active, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -4889,7 +4902,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11407165', 'CASE_11407165', 'Matthew Rodriguez', 33, 'Male', 'he/him', 
+    '11407165', '11407165', 'Matthew Rodriguez', 33, 'Male', 'he/him', 
     'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 33-year-old Man. Relevant behavioral factors include: avoids medical care, health anxiety, delays seeking surgical consultation, chronic alcohol consumption, low socioeconomic status.',
     'Chronic abdominal pain',
@@ -4904,7 +4917,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11407563', 'CASE_11407563', 'Jessica Martin', 39, 'Female', 'she/her', 
+    '11407563', '11407563', 'Jessica Martin', 39, 'Female', 'she/her', 
     'African American', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 39-year-old Woman. Relevant behavioral factors include: avoids medical care, ignores early abdominal pain, binge drinking, low pain tolerance, limited family support.',
     'Intermittent abdominal pain',
@@ -4919,7 +4932,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11415267', 'CASE_11415267', 'Dorothy Martin', 70, 'Female', 'she/her', 
+    '11415267', '11415267', 'Dorothy Martin', 70, 'Female', 'she/her', 
     'Unknown', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 70-year-old Woman. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, physically demanding job, depressive mood, binge drinking.',
     'Severe abdominal pain',
@@ -4934,7 +4947,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11418296', 'CASE_11418296', 'Daniel Taylor', 27, 'Male', 'he/him', 
+    '11418296', '11418296', 'Daniel Taylor', 27, 'Male', 'he/him', 
     'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 27-year-old Man. Relevant behavioral factors include: high anxiety, good medication adherence, ignores early abdominal pain, chronic alcohol consumption, limited family support.',
     'Chronic abdominal pain',
@@ -4949,7 +4962,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11419902', 'CASE_11419902', 'Anthony Martinez', 26, 'Male', 'he/him', 
+    '11419902', '11419902', 'Anthony Martinez', 26, 'Male', 'he/him', 
     'Unknown', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 26-year-old Man. Relevant behavioral factors include: high work-related stress, non-compliant with dietary restriction, low-fiber diet, poor insight into illness, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -4964,7 +4977,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11426173', 'CASE_11426173', 'David Garcia', 34, 'Male', 'he/him', 
+    '11426173', '11426173', 'David Garcia', 34, 'Male', 'he/him', 
     'Hispanic', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 34-year-old Man. Relevant behavioral factors include: low socioeconomic status, poor medication adherence, delays seeking surgical consultation, heavy smoker, poor insight into illness.',
     'Chronic abdominal pain',
@@ -4979,7 +4992,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11427738', 'CASE_11427738', 'Susan Taylor', 50, 'Female', 'she/her', 
+    '11427738', '11427738', 'Susan Taylor', 50, 'Female', 'she/her', 
     'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 50-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high-fat diet, limited access to healthcare, health anxiety, regular medical checkups.',
     'Severe abdominal pain',
@@ -4994,7 +5007,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11432522', 'CASE_11432522', 'Linda Davis', 45, 'Female', 'she/her', 
+    '11432522', '11432522', 'Linda Davis', 45, 'Female', 'she/her', 
     'Caucasian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 45-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, irregular meal patterns, poor insight into illness, delayed hospital presentation, limited family support.',
     'Nausea and abdominal pain',
@@ -5009,7 +5022,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11432819', 'CASE_11432819', 'Kimberly Miller', 25, 'Female', 'she/her', 
+    '11432819', '11432819', 'Kimberly Miller', 25, 'Female', 'she/her', 
     'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 25-year-old Woman. Relevant behavioral factors include: ignores early abdominal pain, self-medication, low-fiber diet, high pain tolerance, low socioeconomic status.',
     'Intermittent abdominal pain',
@@ -5024,7 +5037,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11436948', 'CASE_11436948', 'Lisa Taylor', 21, 'Female', 'she/her', 
+    '11436948', '11436948', 'Lisa Taylor', 21, 'Female', 'she/her', 
     'Unknown', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 21-year-old Woman. Relevant behavioral factors include: high work-related stress, high-fat diet, ignores early abdominal pain, self-medication, poor insight into illness.',
     'Intermittent abdominal pain',
@@ -5039,7 +5052,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11437257', 'CASE_11437257', 'Sandra Williams', 75, 'Female', 'she/her', 
+    '11437257', '11437257', 'Sandra Williams', 75, 'Female', 'she/her', 
     'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 75-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, night shift worker, poor medication adherence, low pain tolerance, limited family support.',
     'Nausea and abdominal pain',
@@ -5054,7 +5067,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11438173', 'CASE_11438173', 'William Brown', 84, 'Male', 'he/him', 
+    '11438173', '11438173', 'William Brown', 84, 'Male', 'he/him', 
     'African American', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 84-year-old Man. Relevant behavioral factors include: physically demanding job, high anxiety, good medication adherence, non-compliant with dietary restriction, heavy smoker.',
     'Intermittent abdominal pain',
@@ -5069,7 +5082,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11441212', 'CASE_11441212', 'Lisa Anderson', 31, 'Female', 'she/her', 
+    '11441212', '11441212', 'Lisa Anderson', 31, 'Female', 'she/her', 
     'Asian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 31-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, health anxiety, regular medical checkups, social smoker.',
     'Nausea and abdominal pain',
@@ -5084,7 +5097,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11441483', 'CASE_11441483', 'Sandra Hernandez', 66, 'Female', 'she/her', 
+    '11441483', '11441483', 'Sandra Hernandez', 66, 'Female', 'she/her', 
     'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 66-year-old Woman. Relevant behavioral factors include: high work-related stress, former smoker, ignores early abdominal pain, self-medication, low pain tolerance.',
     'Intermittent abdominal pain',
@@ -5099,7 +5112,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11450072', 'CASE_11450072', 'Daniel Wilson', 22, 'Male', 'he/him', 
+    '11450072', '11450072', 'Daniel Wilson', 22, 'Male', 'he/him', 
     'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 22-year-old Man. Relevant behavioral factors include: continues eating despite nausea, good medication adherence, stress-related symptoms, low-fiber diet, limited family support.',
     'Nausea and abdominal pain',
@@ -5114,7 +5127,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11458481', 'CASE_11458481', 'Sandra Jones', 23, 'Female', 'she/her', 
+    '11458481', '11458481', 'Sandra Jones', 23, 'Female', 'she/her', 
     'Unknown', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 23-year-old Woman. Relevant behavioral factors include: depressive mood, poor medication adherence, delays seeking surgical consultation, heavy smoker, low socioeconomic status.',
     'Chronic abdominal pain',
@@ -5129,7 +5142,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11461906', 'CASE_11461906', 'Anthony Anderson', 62, 'Male', 'he/him', 
+    '11461906', '11461906', 'Anthony Anderson', 62, 'Male', 'he/him', 
     'Caucasian', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 62-year-old Man. Relevant behavioral factors include: stress-related symptoms, ignores early abdominal pain, low-fiber diet, frequent emergency department visits, limited family support.',
     'Intermittent abdominal pain',
@@ -5144,7 +5157,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11463611', 'CASE_11463611', 'Michael Garcia', 54, 'Male', 'he/him', 
+    '11463611', '11463611', 'Michael Garcia', 54, 'Male', 'he/him', 
     'Unknown', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 54-year-old Man. Relevant behavioral factors include: uses painkillers excessively, irregular meal patterns, poor insight into illness, delayed hospital presentation, limited family support.',
     'Chronic abdominal pain',
@@ -5159,7 +5172,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11469232', 'CASE_11469232', 'Emily Anderson', 32, 'Female', 'she/her', 
+    '11469232', '11469232', 'Emily Anderson', 32, 'Female', 'she/her', 
     'Unknown', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 32-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, stress-related symptoms, limited access to healthcare, poor medication adherence, binge drinking.',
     'Severe abdominal pain',
@@ -5174,7 +5187,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11470408', 'CASE_11470408', 'Mark Smith', 68, 'Male', 'he/him', 
+    '11470408', '11470408', 'Mark Smith', 68, 'Male', 'he/him', 
     'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 68-year-old Man. Relevant behavioral factors include: avoids medical care, high-fat diet, stress-related symptoms, ignores early abdominal pain, low socioeconomic status.',
     'Intermittent abdominal pain',
@@ -5189,7 +5202,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11474392', 'CASE_11474392', 'Margaret Gonzalez', 82, 'Female', 'she/her', 
+    '11474392', '11474392', 'Margaret Gonzalez', 82, 'Female', 'she/her', 
     'African American', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 82-year-old Woman. Relevant behavioral factors include: physically demanding job, high anxiety, good medication adherence, non-compliant with dietary restriction, chronic alcohol consumption.',
     'Chronic abdominal pain',
@@ -5204,7 +5217,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11475386', 'CASE_11475386', 'Karen Hernandez', 63, 'Female', 'she/her', 
+    '11475386', '11475386', 'Karen Hernandez', 63, 'Female', 'she/her', 
     'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 63-year-old Woman. Relevant behavioral factors include: sedentary lifestyle, ignores early abdominal pain, poor medication adherence, low pain tolerance, limited family support.',
     'Intermittent abdominal pain',
@@ -5219,7 +5232,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11482361', 'CASE_11482361', 'Linda Thomas', 65, 'Female', 'she/her', 
+    '11482361', '11482361', 'Linda Thomas', 65, 'Female', 'she/her', 
     'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 65-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, good medication adherence, stress-related symptoms, limited access to healthcare, social smoker.',
     'Nausea and abdominal pain',
@@ -5234,7 +5247,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11483477', 'CASE_11483477', 'Karen Moore', 45, 'Female', 'she/her', 
+    '11483477', '11483477', 'Karen Moore', 45, 'Female', 'she/her', 
     'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 45-year-old Woman. Relevant behavioral factors include: physically demanding job, high anxiety, irregular meal patterns, non-compliant with dietary restriction, regular medical checkups.',
     'Intermittent abdominal pain',
@@ -5249,7 +5262,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11487947', 'CASE_11487947', 'Sarah Anderson', 50, 'Female', 'she/her', 
+    '11487947', '11487947', 'Sarah Anderson', 50, 'Female', 'she/her', 
     'Unknown', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 50-year-old Woman. Relevant behavioral factors include: avoids medical care, high work-related stress, uses painkillers excessively, depressive mood, social smoker.',
     'Severe abdominal pain',
@@ -5264,7 +5277,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11488639', 'CASE_11488639', 'Jessica Davis', 26, 'Female', 'she/her', 
+    '11488639', '11488639', 'Jessica Davis', 26, 'Female', 'she/her', 
     'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 26-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, good medication adherence, stress-related symptoms, sedentary lifestyle, limited access to healthcare.',
     'Nausea and abdominal pain',
@@ -5279,7 +5292,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11489960', 'CASE_11489960', 'Matthew Williams', 22, 'Male', 'he/him', 
+    '11489960', '11489960', 'Matthew Williams', 22, 'Male', 'he/him', 
     'Asian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 22-year-old Man. Relevant behavioral factors include: social smoker, self-medication, non-compliant with dietary restriction, low pain tolerance, limited family support.',
     'Intermittent abdominal pain',
@@ -5294,7 +5307,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11490406', 'CASE_11490406', 'Emily Rodriguez', 79, 'Female', 'she/her', 
+    '11490406', '11490406', 'Emily Rodriguez', 79, 'Female', 'she/her', 
     'Caucasian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 79-year-old Woman. Relevant behavioral factors include: lives alone, delays seeking surgical consultation, high pain tolerance, heavy smoker, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -5309,7 +5322,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11494934', 'CASE_11494934', 'Robert Martinez', 77, 'Male', 'he/him', 
+    '11494934', '11494934', 'Robert Martinez', 77, 'Male', 'he/him', 
     'Hispanic', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 77-year-old Man. Relevant behavioral factors include: continues eating despite nausea, good medication adherence, sedentary lifestyle, poor insight into illness, limited family support.',
     'Nausea and abdominal pain',
@@ -5324,7 +5337,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11508666', 'CASE_11508666', 'Richard Gonzalez', 34, 'Male', 'he/him', 
+    '11508666', '11508666', 'Richard Gonzalez', 34, 'Male', 'he/him', 
     'Unknown', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 34-year-old Man. Relevant behavioral factors include: uses painkillers excessively, limited access to healthcare, health anxiety, frequent emergency department visits, social smoker.',
     'Severe abdominal pain',
@@ -5339,7 +5352,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11512324', 'CASE_11512324', 'Lisa Brown', 24, 'Female', 'she/her', 
+    '11512324', '11512324', 'Lisa Brown', 24, 'Female', 'she/her', 
     'Unknown', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 24-year-old Woman. Relevant behavioral factors include: high-fat diet, low socioeconomic status, poor medication adherence, delays seeking surgical consultation, low pain tolerance.',
     'Chronic abdominal pain',
@@ -5354,7 +5367,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11518710', 'CASE_11518710', 'William Thomas', 63, 'Male', 'he/him', 
+    '11518710', '11518710', 'William Thomas', 63, 'Male', 'he/him', 
     'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 63-year-old Man. Relevant behavioral factors include: social smoker, self-medication, delays seeking surgical consultation, high pain tolerance, limited family support.',
     'Chronic abdominal pain',
@@ -5369,7 +5382,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11520582', 'CASE_11520582', 'Michael Wilson', 19, 'Male', 'he/him', 
+    '11520582', '11520582', 'Michael Wilson', 19, 'Male', 'he/him', 
     'Caucasian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 19-year-old Man. Relevant behavioral factors include: avoids medical care, depressive mood, ignores early abdominal pain, low-fiber diet, low socioeconomic status.',
     'Intermittent abdominal pain',
@@ -5384,7 +5397,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11526031', 'CASE_11526031', 'Margaret Thomas', 63, 'Female', 'she/her', 
+    '11526031', '11526031', 'Margaret Thomas', 63, 'Female', 'she/her', 
     'Unknown', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 63-year-old Woman. Relevant behavioral factors include: depressive mood, former smoker, ignores early abdominal pain, limited access to healthcare, regular medical checkups.',
     'Intermittent abdominal pain',
@@ -5399,7 +5412,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11532659', 'CASE_11532659', 'Kimberly Martinez', 59, 'Female', 'she/her', 
+    '11532659', '11532659', 'Kimberly Martinez', 59, 'Female', 'she/her', 
     'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 59-year-old Woman. Relevant behavioral factors include: lives alone, high anxiety, former smoker, non-compliant with dietary restriction, poor medication adherence.',
     'Intermittent abdominal pain',
@@ -5414,7 +5427,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11532808', 'CASE_11532808', 'Daniel Martinez', 54, 'Male', 'he/him', 
+    '11532808', '11532808', 'Daniel Martinez', 54, 'Male', 'he/him', 
     'Hispanic', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 54-year-old Man. Relevant behavioral factors include: depressive mood, lives alone, ignores early abdominal pain, frequent emergency department visits, binge drinking.',
     'Intermittent abdominal pain',
@@ -5429,7 +5442,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11533366', 'CASE_11533366', 'Dorothy Martinez', 60, 'Female', 'she/her', 
+    '11533366', '11533366', 'Dorothy Martinez', 60, 'Female', 'she/her', 
     'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 60-year-old Woman. Relevant behavioral factors include: high anxiety, good medication adherence, ignores early abdominal pain, heavy smoker, limited family support.',
     'Intermittent abdominal pain',
@@ -5444,7 +5457,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11542488', 'CASE_11542488', 'Mary Martinez', 64, 'Female', 'she/her', 
+    '11542488', '11542488', 'Mary Martinez', 64, 'Female', 'she/her', 
     'Caucasian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 64-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, good medication adherence, low-fiber diet, high pain tolerance, low socioeconomic status.',
     'Nausea and abdominal pain',
@@ -5459,7 +5472,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11545313', 'CASE_11545313', 'Lisa Lopez', 91, 'Female', 'she/her', 
+    '11545313', '11545313', 'Lisa Lopez', 91, 'Female', 'she/her', 
     'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 91-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, depressive mood, chronic alcohol consumption, frequent emergency department visits, limited family support.',
     'Chronic abdominal pain',
@@ -5474,7 +5487,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11547436', 'CASE_11547436', 'Lisa Miller', 30, 'Female', 'she/her', 
+    '11547436', '11547436', 'Lisa Miller', 30, 'Female', 'she/her', 
     'Unknown', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 30-year-old Woman. Relevant behavioral factors include: physically demanding job, high-fat diet, stress-related symptoms, ignores early abdominal pain, poor medication adherence.',
     'Intermittent abdominal pain',
@@ -5489,7 +5502,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11552008', 'CASE_11552008', 'Ashley Rodriguez', 33, 'Female', 'she/her', 
+    '11552008', '11552008', 'Ashley Rodriguez', 33, 'Female', 'she/her', 
     'African American', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 33-year-old Woman. Relevant behavioral factors include: former smoker, delays seeking surgical consultation, low pain tolerance, delayed hospital presentation, limited family support.',
     'Chronic abdominal pain',
@@ -5504,7 +5517,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11553781', 'CASE_11553781', 'Donald Thomas', 31, 'Male', 'he/him', 
+    '11553781', '11553781', 'Donald Thomas', 31, 'Male', 'he/him', 
     'African American', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 31-year-old Man. Relevant behavioral factors include: avoids medical care, night shift worker, delays seeking surgical consultation, poor insight into illness, limited family support.',
     'Chronic abdominal pain',
@@ -5519,7 +5532,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11554504', 'CASE_11554504', 'Nancy Martin', 59, 'Female', 'she/her', 
+    '11554504', '11554504', 'Nancy Martin', 59, 'Female', 'she/her', 
     'Asian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 59-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, lives alone, sedentary lifestyle, health anxiety, frequent emergency department visits.',
     'Severe abdominal pain',
@@ -5534,7 +5547,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11557394', 'CASE_11557394', 'Mary Jackson', 20, 'Female', 'she/her', 
+    '11557394', '11557394', 'Mary Jackson', 20, 'Female', 'she/her', 
     'Hispanic', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 20-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, self-medication, health anxiety, heavy smoker.',
     'Severe abdominal pain',
@@ -5549,7 +5562,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11558244', 'CASE_11558244', 'Lisa Williams', 34, 'Female', 'she/her', 
+    '11558244', '11558244', 'Lisa Williams', 34, 'Female', 'she/her', 
     'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 34-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, former smoker, high pain tolerance, delayed hospital presentation, limited family support.',
     'Nausea and abdominal pain',
@@ -5564,7 +5577,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11559338', 'CASE_11559338', 'Lisa Gonzalez', 81, 'Female', 'she/her', 
+    '11559338', '11559338', 'Lisa Gonzalez', 81, 'Female', 'she/her', 
     'Caucasian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 81-year-old Woman. Relevant behavioral factors include: lives alone, high anxiety, self-medication, non-compliant with dietary restriction, heavy smoker.',
     'Intermittent abdominal pain',
@@ -5579,7 +5592,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11564165', 'CASE_11564165', 'Ashley Miller', 28, 'Female', 'she/her', 
+    '11564165', '11564165', 'Ashley Miller', 28, 'Female', 'she/her', 
     'Hispanic', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 28-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, night shift worker, high anxiety, regular medical checkups.',
     'Severe abdominal pain',
@@ -5594,7 +5607,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11573961', 'CASE_11573961', 'Dorothy Moore', 84, 'Female', 'she/her', 
+    '11573961', '11573961', 'Dorothy Moore', 84, 'Female', 'she/her', 
     'Hispanic', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 84-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, sedentary lifestyle, limited access to healthcare, low pain tolerance, regular medical checkups.',
     'Severe abdominal pain',
@@ -5609,7 +5622,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11574089', 'CASE_11574089', 'Mary Gonzalez', 75, 'Female', 'she/her', 
+    '11574089', '11574089', 'Mary Gonzalez', 75, 'Female', 'she/her', 
     'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 75-year-old Woman. Relevant behavioral factors include: physically demanding job, depressive mood, delays seeking surgical consultation, heavy smoker, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -5624,7 +5637,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11585572', 'CASE_11585572', 'Donald Miller', 49, 'Male', 'he/him', 
+    '11585572', '11585572', 'Donald Miller', 49, 'Male', 'he/him', 
     'African American', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 49-year-old Man. Relevant behavioral factors include: physically demanding job, sedentary lifestyle, self-medication, ignores early abdominal pain, poor insight into illness.',
     'Intermittent abdominal pain',
@@ -5639,7 +5652,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11585755', 'CASE_11585755', 'Sandra Rodriguez', 24, 'Female', 'she/her', 
+    '11585755', '11585755', 'Sandra Rodriguez', 24, 'Female', 'she/her', 
     'African American', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 24-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high anxiety, self-medication, irregular meal patterns, limited family support.',
     'Severe abdominal pain',
@@ -5654,7 +5667,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11589051', 'CASE_11589051', 'Donna Thomas', 30, 'Female', 'she/her', 
+    '11589051', '11589051', 'Donna Thomas', 30, 'Female', 'she/her', 
     'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 30-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, binge drinking, poor insight into illness, regular medical checkups, limited family support.',
     'Nausea and abdominal pain',
@@ -5669,7 +5682,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11593760', 'CASE_11593760', 'Nancy Johnson', 85, 'Female', 'she/her', 
+    '11593760', '11593760', 'Nancy Johnson', 85, 'Female', 'she/her', 
     'Asian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 85-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, self-medication, limited access to healthcare, heavy smoker, poor insight into illness.',
     'Nausea and abdominal pain',
@@ -5684,7 +5697,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11595084', 'CASE_11595084', 'Michael Jackson', 64, 'Male', 'he/him', 
+    '11595084', '11595084', 'Michael Jackson', 64, 'Male', 'he/him', 
     'Unknown', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 64-year-old Man. Relevant behavioral factors include: physically demanding job, depressive mood, good medication adherence, sedentary lifestyle, ignores early abdominal pain.',
     'Intermittent abdominal pain',
@@ -5699,7 +5712,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11597556', 'CASE_11597556', 'Richard Moore', 31, 'Male', 'he/him', 
+    '11597556', '11597556', 'Richard Moore', 31, 'Male', 'he/him', 
     'Caucasian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 31-year-old Man. Relevant behavioral factors include: continues eating despite nausea, night shift worker, low pain tolerance, low socioeconomic status, delayed hospital presentation.',
     'Nausea and abdominal pain',
@@ -5714,7 +5727,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11603188', 'CASE_11603188', 'Nancy Wilson', 45, 'Female', 'she/her', 
+    '11603188', '11603188', 'Nancy Wilson', 45, 'Female', 'she/her', 
     'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 45-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, high pain tolerance, frequent emergency department visits, heavy smoker, limited family support.',
     'Nausea and abdominal pain',
@@ -5729,7 +5742,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11613173', 'CASE_11613173', 'Matthew Wilson', 40, 'Male', 'he/him', 
+    '11613173', '11613173', 'Matthew Wilson', 40, 'Male', 'he/him', 
     'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 40-year-old Man. Relevant behavioral factors include: high work-related stress, high anxiety, sedentary lifestyle, self-medication, delays seeking surgical consultation.',
     'Chronic abdominal pain',
@@ -5744,7 +5757,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11613566', 'CASE_11613566', 'Emily Moore', 53, 'Female', 'she/her', 
+    '11613566', '11613566', 'Emily Moore', 53, 'Female', 'she/her', 
     'African American', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 53-year-old Woman. Relevant behavioral factors include: night shift worker, lives alone, non-compliant with dietary restriction, low pain tolerance, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -5759,7 +5772,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11614115', 'CASE_11614115', 'David Lopez', 69, 'Male', 'he/him', 
+    '11614115', '11614115', 'David Lopez', 69, 'Male', 'he/him', 
     'Unknown', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 69-year-old Man. Relevant behavioral factors include: high-fat diet, self-medication, delays seeking surgical consultation, high pain tolerance, low socioeconomic status.',
     'Chronic abdominal pain',
@@ -5774,7 +5787,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11617428', 'CASE_11617428', 'Thomas Martinez', 22, 'Male', 'he/him', 
+    '11617428', '11617428', 'Thomas Martinez', 22, 'Male', 'he/him', 
     'Unknown', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 22-year-old Man. Relevant behavioral factors include: stress-related symptoms, sedentary lifestyle, non-compliant with dietary restriction, delayed hospital presentation, limited family support.',
     'Chronic abdominal pain',
@@ -5789,7 +5802,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11620485', 'CASE_11620485', 'Susan Martinez', 70, 'Female', 'she/her', 
+    '11620485', '11620485', 'Susan Martinez', 70, 'Female', 'she/her', 
     'Unknown', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 70-year-old Woman. Relevant behavioral factors include: lives alone, stress-related symptoms, ignores early abdominal pain, irregular meal patterns, frequent emergency department visits.',
     'Intermittent abdominal pain',
@@ -5804,7 +5817,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11622905', 'CASE_11622905', 'Dorothy Brown', 58, 'Female', 'she/her', 
+    '11622905', '11622905', 'Dorothy Brown', 58, 'Female', 'she/her', 
     'Hispanic', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 58-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, lives alone, self-medication, health anxiety, low-fiber diet.',
     'Severe abdominal pain',
@@ -5819,7 +5832,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11644013', 'CASE_11644013', 'Linda Davis', 72, 'Female', 'she/her', 
+    '11644013', '11644013', 'Linda Davis', 72, 'Female', 'she/her', 
     'Hispanic', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 72-year-old Woman. Relevant behavioral factors include: social smoker, high pain tolerance, poor medication adherence, delays seeking surgical consultation, limited family support.',
     'Chronic abdominal pain',
@@ -5834,7 +5847,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11654859', 'CASE_11654859', 'Emily Davis', 18, 'Female', 'she/her', 
+    '11654859', '11654859', 'Emily Davis', 18, 'Female', 'she/her', 
     'Unknown', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 18-year-old Woman. Relevant behavioral factors include: high work-related stress, depressive mood, poor medication adherence, delays seeking surgical consultation, chronic alcohol consumption.',
     'Chronic abdominal pain',
@@ -5849,7 +5862,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11658175', 'CASE_11658175', 'Jessica Martin', 55, 'Female', 'she/her', 
+    '11658175', '11658175', 'Jessica Martin', 55, 'Female', 'she/her', 
     'Hispanic', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 55-year-old Woman. Relevant behavioral factors include: high anxiety, self-medication, delays seeking surgical consultation, chronic alcohol consumption, limited family support.',
     'Chronic abdominal pain',
@@ -5864,7 +5877,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11662214', 'CASE_11662214', 'Margaret Martinez', 86, 'Female', 'she/her', 
+    '11662214', '11662214', 'Margaret Martinez', 86, 'Female', 'she/her', 
     'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 86-year-old Woman. Relevant behavioral factors include: high work-related stress, good medication adherence, ignores early abdominal pain, chronic alcohol consumption, poor insight into illness.',
     'Chronic abdominal pain',
@@ -5879,7 +5892,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11666439', 'CASE_11666439', 'Lisa Martin', 44, 'Female', 'she/her', 
+    '11666439', '11666439', 'Lisa Martin', 44, 'Female', 'she/her', 
     'Hispanic', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 44-year-old Woman. Relevant behavioral factors include: avoids medical care, stress-related symptoms, ignores early abdominal pain, irregular meal patterns, limited family support.',
     'Intermittent abdominal pain',
@@ -5894,7 +5907,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11667451', 'CASE_11667451', 'William Brown', 71, 'Male', 'he/him', 
+    '11667451', '11667451', 'William Brown', 71, 'Male', 'he/him', 
     'Unknown', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 71-year-old Man. Relevant behavioral factors include: stress-related symptoms, ignores early abdominal pain, irregular meal patterns, frequent emergency department visits, limited family support.',
     'Intermittent abdominal pain',
@@ -5909,7 +5922,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11676740', 'CASE_11676740', 'Daniel Smith', 64, 'Male', 'he/him', 
+    '11676740', '11676740', 'Daniel Smith', 64, 'Male', 'he/him', 
     'Unknown', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 64-year-old Man. Relevant behavioral factors include: physically demanding job, sedentary lifestyle, non-compliant with dietary restriction, health anxiety, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -5924,7 +5937,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11684586', 'CASE_11684586', 'Ashley Davis', 19, 'Female', 'she/her', 
+    '11684586', '11684586', 'Ashley Davis', 19, 'Female', 'she/her', 
     'Unknown', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 19-year-old Woman. Relevant behavioral factors include: depressive mood, lives alone, sedentary lifestyle, self-medication, non-compliant with dietary restriction.',
     'Intermittent abdominal pain',
@@ -5939,7 +5952,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11686464', 'CASE_11686464', 'Michael Moore', 84, 'Male', 'he/him', 
+    '11686464', '11686464', 'Michael Moore', 84, 'Male', 'he/him', 
     'African American', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 84-year-old Man. Relevant behavioral factors include: poor insight into illness, good medication adherence, sedentary lifestyle, ignores early abdominal pain, low socioeconomic status.',
     'Intermittent abdominal pain',
@@ -5954,7 +5967,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11689448', 'CASE_11689448', 'Mark Lopez', 67, 'Male', 'he/him', 
+    '11689448', '11689448', 'Mark Lopez', 67, 'Male', 'he/him', 
     'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 67-year-old Man. Relevant behavioral factors include: stress-related symptoms, irregular meal patterns, delays seeking surgical consultation, low socioeconomic status, regular medical checkups.',
     'Chronic abdominal pain',
@@ -5969,7 +5982,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11690136', 'CASE_11690136', 'Donna Gonzalez', 77, 'Female', 'she/her', 
+    '11690136', '11690136', 'Donna Gonzalez', 77, 'Female', 'she/her', 
     'Unknown', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 77-year-old Woman. Relevant behavioral factors include: high anxiety, ignores early abdominal pain, low socioeconomic status, poor medication adherence, binge drinking.',
     'Intermittent abdominal pain',
@@ -5984,7 +5997,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11693488', 'CASE_11693488', 'Jessica Jackson', 40, 'Female', 'she/her', 
+    '11693488', '11693488', 'Jessica Jackson', 40, 'Female', 'she/her', 
     'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 40-year-old Woman. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, poor medication adherence, binge drinking, poor insight into illness.',
     'Severe abdominal pain',
@@ -5999,7 +6012,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11694247', 'CASE_11694247', 'Charles Jones', 20, 'Male', 'he/him', 
+    '11694247', '11694247', 'Charles Jones', 20, 'Male', 'he/him', 
     'African American', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 20-year-old Man. Relevant behavioral factors include: continues eating despite nausea, lives alone, high anxiety, former smoker, poor medication adherence.',
     'Nausea and abdominal pain',
@@ -6014,7 +6027,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11695033', 'CASE_11695033', 'Anthony Jones', 23, 'Male', 'he/him', 
+    '11695033', '11695033', 'Anthony Jones', 23, 'Male', 'he/him', 
     'Asian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 23-year-old Man. Relevant behavioral factors include: continues eating despite nausea, limited access to healthcare, heavy smoker, poor insight into illness, delayed hospital presentation.',
     'Nausea and abdominal pain',
@@ -6029,7 +6042,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11705734', 'CASE_11705734', 'Charles Williams', 80, 'Male', 'he/him', 
+    '11705734', '11705734', 'Charles Williams', 80, 'Male', 'he/him', 
     'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 80-year-old Man. Relevant behavioral factors include: physically demanding job, ignores early abdominal pain, self-medication, low-fiber diet, high pain tolerance.',
     'Intermittent abdominal pain',
@@ -6044,7 +6057,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11712125', 'CASE_11712125', 'Susan Martin', 28, 'Female', 'she/her', 
+    '11712125', '11712125', 'Susan Martin', 28, 'Female', 'she/her', 
     'African American', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 28-year-old Woman. Relevant behavioral factors include: physically demanding job, irregular meal patterns, delays seeking surgical consultation, poor insight into illness, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -6059,7 +6072,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11715648', 'CASE_11715648', 'Linda Thomas', 53, 'Female', 'she/her', 
+    '11715648', '11715648', 'Linda Thomas', 53, 'Female', 'she/her', 
     'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 53-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, stress-related symptoms, poor medication adherence, binge drinking.',
     'Nausea and abdominal pain',
@@ -6074,7 +6087,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11719981', 'CASE_11719981', 'Emily Moore', 59, 'Female', 'she/her', 
+    '11719981', '11719981', 'Emily Moore', 59, 'Female', 'she/her', 
     'Caucasian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 59-year-old Woman. Relevant behavioral factors include: stress-related symptoms, limited access to healthcare, irregular meal patterns, delays seeking surgical consultation, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -6089,7 +6102,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11724488', 'CASE_11724488', 'Donald Garcia', 82, 'Male', 'he/him', 
+    '11724488', '11724488', 'Donald Garcia', 82, 'Male', 'he/him', 
     'Hispanic', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 82-year-old Man. Relevant behavioral factors include: continues eating despite nausea, lives alone, stress-related symptoms, poor medication adherence, heavy smoker.',
     'Nausea and abdominal pain',
@@ -6104,7 +6117,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11725523', 'CASE_11725523', 'Joseph Hernandez', 56, 'Male', 'he/him', 
+    '11725523', '11725523', 'Joseph Hernandez', 56, 'Male', 'he/him', 
     'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 56-year-old Man. Relevant behavioral factors include: physically demanding job, self-medication, non-compliant with dietary restriction, high pain tolerance, physically active.',
     'Intermittent abdominal pain',
@@ -6119,7 +6132,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11726724', 'CASE_11726724', 'Linda Thomas', 79, 'Female', 'she/her', 
+    '11726724', '11726724', 'Linda Thomas', 79, 'Female', 'she/her', 
     'Hispanic', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 79-year-old Woman. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, night shift worker, high pain tolerance, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -6134,7 +6147,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11728555', 'CASE_11728555', 'Lisa Jackson', 52, 'Female', 'she/her', 
+    '11728555', '11728555', 'Lisa Jackson', 52, 'Female', 'she/her', 
     'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 52-year-old Woman. Relevant behavioral factors include: self-medication, irregular meal patterns, non-compliant with dietary restriction, high pain tolerance, low socioeconomic status.',
     'Intermittent abdominal pain',
@@ -6149,7 +6162,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11728692', 'CASE_11728692', 'Karen Hernandez', 28, 'Female', 'she/her', 
+    '11728692', '11728692', 'Karen Hernandez', 28, 'Female', 'she/her', 
     'Unknown', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 28-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, night shift worker, lives alone, good medication adherence, poor insight into illness.',
     'Severe abdominal pain',
@@ -6164,7 +6177,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11737161', 'CASE_11737161', 'Mark Lopez', 52, 'Male', 'he/him', 
+    '11737161', '11737161', 'Mark Lopez', 52, 'Male', 'he/him', 
     'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 52-year-old Man. Relevant behavioral factors include: high anxiety, non-compliant with dietary restriction, low socioeconomic status, poor medication adherence, binge drinking.',
     'Intermittent abdominal pain',
@@ -6179,7 +6192,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11739512', 'CASE_11739512', 'Christopher Garcia', 83, 'Male', 'he/him', 
+    '11739512', '11739512', 'Christopher Garcia', 83, 'Male', 'he/him', 
     'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 83-year-old Man. Relevant behavioral factors include: uses painkillers excessively, lives alone, self-medication, binge drinking, low pain tolerance.',
     'Severe abdominal pain',
@@ -6194,7 +6207,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11740714', 'CASE_11740714', 'Mark Davis', 34, 'Male', 'he/him', 
+    '11740714', '11740714', 'Mark Davis', 34, 'Male', 'he/him', 
     'Hispanic', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 34-year-old Man. Relevant behavioral factors include: uses painkillers excessively, poor insight into illness, sedentary lifestyle, low socioeconomic status, regular medical checkups.',
     'Severe abdominal pain',
@@ -6209,7 +6222,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11742206', 'CASE_11742206', 'Lisa Brown', 50, 'Female', 'she/her', 
+    '11742206', '11742206', 'Lisa Brown', 50, 'Female', 'she/her', 
     'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 50-year-old Woman. Relevant behavioral factors include: avoids medical care, high anxiety, lives alone, former smoker, ignores early abdominal pain.',
     'Intermittent abdominal pain',
@@ -6224,7 +6237,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11744921', 'CASE_11744921', 'Linda Martin', 64, 'Female', 'she/her', 
+    '11744921', '11744921', 'Linda Martin', 64, 'Female', 'she/her', 
     'Asian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 64-year-old Woman. Relevant behavioral factors include: high work-related stress, high-fat diet, depressive mood, self-medication, delays seeking surgical consultation.',
     'Chronic abdominal pain',
@@ -6239,7 +6252,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11746236', 'CASE_11746236', 'Emily Martin', 19, 'Female', 'she/her', 
+    '11746236', '11746236', 'Emily Martin', 19, 'Female', 'she/her', 
     'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 19-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high anxiety, heavy smoker, delayed hospital presentation, limited family support.',
     'Chronic abdominal pain',
@@ -6254,7 +6267,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11756787', 'CASE_11756787', 'Matthew Smith', 23, 'Male', 'he/him', 
+    '11756787', '11756787', 'Matthew Smith', 23, 'Male', 'he/him', 
     'Hispanic', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 23-year-old Man. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, high-fat diet, lives alone, poor insight into illness.',
     'Nausea and abdominal pain',
@@ -6269,7 +6282,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11761621', 'CASE_11761621', 'Thomas Martinez', 44, 'Male', 'he/him', 
+    '11761621', '11761621', 'Thomas Martinez', 44, 'Male', 'he/him', 
     'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 44-year-old Man. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, limited access to healthcare, health anxiety, physically active.',
     'Nausea and abdominal pain',
@@ -6284,7 +6297,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11761802', 'CASE_11761802', 'Lisa Lopez', 48, 'Female', 'she/her', 
+    '11761802', '11761802', 'Lisa Lopez', 48, 'Female', 'she/her', 
     'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 48-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, physically demanding job, high anxiety, binge drinking, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -6299,7 +6312,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11765822', 'CASE_11765822', 'Ashley Thomas', 45, 'Female', 'she/her', 
+    '11765822', '11765822', 'Ashley Thomas', 45, 'Female', 'she/her', 
     'Asian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 45-year-old Woman. Relevant behavioral factors include: avoids medical care, ignores early abdominal pain, limited access to healthcare, heavy smoker, low pain tolerance.',
     'Intermittent abdominal pain',
@@ -6314,7 +6327,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11783205', 'CASE_11783205', 'Richard Jones', 32, 'Male', 'he/him', 
+    '11783205', '11783205', 'Richard Jones', 32, 'Male', 'he/him', 
     'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 32-year-old Man. Relevant behavioral factors include: former smoker, self-medication, non-compliant with dietary restriction, health anxiety, limited family support.',
     'Intermittent abdominal pain',
@@ -6329,7 +6342,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11795159', 'CASE_11795159', 'Margaret Thomas', 53, 'Female', 'she/her', 
+    '11795159', '11795159', 'Margaret Thomas', 53, 'Female', 'she/her', 
     'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 53-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, sedentary lifestyle, poor insight into illness, delayed hospital presentation, limited family support.',
     'Nausea and abdominal pain',
@@ -6344,7 +6357,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11801645', 'CASE_11801645', 'Thomas Martin', 33, 'Male', 'he/him', 
+    '11801645', '11801645', 'Thomas Martin', 33, 'Male', 'he/him', 
     'African American', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 33-year-old Man. Relevant behavioral factors include: depressive mood, ignores early abdominal pain, low-fiber diet, low socioeconomic status, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -6359,7 +6372,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11802081', 'CASE_11802081', 'John Wilson', 35, 'Male', 'he/him', 
+    '11802081', '11802081', 'John Wilson', 35, 'Male', 'he/him', 
     'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 35-year-old Man. Relevant behavioral factors include: physically demanding job, ignores early abdominal pain, self-medication, high pain tolerance, heavy smoker.',
     'Intermittent abdominal pain',
@@ -6374,7 +6387,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11803545', 'CASE_11803545', 'Kimberly Wilson', 31, 'Female', 'she/her', 
+    '11803545', '11803545', 'Kimberly Wilson', 31, 'Female', 'she/her', 
     'Hispanic', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 31-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, good medication adherence, binge drinking, low pain tolerance.',
     'Nausea and abdominal pain',
@@ -6389,7 +6402,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11804069', 'CASE_11804069', 'Margaret Smith', 50, 'Female', 'she/her', 
+    '11804069', '11804069', 'Margaret Smith', 50, 'Female', 'she/her', 
     'Caucasian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 50-year-old Woman. Relevant behavioral factors include: high work-related stress, poor medication adherence, delays seeking surgical consultation, low-fiber diet, low pain tolerance.',
     'Chronic abdominal pain',
@@ -6404,7 +6417,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11808155', 'CASE_11808155', 'Jessica Davis', 85, 'Female', 'she/her', 
+    '11808155', '11808155', 'Jessica Davis', 85, 'Female', 'she/her', 
     'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 85-year-old Woman. Relevant behavioral factors include: lives alone, high anxiety, delays seeking surgical consultation, binge drinking, regular medical checkups.',
     'Chronic abdominal pain',
@@ -6419,7 +6432,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11808233', 'CASE_11808233', 'Margaret Taylor', 22, 'Female', 'she/her', 
+    '11808233', '11808233', 'Margaret Taylor', 22, 'Female', 'she/her', 
     'Unknown', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 22-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, lives alone, high anxiety, high-fat diet, poor medication adherence.',
     'Severe abdominal pain',
@@ -6434,7 +6447,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11815391', 'CASE_11815391', 'Joseph Jones', 19, 'Male', 'he/him', 
+    '11815391', '11815391', 'Joseph Jones', 19, 'Male', 'he/him', 
     'Caucasian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 19-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, former smoker, health anxiety, delays seeking surgical consultation.',
     'Chronic abdominal pain',
@@ -6449,7 +6462,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11815394', 'CASE_11815394', 'Mark Lopez', 45, 'Male', 'he/him', 
+    '11815394', '11815394', 'Mark Lopez', 45, 'Male', 'he/him', 
     'Caucasian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 45-year-old Man. Relevant behavioral factors include: social smoker, continues eating despite nausea, high anxiety, regular medical checkups, limited family support.',
     'Nausea and abdominal pain',
@@ -6464,7 +6477,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11816365', 'CASE_11816365', 'Michael Taylor', 56, 'Male', 'he/him', 
+    '11816365', '11816365', 'Michael Taylor', 56, 'Male', 'he/him', 
     'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 56-year-old Man. Relevant behavioral factors include: good medication adherence, non-compliant with dietary restriction, health anxiety, chronic alcohol consumption, limited family support.',
     'Chronic abdominal pain',
@@ -6479,7 +6492,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11817384', 'CASE_11817384', 'Nancy Moore', 55, 'Female', 'she/her', 
+    '11817384', '11817384', 'Nancy Moore', 55, 'Female', 'she/her', 
     'Caucasian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 55-year-old Woman. Relevant behavioral factors include: night shift worker, non-compliant with dietary restriction, health anxiety, low socioeconomic status, regular medical checkups.',
     'Intermittent abdominal pain',
@@ -6494,7 +6507,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11825167', 'CASE_11825167', 'John Williams', 54, 'Male', 'he/him', 
+    '11825167', '11825167', 'John Williams', 54, 'Male', 'he/him', 
     'Unknown', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 54-year-old Man. Relevant behavioral factors include: night shift worker, ignores early abdominal pain, high pain tolerance, delayed hospital presentation, limited family support.',
     'Chronic abdominal pain',
@@ -6509,7 +6522,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11828074', 'CASE_11828074', 'David Rodriguez', 59, 'Male', 'he/him', 
+    '11828074', '11828074', 'David Rodriguez', 59, 'Male', 'he/him', 
     'Hispanic', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 59-year-old Man. Relevant behavioral factors include: sedentary lifestyle, non-compliant with dietary restriction, health anxiety, poor medication adherence, limited family support.',
     'Intermittent abdominal pain',
@@ -6524,7 +6537,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11829290', 'CASE_11829290', 'Nancy Miller', 20, 'Female', 'she/her', 
+    '11829290', '11829290', 'Nancy Miller', 20, 'Female', 'she/her', 
     'African American', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 20-year-old Woman. Relevant behavioral factors include: physically demanding job, self-medication, non-compliant with dietary restriction, low-fiber diet, high pain tolerance.',
     'Intermittent abdominal pain',
@@ -6539,7 +6552,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11829995', 'CASE_11829995', 'Christopher Jackson', 22, 'Male', 'he/him', 
+    '11829995', '11829995', 'Christopher Jackson', 22, 'Male', 'he/him', 
     'Hispanic', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 22-year-old Man. Relevant behavioral factors include: depressive mood, sedentary lifestyle, self-medication, ignores early abdominal pain, limited family support.',
     'Intermittent abdominal pain',
@@ -6554,7 +6567,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11833713', 'CASE_11833713', 'Donna Martin', 70, 'Female', 'she/her', 
+    '11833713', '11833713', 'Donna Martin', 70, 'Female', 'she/her', 
     'Hispanic', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 70-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, health anxiety, heavy smoker, delayed hospital presentation.',
     'Nausea and abdominal pain',
@@ -6569,7 +6582,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11853064', 'CASE_11853064', 'Linda Davis', 29, 'Female', 'she/her', 
+    '11853064', '11853064', 'Linda Davis', 29, 'Female', 'she/her', 
     'Unknown', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 29-year-old Woman. Relevant behavioral factors include: low pain tolerance, good medication adherence, ignores early abdominal pain, chronic alcohol consumption, low socioeconomic status.',
     'Chronic abdominal pain',
@@ -6584,7 +6597,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11853603', 'CASE_11853603', 'Jessica Rodriguez', 60, 'Female', 'she/her', 
+    '11853603', '11853603', 'Jessica Rodriguez', 60, 'Female', 'she/her', 
     'Asian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 60-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, depressive mood, low-fiber diet, delayed hospital presentation, limited family support.',
     'Nausea and abdominal pain',
@@ -6599,7 +6612,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11861225', 'CASE_11861225', 'Joseph Thomas', 41, 'Male', 'he/him', 
+    '11861225', '11861225', 'Joseph Thomas', 41, 'Male', 'he/him', 
     'Asian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 41-year-old Man. Relevant behavioral factors include: ignores early abdominal pain, self-medication, limited access to healthcare, high pain tolerance, binge drinking.',
     'Intermittent abdominal pain',
@@ -6614,7 +6627,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11864955', 'CASE_11864955', 'Ashley Jackson', 28, 'Female', 'she/her', 
+    '11864955', '11864955', 'Ashley Jackson', 28, 'Female', 'she/her', 
     'African American', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 28-year-old Woman. Relevant behavioral factors include: avoids medical care, high anxiety, non-compliant with dietary restriction, low socioeconomic status, social smoker.',
     'Intermittent abdominal pain',
@@ -6629,7 +6642,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11865685', 'CASE_11865685', 'Michael Anderson', 84, 'Male', 'he/him', 
+    '11865685', '11865685', 'Michael Anderson', 84, 'Male', 'he/him', 
     'Hispanic', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 84-year-old Man. Relevant behavioral factors include: avoids medical care, lives alone, delays seeking surgical consultation, low-fiber diet, low pain tolerance.',
     'Chronic abdominal pain',
@@ -6644,7 +6657,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11871323', 'CASE_11871323', 'Michael Davis', 28, 'Male', 'he/him', 
+    '11871323', '11871323', 'Michael Davis', 28, 'Male', 'he/him', 
     'Unknown', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 28-year-old Man. Relevant behavioral factors include: uses painkillers excessively, night shift worker, good medication adherence, stress-related symptoms, low socioeconomic status.',
     'Severe abdominal pain',
@@ -6659,7 +6672,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11874388', 'CASE_11874388', 'Matthew Jackson', 28, 'Male', 'he/him', 
+    '11874388', '11874388', 'Matthew Jackson', 28, 'Male', 'he/him', 
     'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 28-year-old Man. Relevant behavioral factors include: high anxiety, high-fat diet, limited access to healthcare, non-compliant with dietary restriction, frequent emergency department visits.',
     'Intermittent abdominal pain',
@@ -6674,7 +6687,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11875279', 'CASE_11875279', 'Donna Thomas', 33, 'Female', 'she/her', 
+    '11875279', '11875279', 'Donna Thomas', 33, 'Female', 'she/her', 
     'African American', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 33-year-old Woman. Relevant behavioral factors include: physically demanding job, ignores early abdominal pain, irregular meal patterns, high pain tolerance, frequent emergency department visits.',
     'Intermittent abdominal pain',
@@ -6689,7 +6702,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11876479', 'CASE_11876479', 'Susan Johnson', 42, 'Female', 'she/her', 
+    '11876479', '11876479', 'Susan Johnson', 42, 'Female', 'she/her', 
     'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 42-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, limited access to healthcare, health anxiety, frequent emergency department visits, binge drinking.',
     'Severe abdominal pain',
@@ -6704,7 +6717,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11887722', 'CASE_11887722', 'Margaret Taylor', 44, 'Female', 'she/her', 
+    '11887722', '11887722', 'Margaret Taylor', 44, 'Female', 'she/her', 
     'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 44-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, irregular meal patterns, high pain tolerance, delayed hospital presentation.',
     'Nausea and abdominal pain',
@@ -6719,7 +6732,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11889430', 'CASE_11889430', 'Daniel Williams', 23, 'Male', 'he/him', 
+    '11889430', '11889430', 'Daniel Williams', 23, 'Male', 'he/him', 
     'Asian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 23-year-old Man. Relevant behavioral factors include: physically demanding job, ignores early abdominal pain, poor medication adherence, high pain tolerance, heavy smoker.',
     'Intermittent abdominal pain',
@@ -6734,7 +6747,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11891669', 'CASE_11891669', 'Sarah Hernandez', 75, 'Female', 'she/her', 
+    '11891669', '11891669', 'Sarah Hernandez', 75, 'Female', 'she/her', 
     'African American', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 75-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, depressive mood, binge drinking, low socioeconomic status, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -6749,7 +6762,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11897016', 'CASE_11897016', 'Susan Garcia', 47, 'Female', 'she/her', 
+    '11897016', '11897016', 'Susan Garcia', 47, 'Female', 'she/her', 
     'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 47-year-old Woman. Relevant behavioral factors include: high anxiety, ignores early abdominal pain, frequent emergency department visits, heavy smoker, low socioeconomic status.',
     'Intermittent abdominal pain',
@@ -6764,7 +6777,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11902171', 'CASE_11902171', 'David Wilson', 45, 'Male', 'he/him', 
+    '11902171', '11902171', 'David Wilson', 45, 'Male', 'he/him', 
     'Hispanic', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 45-year-old Man. Relevant behavioral factors include: physically demanding job, ignores early abdominal pain, irregular meal patterns, health anxiety, frequent emergency department visits.',
     'Intermittent abdominal pain',
@@ -6779,7 +6792,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11905418', 'CASE_11905418', 'Susan Lopez', 63, 'Female', 'she/her', 
+    '11905418', '11905418', 'Susan Lopez', 63, 'Female', 'she/her', 
     'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 63-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, poor medication adherence, health anxiety, social smoker.',
     'Nausea and abdominal pain',
@@ -6794,7 +6807,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11909152', 'CASE_11909152', 'Dorothy Garcia', 30, 'Female', 'she/her', 
+    '11909152', '11909152', 'Dorothy Garcia', 30, 'Female', 'she/her', 
     'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 30-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, sedentary lifestyle, self-medication, health anxiety.',
     'Nausea and abdominal pain',
@@ -6809,7 +6822,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11912384', 'CASE_11912384', 'Christopher Martinez', 22, 'Male', 'he/him', 
+    '11912384', '11912384', 'Christopher Martinez', 22, 'Male', 'he/him', 
     'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 22-year-old Man. Relevant behavioral factors include: ignores early abdominal pain, high pain tolerance, frequent emergency department visits, binge drinking, low socioeconomic status.',
     'Intermittent abdominal pain',
@@ -6824,7 +6837,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11914761', 'CASE_11914761', 'Linda Thomas', 31, 'Female', 'she/her', 
+    '11914761', '11914761', 'Linda Thomas', 31, 'Female', 'she/her', 
     'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 31-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, high anxiety, limited access to healthcare, frequent emergency department visits, heavy smoker.',
     'Severe abdominal pain',
@@ -6839,7 +6852,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11916405', 'CASE_11916405', 'Richard Williams', 59, 'Male', 'he/him', 
+    '11916405', '11916405', 'Richard Williams', 59, 'Male', 'he/him', 
     'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 59-year-old Man. Relevant behavioral factors include: delays seeking surgical consultation, heavy smoker, poor insight into illness, delayed hospital presentation, limited family support.',
     'Chronic abdominal pain',
@@ -6854,7 +6867,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11925563', 'CASE_11925563', 'Kimberly Taylor', 60, 'Female', 'she/her', 
+    '11925563', '11925563', 'Kimberly Taylor', 60, 'Female', 'she/her', 
     'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 60-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, high anxiety, former smoker, low socioeconomic status, regular medical checkups.',
     'Nausea and abdominal pain',
@@ -6869,7 +6882,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11936168', 'CASE_11936168', 'Christopher Williams', 32, 'Male', 'he/him', 
+    '11936168', '11936168', 'Christopher Williams', 32, 'Male', 'he/him', 
     'Caucasian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 32-year-old Man. Relevant behavioral factors include: lives alone, high-fat diet, ignores early abdominal pain, health anxiety, regular medical checkups.',
     'Intermittent abdominal pain',
@@ -6884,7 +6897,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11945588', 'CASE_11945588', 'John Moore', 53, 'Male', 'he/him', 
+    '11945588', '11945588', 'John Moore', 53, 'Male', 'he/him', 
     'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 53-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high anxiety, sedentary lifestyle, delayed hospital presentation, limited family support.',
     'Chronic abdominal pain',
@@ -6899,7 +6912,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11950373', 'CASE_11950373', 'Sandra Taylor', 79, 'Female', 'she/her', 
+    '11950373', '11950373', 'Sandra Taylor', 79, 'Female', 'she/her', 
     'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 79-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, sedentary lifestyle, health anxiety, delayed hospital presentation, limited family support.',
     'Chronic abdominal pain',
@@ -6914,7 +6927,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11951469', 'CASE_11951469', 'Ashley Martin', 42, 'Female', 'she/her', 
+    '11951469', '11951469', 'Ashley Martin', 42, 'Female', 'she/her', 
     'Unknown', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 42-year-old Woman. Relevant behavioral factors include: self-medication, limited access to healthcare, delays seeking surgical consultation, chronic alcohol consumption, poor insight into illness.',
     'Chronic abdominal pain',
@@ -6929,7 +6942,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11953203', 'CASE_11953203', 'Christopher Taylor', 19, 'Male', 'he/him', 
+    '11953203', '11953203', 'Christopher Taylor', 19, 'Male', 'he/him', 
     'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 19-year-old Man. Relevant behavioral factors include: uses painkillers excessively, lives alone, irregular meal patterns, frequent emergency department visits, low pain tolerance.',
     'Severe abdominal pain',
@@ -6944,7 +6957,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11953944', 'CASE_11953944', 'Mark Wilson', 41, 'Male', 'he/him', 
+    '11953944', '11953944', 'Mark Wilson', 41, 'Male', 'he/him', 
     'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 41-year-old Man. Relevant behavioral factors include: high anxiety, ignores early abdominal pain, limited access to healthcare, chronic alcohol consumption, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -6959,7 +6972,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11954434', 'CASE_11954434', 'David Taylor', 42, 'Male', 'he/him', 
+    '11954434', '11954434', 'David Taylor', 42, 'Male', 'he/him', 
     'Hispanic', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 42-year-old Man. Relevant behavioral factors include: avoids medical care, high work-related stress, uses painkillers excessively, health anxiety, physically active.',
     'Severe abdominal pain',
@@ -6974,7 +6987,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11956695', 'CASE_11956695', 'Mary Johnson', 31, 'Female', 'she/her', 
+    '11956695', '11956695', 'Mary Johnson', 31, 'Female', 'she/her', 
     'Asian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 31-year-old Woman. Relevant behavioral factors include: lives alone, ignores early abdominal pain, irregular meal patterns, poor medication adherence, poor insight into illness.',
     'Intermittent abdominal pain',
@@ -6989,7 +7002,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11963670', 'CASE_11963670', 'Emily Rodriguez', 48, 'Female', 'she/her', 
+    '11963670', '11963670', 'Emily Rodriguez', 48, 'Female', 'she/her', 
     'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 48-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, depressive mood, low-fiber diet, frequent emergency department visits.',
     'Nausea and abdominal pain',
@@ -7004,7 +7017,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11965254', 'CASE_11965254', 'Kimberly Wilson', 24, 'Female', 'she/her', 
+    '11965254', '11965254', 'Kimberly Wilson', 24, 'Female', 'she/her', 
     'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 24-year-old Woman. Relevant behavioral factors include: lives alone, high anxiety, self-medication, irregular meal patterns, delays seeking surgical consultation.',
     'Chronic abdominal pain',
@@ -7019,7 +7032,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11969588', 'CASE_11969588', 'Karen Gonzalez', 32, 'Female', 'she/her', 
+    '11969588', '11969588', 'Karen Gonzalez', 32, 'Female', 'she/her', 
     'Caucasian', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 32-year-old Woman. Relevant behavioral factors include: social smoker, high anxiety, delays seeking surgical consultation, delayed hospital presentation, limited family support.',
     'Chronic abdominal pain',
@@ -7034,7 +7047,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11969872', 'CASE_11969872', 'Charles Gonzalez', 49, 'Male', 'he/him', 
+    '11969872', '11969872', 'Charles Gonzalez', 49, 'Male', 'he/him', 
     'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 49-year-old Man. Relevant behavioral factors include: continues eating despite nausea, lives alone, stress-related symptoms, self-medication, binge drinking.',
     'Nausea and abdominal pain',
@@ -7049,7 +7062,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11972669', 'CASE_11972669', 'John Martinez', 46, 'Male', 'he/him', 
+    '11972669', '11972669', 'John Martinez', 46, 'Male', 'he/him', 
     'Unknown', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 46-year-old Man. Relevant behavioral factors include: former smoker, non-compliant with dietary restriction, health anxiety, poor medication adherence, limited family support.',
     'Intermittent abdominal pain',
@@ -7064,7 +7077,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11975241', 'CASE_11975241', 'John Taylor', 34, 'Male', 'he/him', 
+    '11975241', '11975241', 'John Taylor', 34, 'Male', 'he/him', 
     'Asian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 34-year-old Man. Relevant behavioral factors include: continues eating despite nausea, depressive mood, former smoker, frequent emergency department visits, limited family support.',
     'Nausea and abdominal pain',
@@ -7079,7 +7092,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11977174', 'CASE_11977174', 'Jessica Jackson', 26, 'Female', 'she/her', 
+    '11977174', '11977174', 'Jessica Jackson', 26, 'Female', 'she/her', 
     'Hispanic', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 26-year-old Woman. Relevant behavioral factors include: avoids medical care, physically demanding job, high anxiety, delays seeking surgical consultation, physically active.',
     'Chronic abdominal pain',
@@ -7094,7 +7107,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11981239', 'CASE_11981239', 'Charles Moore', 60, 'Male', 'he/him', 
+    '11981239', '11981239', 'Charles Moore', 60, 'Male', 'he/him', 
     'Asian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 60-year-old Man. Relevant behavioral factors include: depressive mood, non-compliant with dietary restriction, heavy smoker, low socioeconomic status, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -7109,7 +7122,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11982995', 'CASE_11982995', 'Matthew Wilson', 77, 'Male', 'he/him', 
+    '11982995', '11982995', 'Matthew Wilson', 77, 'Male', 'he/him', 
     'African American', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 77-year-old Man. Relevant behavioral factors include: physically demanding job, ignores early abdominal pain, self-medication, health anxiety, physically active.',
     'Intermittent abdominal pain',
@@ -7124,7 +7137,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11984520', 'CASE_11984520', 'Sandra Brown', 50, 'Female', 'she/her', 
+    '11984520', '11984520', 'Sandra Brown', 50, 'Female', 'she/her', 
     'Unknown', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 50-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, lives alone, good medication adherence, sedentary lifestyle, low pain tolerance.',
     'Severe abdominal pain',
@@ -7139,7 +7152,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11986246', 'CASE_11986246', 'Susan Williams', 84, 'Female', 'she/her', 
+    '11986246', '11986246', 'Susan Williams', 84, 'Female', 'she/her', 
     'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 84-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, stress-related symptoms, limited access to healthcare, low-fiber diet, regular medical checkups.',
     'Nausea and abdominal pain',
@@ -7154,7 +7167,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11990136', 'CASE_11990136', 'Susan Williams', 83, 'Female', 'she/her', 
+    '11990136', '11990136', 'Susan Williams', 83, 'Female', 'she/her', 
     'African American', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 83-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, frequent emergency department visits, binge drinking, low pain tolerance.',
     'Nausea and abdominal pain',
@@ -7169,7 +7182,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11991721', 'CASE_11991721', 'Linda Moore', 35, 'Female', 'she/her', 
+    '11991721', '11991721', 'Linda Moore', 35, 'Female', 'she/her', 
     'Caucasian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 35-year-old Woman. Relevant behavioral factors include: high work-related stress, high anxiety, non-compliant with dietary restriction, regular medical checkups, social smoker.',
     'Intermittent abdominal pain',
@@ -7184,7 +7197,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11992252', 'CASE_11992252', 'Michael Wilson', 70, 'Male', 'he/him', 
+    '11992252', '11992252', 'Michael Wilson', 70, 'Male', 'he/him', 
     'Hispanic', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 70-year-old Man. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, low-fiber diet, high pain tolerance, frequent emergency department visits.',
     'Severe abdominal pain',
@@ -7199,7 +7212,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11998037', 'CASE_11998037', 'Richard Davis', 66, 'Male', 'he/him', 
+    '11998037', '11998037', 'Richard Davis', 66, 'Male', 'he/him', 
     'Hispanic', 'Student', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 66-year-old Man. Relevant behavioral factors include: high anxiety, lives alone, ignores early abdominal pain, frequent emergency department visits, heavy smoker.',
     'Intermittent abdominal pain',
@@ -7214,7 +7227,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12001650', 'CASE_12001650', 'Emily Gonzalez', 41, 'Female', 'she/her', 
+    '12001650', '12001650', 'Emily Gonzalez', 41, 'Female', 'she/her', 
     'Hispanic', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 41-year-old Woman. Relevant behavioral factors include: ignores early abdominal pain, poor medication adherence, heavy smoker, poor insight into illness, limited family support.',
     'Intermittent abdominal pain',
@@ -7229,7 +7242,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12004475', 'CASE_12004475', 'Christopher Garcia', 54, 'Male', 'he/him', 
+    '12004475', '12004475', 'Christopher Garcia', 54, 'Male', 'he/him', 
     'Asian', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 54-year-old Man. Relevant behavioral factors include: uses painkillers excessively, high-fat diet, lives alone, health anxiety, frequent emergency department visits.',
     'Severe abdominal pain',
@@ -7244,7 +7257,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12008843', 'CASE_12008843', 'Robert Moore', 49, 'Male', 'he/him', 
+    '12008843', '12008843', 'Robert Moore', 49, 'Male', 'he/him', 
     'Caucasian', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 49-year-old Man. Relevant behavioral factors include: night shift worker, limited access to healthcare, non-compliant with dietary restriction, health anxiety, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -7259,7 +7272,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12017101', 'CASE_12017101', 'Sarah Lopez', 58, 'Female', 'she/her', 
+    '12017101', '12017101', 'Sarah Lopez', 58, 'Female', 'she/her', 
     'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 58-year-old Woman. Relevant behavioral factors include: high work-related stress, ignores early abdominal pain, binge drinking, low pain tolerance, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -7274,7 +7287,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12017780', 'CASE_12017780', 'Sarah Rodriguez', 87, 'Female', 'she/her', 
+    '12017780', '12017780', 'Sarah Rodriguez', 87, 'Female', 'she/her', 
     'Caucasian', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 87-year-old Woman. Relevant behavioral factors include: sedentary lifestyle, delays seeking surgical consultation, high pain tolerance, low socioeconomic status, regular medical checkups.',
     'Chronic abdominal pain',
@@ -7289,7 +7302,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12027666', 'CASE_12027666', 'Jessica Lopez', 82, 'Female', 'she/her', 
+    '12027666', '12027666', 'Jessica Lopez', 82, 'Female', 'she/her', 
     'Asian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 82-year-old Woman. Relevant behavioral factors include: high-fat diet, depressive mood, limited access to healthcare, delays seeking surgical consultation, regular medical checkups.',
     'Chronic abdominal pain',
@@ -7304,7 +7317,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12029076', 'CASE_12029076', 'Donna Davis', 23, 'Female', 'she/her', 
+    '12029076', '12029076', 'Donna Davis', 23, 'Female', 'she/her', 
     'Hispanic', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 23-year-old Woman. Relevant behavioral factors include: high pain tolerance, delays seeking surgical consultation, low-fiber diet, low socioeconomic status, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -7319,7 +7332,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12035989', 'CASE_12035989', 'Nancy Anderson', 67, 'Female', 'she/her', 
+    '12035989', '12035989', 'Nancy Anderson', 67, 'Female', 'she/her', 
     'African American', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 67-year-old Woman. Relevant behavioral factors include: stress-related symptoms, ignores early abdominal pain, binge drinking, regular medical checkups, limited family support.',
     'Intermittent abdominal pain',
@@ -7334,7 +7347,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12037237', 'CASE_12037237', 'Sandra Taylor', 79, 'Female', 'she/her', 
+    '12037237', '12037237', 'Sandra Taylor', 79, 'Female', 'she/her', 
     'African American', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 79-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, low pain tolerance, low socioeconomic status, regular medical checkups, social smoker.',
     'Severe abdominal pain',
@@ -7349,7 +7362,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12042083', 'CASE_12042083', 'Richard Williams', 26, 'Male', 'he/him', 
+    '12042083', '12042083', 'Richard Williams', 26, 'Male', 'he/him', 
     'Hispanic', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 26-year-old Man. Relevant behavioral factors include: depressive mood, ignores early abdominal pain, self-medication, limited access to healthcare, chronic alcohol consumption.',
     'Chronic abdominal pain',
@@ -7364,7 +7377,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12043129', 'CASE_12043129', 'Ashley Wilson', 32, 'Female', 'she/her', 
+    '12043129', '12043129', 'Ashley Wilson', 32, 'Female', 'she/her', 
     'Hispanic', 'Programmer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 32-year-old Woman. Relevant behavioral factors include: physically demanding job, night shift worker, stress-related symptoms, non-compliant with dietary restriction, frequent emergency department visits.',
     'Intermittent abdominal pain',
@@ -7379,7 +7392,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12044563', 'CASE_12044563', 'Christopher Wilson', 47, 'Male', 'he/him', 
+    '12044563', '12044563', 'Christopher Wilson', 47, 'Male', 'he/him', 
     'African American', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 47-year-old Man. Relevant behavioral factors include: lives alone, irregular meal patterns, delays seeking surgical consultation, high pain tolerance, frequent emergency department visits.',
     'Chronic abdominal pain',
@@ -7394,7 +7407,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12045374', 'CASE_12045374', 'Susan Thomas', 21, 'Female', 'she/her', 
+    '12045374', '12045374', 'Susan Thomas', 21, 'Female', 'she/her', 
     'Unknown', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 21-year-old Woman. Relevant behavioral factors include: lives alone, low-fiber diet, delays seeking surgical consultation, poor insight into illness, regular medical checkups.',
     'Chronic abdominal pain',
@@ -7409,7 +7422,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12058276', 'CASE_12058276', 'Christopher Rodriguez', 41, 'Male', 'he/him', 
+    '12058276', '12058276', 'Christopher Rodriguez', 41, 'Male', 'he/him', 
     'Unknown', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 41-year-old Man. Relevant behavioral factors include: high work-related stress, uses painkillers excessively, night shift worker, good medication adherence, health anxiety.',
     'Severe abdominal pain',
@@ -7424,7 +7437,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12059015', 'CASE_12059015', 'John Martin', 24, 'Male', 'he/him', 
+    '12059015', '12059015', 'John Martin', 24, 'Male', 'he/him', 
     'Caucasian', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 24-year-old Man. Relevant behavioral factors include: continues eating despite nausea, health anxiety, chronic alcohol consumption, frequent emergency department visits, limited family support.',
     'Nausea and abdominal pain',
@@ -7439,7 +7452,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12069125', 'CASE_12069125', 'Nancy Moore', 55, 'Female', 'she/her', 
+    '12069125', '12069125', 'Nancy Moore', 55, 'Female', 'she/her', 
     'African American', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 55-year-old Woman. Relevant behavioral factors include: avoids medical care, uses painkillers excessively, poor insight into illness, night shift worker, low socioeconomic status.',
     'Severe abdominal pain',
@@ -7454,7 +7467,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12069169', 'CASE_12069169', 'Lisa Wilson', 37, 'Female', 'she/her', 
+    '12069169', '12069169', 'Lisa Wilson', 37, 'Female', 'she/her', 
     'African American', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 37-year-old Woman. Relevant behavioral factors include: lives alone, non-compliant with dietary restriction, poor medication adherence, poor insight into illness, social smoker.',
     'Intermittent abdominal pain',
@@ -7469,7 +7482,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12069691', 'CASE_12069691', 'Lisa Martinez', 26, 'Female', 'she/her', 
+    '12069691', '12069691', 'Lisa Martinez', 26, 'Female', 'she/her', 
     'Caucasian', 'Retired', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 26-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, stress-related symptoms, poor medication adherence, low-fiber diet, low socioeconomic status.',
     'Nausea and abdominal pain',
@@ -7484,7 +7497,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12072154', 'CASE_12072154', 'Jessica Jones', 85, 'Female', 'she/her', 
+    '12072154', '12072154', 'Jessica Jones', 85, 'Female', 'she/her', 
     'Hispanic', 'Teacher', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 85-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, lives alone, poor medication adherence, chronic alcohol consumption, poor insight into illness.',
     'Nausea and abdominal pain',
@@ -7499,7 +7512,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12076650', 'CASE_12076650', 'Lisa Johnson', 51, 'Female', 'she/her', 
+    '12076650', '12076650', 'Lisa Johnson', 51, 'Female', 'she/her', 
     'Caucasian', 'Engineer', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 51-year-old Woman. Relevant behavioral factors include: high work-related stress, sedentary lifestyle, non-compliant with dietary restriction, health anxiety, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -7514,7 +7527,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12086251', 'CASE_12086251', 'Linda Anderson', 81, 'Female', 'she/her', 
+    '12086251', '12086251', 'Linda Anderson', 81, 'Female', 'she/her', 
     'Caucasian', 'Manager', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 81-year-old Woman. Relevant behavioral factors include: uses painkillers excessively, depressive mood, limited access to healthcare, heavy smoker, regular medical checkups.',
     'Severe abdominal pain',
@@ -7529,7 +7542,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12095158', 'CASE_12095158', 'Anthony Thomas', 81, 'Male', 'he/him', 
+    '12095158', '12095158', 'Anthony Thomas', 81, 'Male', 'he/him', 
     'Caucasian', 'Accountant', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 81-year-old Man. Relevant behavioral factors include: avoids medical care, lives alone, former smoker, stress-related symptoms, non-compliant with dietary restriction.',
     'Intermittent abdominal pain',
@@ -7544,7 +7557,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12109423', 'CASE_12109423', 'Dorothy Miller', 73, 'Female', 'she/her', 
+    '12109423', '12109423', 'Dorothy Miller', 73, 'Female', 'she/her', 
     'Caucasian', 'Shop Owner', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 73-year-old Woman. Relevant behavioral factors include: non-compliant with dietary restriction, health anxiety, low-fiber diet, low socioeconomic status, delayed hospital presentation.',
     'Chronic abdominal pain',
@@ -7559,7 +7572,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12120702', 'CASE_12120702', 'Mark Miller', 64, 'Male', 'he/him', 
+    '12120702', '12120702', 'Mark Miller', 64, 'Male', 'he/him', 
     'Unknown', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 64-year-old Man. Relevant behavioral factors include: stress-related symptoms, sedentary lifestyle, ignores early abdominal pain, limited access to healthcare, frequent emergency department visits.',
     'Intermittent abdominal pain',
@@ -7574,7 +7587,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '12121983', 'CASE_12121983', 'Linda Williams', 80, 'Female', 'she/her', 
+    '12121983', '12121983', 'Linda Williams', 80, 'Female', 'she/her', 
     'African American', 'Nurse', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 80-year-old Woman. Relevant behavioral factors include: avoids medical care, continues eating despite nausea, physically demanding job, depressive mood, former smoker.',
     'Nausea and abdominal pain',
