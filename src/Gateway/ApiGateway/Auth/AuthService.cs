@@ -36,11 +36,11 @@ public sealed class AuthService
 
             var user = await GetUserByIdentityAsync(
                 connection,
-                request.Identity,
+                request.Email,
                 cancellationToken
             );
 
-            if (user is null || !user.IsActive)
+            if (user is null || !string.Equals(user.IsActive, "active", StringComparison.OrdinalIgnoreCase))
             {
                 return null;
             }
@@ -105,7 +105,7 @@ public sealed class AuthService
                 tokenRecord is null
                 || tokenRecord.IsRevoked
                 || tokenRecord.ExpiresAt <= DateTime.UtcNow
-                || !tokenRecord.IsActive
+                || !string.Equals(tokenRecord.IsActive, "active", StringComparison.OrdinalIgnoreCase)
             )
             {
                 return null;
@@ -259,28 +259,27 @@ public sealed class AuthService
 
     private async Task<UserRecord?> GetUserByIdentityAsync(
         MySqlConnection connection,
-        string identity,
+        string email,
         CancellationToken cancellationToken
     )
     {
         const string sql = """
-            SELECT
-                user_id AS UserId,
-                username AS Username,
-                email AS Email,
-                password_hash AS PasswordHash,
-                role AS Role,
-                is_active AS IsActive
-            FROM users
-            WHERE username = @Identity
-               OR email = @Identity
-            LIMIT 1;
-            """;
+                           SELECT
+                               userid AS UserId,
+                               name AS Username,
+                               email AS Email,
+                               password AS PasswordHash,
+                               role AS Role,
+                               status AS IsActive
+                           FROM users
+                           WHERE email = @Email
+                           LIMIT 1;
+                           """;
 
         return await connection.QueryFirstOrDefaultAsync<UserRecord>(
             new CommandDefinition(
                 sql,
-                new { Identity = identity },
+                new { Email = email },
                 cancellationToken: cancellationToken
             )
         );
@@ -294,28 +293,28 @@ public sealed class AuthService
         )
     {
         const string sql = """
-            SELECT
-                rt.token_id AS TokenId,
-                rt.user_id AS UserId,
-                rt.expires_at AS ExpiresAt,
-                rt.is_revoked AS IsRevoked,
+                           SELECT
+                               rt.token_id AS TokenId,
+                               rt.user_id AS UserId,
+                               rt.expires_at AS ExpiresAt,
+                               rt.is_revoked AS IsRevoked,
 
-                u.user_id AS UserId,
-                u.username AS Username,
-                u.email AS Email,
-                u.password_hash AS PasswordHash,
-                u.role AS Role,
-                u.is_active AS IsActive
+                               u.name AS Username,
+                               u.email AS Email,
+                               u.password AS PasswordHash,
+                               u.role AS Role,
 
-            FROM user_refresh_tokens rt
+                               u.status AS IsActive
 
-            INNER JOIN users u
-                ON u.user_id = rt.user_id
+                           FROM user_refresh_tokens rt
 
-            WHERE rt.token_hash = @TokenHash
+                           INNER JOIN users u
+                               ON u.userid = rt.user_id
 
-            LIMIT 1;
-            """;
+                           WHERE rt.token_hash = @TokenHash
+
+                           LIMIT 1;
+                           """;
 
         return await connection.QueryFirstOrDefaultAsync<RefreshTokenUserRecord>(
             new CommandDefinition(
@@ -339,9 +338,8 @@ public sealed class AuthService
             new CommandDefinition(
                 """
                 UPDATE users
-                SET password_hash = @PasswordHash,
-                    updated_at = UTC_TIMESTAMP()
-                WHERE user_id = @UserId;
+                SET password = @PasswordHash
+                WHERE userid = @UserId;
                 """,
                 new
                 {
@@ -596,7 +594,7 @@ public sealed class AuthService
         string Email,
         string PasswordHash,
         string Role,
-        bool IsActive
+        string IsActive
     );
 
     private sealed record RefreshTokenUserRecord(
@@ -608,6 +606,6 @@ public sealed class AuthService
         string Email,
         string PasswordHash,
         string Role,
-        bool IsActive
+        string IsActive
     );
 }

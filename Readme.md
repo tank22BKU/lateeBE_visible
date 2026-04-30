@@ -126,8 +126,9 @@ http://localhost:5000/swagger/index.html
 http://localhost:5000/swagger/auth/index.html
 
 ### Test Account
-- Username: admin
-- Password: Admin@123
+LEARNER: tan.dang@latee.edu.vn ------ hashed_pass_1 
+EXPERT: tu.nguyen@latee.edu.vn ------ hashed_pass_2
+ADMIN:  admin@latee.edu.vn     ------ hashed_pass_3
 
 ### Example gateway
 http://localhost:5000/clinical-case/api/clinical-cases?status=active&page=1&pageSize=20

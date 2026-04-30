@@ -234,9 +234,13 @@ services:
     container_name: ai-assistant-api
     ports:
       - "8003:8000"
+    environment:
+      EMBEDDING_MODEL: "jinaai/jina-embeddings-v2-small-en"
+      FASTEMBED_CACHE_PATH: /tmp/fastembed_cache
     volumes:
       - ../src/Services/AIAssistantService/python_api/data:/src/data:ro
       - ../src/Services/AIAssistantService/python_api:/src
+      - ai_assistant_faiss:/src/faiss_index
     env_file:
       - ../.env
     #    depends_on:
@@ -347,6 +351,7 @@ volumes:
   mysql_data:
   ollama_data:
   ollama_vp_data:
+  ai_assistant_faiss:
 
 networks:
   latee-network:
