@@ -11,6 +11,7 @@ public class EvaluationDbContext : DbContext
     public DbSet<EvaluationResult> EvaluationResults => Set<EvaluationResult>();
     public DbSet<EpaScore> EpaScores => Set<EpaScore>();
     public DbSet<EvaluationWarning> EvaluationWarnings => Set<EvaluationWarning>();
+    public DbSet<PracticeSession> PracticeSessions => Set<PracticeSession>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -67,5 +68,46 @@ public class EvaluationDbContext : DbContext
             e.Property(x => x.WarningMessage).HasColumnName("description");
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
         });
+
+        b.Entity<PracticeSession>(entity =>
+        {
+            entity.ToTable("practice_sessions");
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id)
+                .HasColumnName("id")
+                .HasMaxLength(50)
+                .ValueGeneratedNever()
+                .IsRequired();
+
+            entity.Property(x => x.LearnerId)
+                .HasColumnName("learnerid")
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(x => x.ClinicalCaseId)
+                .HasColumnName("clinicalcaseid")
+                .HasMaxLength(20)
+                .IsRequired();
+
+            entity.Property(x => x.StartTime)
+                .HasColumnName("start_time")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.Property(x => x.EndTime)
+                .HasColumnName("end_time");
+
+            entity.Property(x => x.Duration)
+                .HasColumnName("duration");
+
+            entity.Property(x => x.IsActive)
+                .HasColumnName("is_active")
+                .HasDefaultValue(true);
+
+            entity.Property(x => x.Status)
+                .HasColumnName("status")
+                .HasDefaultValue("Practicing");
+        });
+
     }
 }

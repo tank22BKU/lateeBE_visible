@@ -95,36 +95,36 @@ public class GeminiAiRepository : IGeminiAiRepository
     private static string BuildPrompt(EvaluationResult res)
     {
         return $@"
-You are an expert clinical evaluator.
+        You are an expert clinical evaluator.
 
-Evaluate this learner's performance and return ONLY valid JSON with this exact schema:
-{{
-    ""epaAssessments"": [
+        Evaluate this learner's performance and return ONLY valid JSON with this exact schema:
         {{
-        ""epaId"": ""EPA_1"",
-        ""title"": ""Information Gathering"",
-        ""score"": 0,
-        ""entrustmentLevel"": 1,
-        ""feedback"": ""...""
+            ""epaAssessments"": [
+                {{
+                ""epaId"": ""EPA_1"",
+                ""title"": ""Information Gathering"",
+                ""score"": 0,
+                ""entrustmentLevel"": 1,
+                ""feedback"": ""...""
+                }}
+            ]
         }}
-    ]
-}}
 
-Rules:
-- Exactly 5 EPA objects: EPA_1..EPA_5 in order.
-- Score per EPA is integer from 0 to 20.
-- entrustmentLevel is integer from 1 to 5.
-- feedback should be concise but specific and actionable.
-- No markdown, no explanation outside JSON.
+        Rules:
+        - Exactly 5 EPA objects: EPA_1..EPA_5 in order.
+        - Score per EPA is integer from 0 to 20.
+        - entrustmentLevel is integer from 1 to 5.
+        - feedback should be concise but specific and actionable.
+        - No markdown, no explanation outside JSON.
 
-Learner data:
-- SessionId: {res.SessionId}
-- UserId: {res.UserId}
-- ClinicalCaseId: {res.ClinicalCaseId}
-- Diagnosis: {res.FinalDiagnosis}
-- VP Conversation Log: {res.VpConversationLog}
-- Reasoning Log: {res.AiReasoningLog}
-";
+        Learner data:
+        - SessionId: {res.SessionId}
+        - UserId: {res.UserId}
+        - ClinicalCaseId: {res.ClinicalCaseId}
+        - Diagnosis: {res.FinalDiagnosis}
+        - VP Conversation Log: {res.VpConversationLog}
+        - Reasoning Log: {res.AiReasoningLog}
+        ";
     }
 
     private static string ExtractJson(string raw)

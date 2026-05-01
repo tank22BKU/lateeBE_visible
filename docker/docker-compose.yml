@@ -334,22 +334,22 @@
       ConnectionStrings__EvaluationDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
     networks:
       - latee-network
-  practice-session:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.PracticeSession
-    container_name: practice-session-api
-    ports:
-      - "8007:8080"
-    env_file:
-      - ../.env
-    depends_on:
-      - mysql
-    environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__PracticeSessionDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
-    networks:
-      - latee-network
+  # practice-session:
+  #   build:
+  #     context: ..
+  #     dockerfile: docker/Dockerfile.PracticeSession
+  #   container_name: practice-session-api
+  #   ports:
+  #     - "8007:8080"
+  #   env_file:
+  #     - ../.env
+  #   depends_on:
+  #     - mysql
+  #   environment:
+  #     ASPNETCORE_ENVIRONMENT: Development
+  #     ConnectionStrings__PracticeSessionDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+  #   networks:
+  #     - latee-network
 
   api-gateway:
     build:
@@ -367,7 +367,7 @@
       - assessment
       - roadmap
       - evaluation
-      - practice-session
+      # - practice-session
     environment:
       ASPNETCORE_ENVIRONMENT: Development
     networks:

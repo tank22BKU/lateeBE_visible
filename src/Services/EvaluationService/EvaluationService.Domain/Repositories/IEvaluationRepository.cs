@@ -9,4 +9,6 @@ public interface IEvaluationRepository
     Task UpdateAsync(EvaluationResult result);
     Task DeleteAsync(string id);
     Task SaveChangesAsync(); 
+    
+    Task<string> AddPracticeSessionAsync(PracticeSession session);
 }

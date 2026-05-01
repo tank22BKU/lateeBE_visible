@@ -52,4 +52,12 @@ public class EvaluationRepository : IEvaluationRepository
     }
 
     public Task SaveChangesAsync() => _db.SaveChangesAsync();
+
+    public async Task<string> AddPracticeSessionAsync(PracticeSession session)
+    {
+        _db.PracticeSessions.Add(session);
+        await _db.SaveChangesAsync();
+        return session.Id;
+    }
+    
 }

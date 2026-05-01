@@ -6,26 +6,18 @@ using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ==========================================
-// 1. JSON CONFIG: Chuyển toàn bộ sang camelCase
-// ==========================================
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        // Chuyển Property (Name -> name, PatientId -> patientId)
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-        // Chuyển Key của Dictionary (VitalSigns, Persona) sang camelCase
         options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
     });
-
-// Database Connection
 var connectionString = builder.Configuration.GetConnectionString("VirtualPatientDb");
 builder.Services.AddDbContext<VirtualPatientDbContext>(options =>
 {
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 });
 
-// Dependency Injection
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
