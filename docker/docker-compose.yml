@@ -42,7 +42,7 @@
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__AssessmentDb: "Server=latee-mysql;Port=3306;Database=latee;Uid=user;Pwd=pass;AllowPublicKeyRetrieval=True"
-      GeminiAi__ApiKey: ${GEMINI_API_KEY}
+      GeminiAi__ApiKey: ${GEMINI_15_API_KEY}
     env_file:
       - ../.env
     networks:

@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 // =======================
 // Database
 // =======================
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("AssessmentDb");
 
 builder.Services.AddDbContext<AssessmentDbContext>(options =>
 {

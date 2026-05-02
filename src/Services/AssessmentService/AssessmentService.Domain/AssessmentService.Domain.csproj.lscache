@@ -56,7 +56,10 @@ TemporaryDependencyNodeTargetIdentifier=net9.0
 Class1.cs
 Entities/
  Assessment.cs
+ AssessmentAttempt.cs
  AssessmentQuestion.cs
+ AttemptAnswer.cs
+ Users.cs
 obj/Debug/net9.0/
  .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
  AssessmentService.Domain.AssemblyInfo.cs

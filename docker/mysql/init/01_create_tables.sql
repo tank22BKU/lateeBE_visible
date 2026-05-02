@@ -13,6 +13,29 @@
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE expert_profiles (
+    userid VARCHAR(50) PRIMARY KEY,
+    title_position VARCHAR(100),       -- Ví dụ: CLINICAL INSTRUCTOR
+    bio_quote TEXT,                    -- Giới thiệu ngắn "Dr. Tachibana Hana focuses on..."
+    avatar_url TEXT,                 
+    phone_contact VARCHAR(20),        
+    office_address TEXT,               
+    social_links JSON,                 
+    education_detail TEXT,             -- Master's Degree in Clinical Nursing...
+    expertise_skills JSON,             -- ["Patient Interaction", "Clinical Supervision"]
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_profile_user FOREIGN KEY (userid) REFERENCES users(userid) ON DELETE CASCADE
+);
+
+CREATE TABLE item_experts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    item_id VARCHAR(50) NOT NULL,     
+    expert_id VARCHAR(50) NOT NULL,
+    item_type ENUM('Assessment', 'ClinicalCase', 'Practice') NOT NULL,
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_ie_expert FOREIGN KEY (expert_id) REFERENCES users(userid) ON DELETE CASCADE
+);
+
 CREATE TABLE notifications (
     id VARCHAR(50) PRIMARY KEY,
     userid VARCHAR(50) NOT NULL,
@@ -213,7 +236,8 @@ CREATE TABLE assessments (
     allowed_question_types JSON,     
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_assessment_creator FOREIGN KEY (creator_id) REFERENCES users(userid) ON DELETE CASCADE
 );
 
 CREATE TABLE assessment_questions (

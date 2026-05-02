@@ -18,4 +18,7 @@ public interface IAssessmentRepository
     Task AddQuestionAsync(AssessmentQuestion question);
     Task UpdateQuestionAsync(AssessmentQuestion question);
     Task DeleteQuestionAsync(AssessmentQuestion question);
+
+    Task AddAttemptAsync(AssessmentAttempt attempt);
+    Task<AssessmentAttempt?> GetAttemptWithAnswersAsync(string attemptId);
 }

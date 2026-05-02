@@ -79,4 +79,18 @@ public class AssessmentRepository : IAssessmentRepository
         _db.AssessmentQuestions.Remove(question);
         await _db.SaveChangesAsync();
     }
+
+
+    public async Task AddAttemptAsync(AssessmentAttempt attempt)
+    {
+        _db.Set<AssessmentAttempt>().Add(attempt);
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task<AssessmentAttempt?> GetAttemptWithAnswersAsync(string attemptId)
+    {
+        return await _db.AssessmentAttempts
+            .Include(a => a.Answers) 
+            .FirstOrDefaultAsync(a => a.AttemptId == attemptId);
+    }
 }

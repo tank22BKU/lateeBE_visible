@@ -20,8 +20,46 @@ INSERT INTO epa_scores (score_id, result_id, epa_id, entrustment_level, numerica
 INSERT INTO evaluation_warnings (warning_id, result_id, label, description) VALUES
 ('WARN_01', 'RES_001', 'Vi phạm đạo đức', 'Sử dụng ngôn từ không chuẩn mực.');
 
--- 1. INSERT DỮ LIỆU BÀI KIỂM TRA (assessments)
--- Đã thêm generation_prompt và bọc clinical_case_id trong dấu nháy đơn
+INSERT INTO users (userid, name, email, phone, role, password) VALUES
+('EXP_ANDREW', 'Dr. Andrew Nguyen', 'andrew.nguyen@latee.edu.vn', '568-367-987-237', 'Expert', 'hashed_pass_andrew'),
+('EXP_HANA', 'Dr. Tachibana Hana', 'hana.tachibana@latee.edu.vn', '568-333-111-222', 'Expert', 'hashed_pass_hana');
+
+INSERT INTO expert_profiles (
+    userid, title_position, bio_quote, avatar_url, 
+    phone_contact, office_address, social_links, 
+    education_detail, expertise_skills
+) VALUES 
+(
+    'EXP_ANDREW', 
+    'SPECIALIST IN DIAGNOSTIC REASONING', 
+    'Dr. Andrew is a leading expert in analyzing complex clinical cases. With over 15 years of experience, he has developed modern diagnostic consulting models that help medical students shorten their learning curve when approaching real-world diseases.', 
+    '/images/experts/andrew_nguyen.jpg', 
+    '(568) 367-987-237', 
+    'Hudson, Wisconsin (WI), 54016', 
+    '{"facebook": "#", "twitter": "#", "instagram": "#", "linkedin": "#"}', 
+    'Doctor of Medicine (MD) in Internal Medicine from Johns Hopkins University. Advanced Medical Education Teaching Certification from Harvard Medical School.', 
+    '["Clinical Reasoning", "Diagnostic Strategy", "Case-based Learning"]'
+),
+(
+    'EXP_HANA', 
+    'CLINICAL INSTRUCTOR', 
+    'Dr. Tachibana Hana focuses on hands-on clinical practice guidance for students. She is well known for her patient-centered teaching approach and her refined ability to convey healthcare communication skills effectively.', 
+    '/images/experts/Robot2.png', 
+    '(568) 333-111-222', 
+    'Shibuya, Tokyo, Japan', 
+    '{"facebook": "#", "twitter": "#", "instagram": "#", "linkedin": "#"}', 
+    'Master’s Degree in Clinical Nursing from Kyoto University. Internationally certified Clinical Simulation Training Specialist.', 
+    '["Patient Interaction", "Clinical Supervision", "Medical Simulation Training"]'
+);
+
+INSERT INTO item_experts (item_id, expert_id, item_type) VALUES 
+('AS2551236', 'EXP_ANDREW', 'Assessment'),
+('AS2551236', 'EXP_HANA', 'Assessment');
+
+INSERT INTO item_experts (item_id, expert_id, item_type) VALUES 
+('27553284', 'EXP_ANDREW', 'ClinicalCase'),
+('27553284', 'EXP_HANA', 'ClinicalCase');
+
 INSERT INTO assessments (
     assessment_id, creator_id, clinical_case_id, course_id, module_id, 
     specialty, topic, subtopic, difficulty_level, 
@@ -30,7 +68,7 @@ INSERT INTO assessments (
     generation_prompt, -- Cột quan trọng để AI hoạt động
     allowed_question_types, is_active
 ) VALUES (
-    'AS2551236', 'DOC_9999', '27553284', 'MED301', 'MOD_DIGESTIVE',
+    'AS2551236', 'EXP_HANA', '27553284', 'MED301', 'MOD_DIGESTIVE',
     'Gastroenterology', 'Peptic Ulcer Disease', 'Diagnosis & Management', 'Intermediate',
     'Clinical Quiz: Management of Peptic Ulcer Disease', 
     'A 15-minute clinical quiz based on the case of Charles Gonzalez.', 
@@ -40,7 +78,6 @@ INSERT INTO assessments (
     '["MultipleChoice", "MultipleResponse", "TrueFalse"]', TRUE
 );
 
--- 2. INSERT CÂU HỎI (assessment_questions)
 INSERT INTO assessment_questions (
     question_id, assessment_id, question_type, cognitive_level, 
     content, options, explanation, points
@@ -63,7 +100,6 @@ INSERT INTO assessment_questions (
     1.00
 );
 
--- 3. INSERT LƯỢT LÀM BÀI (assessment_attempts)
 INSERT INTO assessment_attempts (
     attempt_id, assessment_id, user_id, 
     start_time, end_time, score, is_passed, status
@@ -72,7 +108,6 @@ INSERT INTO assessment_attempts (
     '2026-04-04 08:00:00', '2026-04-04 08:12:35', 3.00, TRUE, 'Completed'
 );
 
--- 4. INSERT CÂU TRẢ LỜI CHI TIẾT (attempt_answers)
 INSERT INTO attempt_answers (
     answer_id, attempt_id, question_id, user_choice, is_correct, points_earned, is_flagged
 ) VALUES (
@@ -94,7 +129,7 @@ INSERT INTO assessment_issues (
     'Open'
 );
 
--- Bật lại kiểm tra khóa ngoại
+
 SET FOREIGN_KEY_CHECKS = 1;
 
 INSERT INTO patients (
@@ -6792,7 +6827,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11905418', '11905418', 'Susan Lopez', 63, 'Female', 'she/her', 
+    '11905418', '23136235', 'Susan Lopez', 63, 'Female', 'she/her', 
     'African American', 'Salesperson', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 63-year-old Woman. Relevant behavioral factors include: continues eating despite nausea, physically demanding job, poor medication adherence, health anxiety, social smoker.',
     'Nausea and abdominal pain',
@@ -6807,7 +6842,7 @@ INSERT INTO patients (
     ethnicity, occupation, setting, level, time_setting, 
     descriptions, chief_concern, vital_signs, instructions, case_rules, persona
 ) VALUES (
-    '11909152', '11909152', 'Dorothy Garcia', 30, 'Female', 'she/her', 
+    '11909152', '27374950', 'Dorothy Garcia', 30, 'Female', 'she/her', 
     'Hispanic', 'Worker', 'Emergency Room', 'Intermediate', 'Morning',
     'This patient is a 30-year-old Woman. Relevant behavioral factors include: high work-related stress, continues eating despite nausea, sedentary lifestyle, self-medication, health anxiety.',
     'Nausea and abdominal pain',
