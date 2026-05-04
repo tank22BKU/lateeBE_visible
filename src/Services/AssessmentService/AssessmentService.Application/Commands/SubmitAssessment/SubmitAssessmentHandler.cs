@@ -30,13 +30,17 @@ public class SubmitAssessmentHandler : IRequestHandler<SubmitAssessmentCommand, 
         var assessment = await _repo.GetByIdWithQuestionsAsync(request.AssessmentId);
         if (assessment == null) throw new Exception("Assessment không tồn tại.");
 
+        var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
         var attempt = new AssessmentAttempt
         {
+            AttemptId = Guid.NewGuid().ToString("N"), 
             AssessmentId = request.AssessmentId,
             UserId = request.UserId,
             StartTime = DateTime.UtcNow.AddSeconds(-request.DurationSeconds),
             EndTime = DateTime.UtcNow,
-            Status = "Completed"
+            Status = "Completed",
+            Answers = new List<AttemptAnswer>() 
         };
 
         int correctCount = 0;
@@ -47,10 +51,12 @@ public class SubmitAssessmentHandler : IRequestHandler<SubmitAssessmentCommand, 
             var question = assessment.Questions.FirstOrDefault(q => q.QuestionId == userAnswer.QuestionId);
             if (question == null) continue;
 
-            var options = JsonSerializer.Deserialize<List<OptionElement>>(question.Options ?? "[]");
+            var options = JsonSerializer.Deserialize<List<OptionElement>>(question.Options ?? "[]", jsonOptions);
+    
             var correctOption = options?.FirstOrDefault(o => o.IsCorrect);
-            
-            bool isCorrect = correctOption != null && correctOption.Id == userAnswer.SelectedOptionId;
+
+            bool isCorrect = correctOption != null && 
+                            string.Equals(correctOption.Id?.Trim(), userAnswer.SelectedOptionId?.Trim(), StringComparison.OrdinalIgnoreCase);
             
             if (isCorrect)
             {
@@ -60,8 +66,9 @@ public class SubmitAssessmentHandler : IRequestHandler<SubmitAssessmentCommand, 
 
             attempt.Answers.Add(new AttemptAnswer
             {
+                AnswerId = Guid.NewGuid().ToString("N"),
                 QuestionId = question.QuestionId,
-                UserChoice = userAnswer.SelectedOptionId,
+                UserChoice = userAnswer.SelectedOptionId ?? string.Empty,
                 IsCorrect = isCorrect,
                 PointsEarned = isCorrect ? question.Points : 0
             });
@@ -73,12 +80,7 @@ public class SubmitAssessmentHandler : IRequestHandler<SubmitAssessmentCommand, 
 
         await _repo.AddAttemptAsync(attempt);
 
-        return new SubmitResultDto(
-            attempt.AttemptId, 
-            attempt.Score, 
-            attempt.IsPassed, 
-            correctCount
-        );
+        return new SubmitResultDto(attempt.AttemptId, attempt.Score, attempt.IsPassed, correctCount);
     }
 }
 
