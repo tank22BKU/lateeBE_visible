@@ -1,4 +1,13 @@
-﻿services:
+﻿x-auth-env: &auth-env
+  Security__AuthorizationEnabled: ${AUTHORIZATION_ENABLED:-false}
+  Jwt__Issuer: ${JWT_ISSUER:-latee-auth}
+  Jwt__Audience: ${JWT_AUDIENCE:-latee-clients}
+  Jwt__SigningKey: ${JWT_SIGNING_KEY:-latee_super_secret_signing_key_2026_change_me}
+  Jwt__AccessTokenMinutes: ${JWT_ACCESS_TOKEN_MINUTES:-30}
+  Jwt__RefreshTokenDays: ${JWT_REFRESH_TOKEN_DAYS:-7}
+
+services:
+
   mysql:
     image: mysql:8.0
     container_name: latee-mysql
@@ -27,9 +36,10 @@
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__ClinicalCaseDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      <<: *auth-env
     networks:
       - latee-network
-  
+
   assessment:
     build:
       context: ..
@@ -60,6 +70,7 @@
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__VirtualPatientDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      <<: *auth-env
     networks:
       - latee-network
 
@@ -147,62 +158,6 @@
   # =========================================================
   # AI Assistant, Gateway, Redis...
   # =========================================================
-
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    networks:
-      - latee-network
-    environment:
-      - OLLAMA_NUM_PARALLEL=2
-      - OLLAMA_FLASH_ATTENTION=1
-      - OLLAMA_NUM_GPU=1
-      - OLLAMA_MAX_LOADED_MODELS=2
-      - OLLAMA_KEEP_ALIVE=30m
-      - OLLAMA_NUM_THREAD=2
-      - OLLAMA_NUM_CTX=4096
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
-    healthcheck:
-      test: [ "CMD", "ollama", "list" ]
-      interval: 120s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-
-  ollama-warmup:
-    image: ollama/ollama:latest
-    container_name: ollama-warmup
-    depends_on:
-      ollama:
-        condition: service_healthy
-    environment:
-      - OLLAMA_HOST=http://ollama:11434
-    entrypoint: [ "/bin/sh"]
-    command: 
-      - "-c"
-      - |
-        echo "Waiting for Ollama API..."
-        until ollama list > /dev/null 2>&1; do sleep 2; done
-        
-        if ! ollama list | grep -q "llama3.1:8b"; then
-          echo "Pulling Llama 3.1 8B..."
-          ollama pull llama3.1:8b
-        else
-          echo "Model already exists. Done."
-        fi
-    restart: "no"
-    networks:
-      - latee-network
   
   #  ollama:
   #    image: ollama/ollama:latest
@@ -278,9 +233,13 @@
     container_name: ai-assistant-api
     ports:
       - "8003:8000"
+    environment:
+      EMBEDDING_MODEL: "jinaai/jina-embeddings-v2-small-en"
+      FASTEMBED_CACHE_PATH: /tmp/fastembed_cache
     volumes:
       - ../src/Services/AIAssistantService/python_api/data:/src/data:ro
       - ../src/Services/AIAssistantService/python_api:/src
+      - ai_assistant_faiss:/src/faiss_index
     env_file:
       - ../.env
     #    depends_on:
@@ -316,6 +275,7 @@
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__RoadmapDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      <<: *auth-env
     networks:
       - latee-network
   evaluation:
@@ -334,22 +294,22 @@
       ConnectionStrings__EvaluationDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
     networks:
       - latee-network
-  # practice-session:
-  #   build:
-  #     context: ..
-  #     dockerfile: docker/Dockerfile.PracticeSession
-  #   container_name: practice-session-api
-  #   ports:
-  #     - "8007:8080"
-  #   env_file:
-  #     - ../.env
-  #   depends_on:
-  #     - mysql
-  #   environment:
-  #     ASPNETCORE_ENVIRONMENT: Development
-  #     ConnectionStrings__PracticeSessionDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
-  #   networks:
-  #     - latee-network
+  practice-session:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.PracticeSession
+    container_name: practice-session-api
+    ports:
+      - "8007:8080"
+    env_file:
+      - ../.env
+    depends_on:
+      - mysql
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__PracticeSessionDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+    networks:
+      - latee-network
 
   api-gateway:
     build:
@@ -360,6 +320,8 @@
       - "5000:8080"
     volumes:
       - ../src/Gateway/ApiGateway/ocelot.json:/app/ocelot.json:ro
+      - ../src/Gateway/ApiGateway/ocelot.auth.json:/app/ocelot.auth.json:ro
+      - ../src/Gateway/ApiGateway/ocelot.noauth.json:/app/ocelot.noauth.json:ro
     depends_on:
       - clinicalcase
       - virtualpatient
@@ -367,9 +329,11 @@
       - assessment
       - roadmap
       - evaluation
-      # - practice-session
+      - practice-session
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__AuthDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      <<: *auth-env
     networks:
       - latee-network
 
@@ -385,6 +349,7 @@ volumes:
   mysql_data:
   ollama_data:
   ollama_vp_data:
+  ai_assistant_faiss:
 
 networks:
   latee-network:

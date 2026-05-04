@@ -53,6 +53,10 @@ TemporaryDependencyNodeTargetIdentifier=net9.0
 /warnaserror+:NU1605,SYSLIB0011
 
 [sourceFiles]
+Auth/
+ AuthController.cs
+ AuthDtos.cs
+ AuthService.cs
 obj/Debug/net9.0/
  .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
  ApiGateway.AssemblyInfo.cs

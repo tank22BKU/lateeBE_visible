@@ -398,6 +398,11 @@ FodyWeavers.xsd
 .idea/
 *.sln.iml
 
+.venv
+venv
+faiss_index
+huggingface
+
 # Docker
 docker/mysql/data/
 .env

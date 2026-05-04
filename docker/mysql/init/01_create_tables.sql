@@ -36,182 +36,218 @@ CREATE TABLE item_experts (
     CONSTRAINT fk_ie_expert FOREIGN KEY (expert_id) REFERENCES users(userid) ON DELETE CASCADE
 );
 
-CREATE TABLE notifications (
-    id VARCHAR(50) PRIMARY KEY,
-    userid VARCHAR(50) NOT NULL,
-    title VARCHAR(255),
+
+CREATE TABLE user_refresh_tokens
+(
+    token_id       VARCHAR(50) PRIMARY KEY,
+    user_id        VARCHAR(50) NOT NULL,
+    token_hash     CHAR(64)    NOT NULL UNIQUE,
+    expires_at     TIMESTAMP   NOT NULL,
+    created_at     TIMESTAMP            DEFAULT CURRENT_TIMESTAMP,
+    created_by_ip  VARCHAR(50),
+    user_agent     TEXT,
+    is_revoked     BOOLEAN     NOT NULL DEFAULT FALSE,
+    revoked_at     TIMESTAMP NULL,
+    revoked_reason VARCHAR(100),
+    CONSTRAINT fk_refresh_token_user FOREIGN KEY (user_id) REFERENCES users (userid) ON DELETE CASCADE
+);
+
+CREATE TABLE revoked_access_tokens
+(
+    jti        VARCHAR(64) PRIMARY KEY,
+    user_id    VARCHAR(50),
+    expires_at TIMESTAMP NOT NULL,
+    revoked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    reason     VARCHAR(100)
+);
+
+CREATE TABLE notifications
+(
+    id          VARCHAR(50) PRIMARY KEY,
+    userid      VARCHAR(50) NOT NULL,
+    title       VARCHAR(255),
     description TEXT,
-    status ENUM('Read', 'Unread') DEFAULT 'Unread',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_noti_user FOREIGN KEY (userid) REFERENCES users(userid) ON DELETE CASCADE
+    status      ENUM('Read', 'Unread') DEFAULT 'Unread',
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_noti_user FOREIGN KEY (userid) REFERENCES users (userid) ON DELETE CASCADE
 );
 
-CREATE TABLE patients (
-    patientid VARCHAR(50) PRIMARY KEY,
-    clinical_case_id VARCHAR(50), 
-    name VARCHAR(100) NOT NULL,
-    age INT,
-    gender VARCHAR(20),
-    pronouns VARCHAR(20),
-    ethnicity VARCHAR(50),
-    occupation VARCHAR(100),
-    setting VARCHAR(50),
-    level VARCHAR(20),
-    time_setting VARCHAR(50),
-    avatar_img TEXT,
-    descriptions TEXT,
-    chief_concern TEXT,
-    vital_signs JSON, 
-    instructions JSON,
-    case_rules JSON,
-    persona JSON,
-    status VARCHAR(20) DEFAULT 'active',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+CREATE TABLE patients
+(
+    patientid        VARCHAR(50) PRIMARY KEY,
+    clinical_case_id VARCHAR(50),
+    name             VARCHAR(100) NOT NULL,
+    age              INT,
+    gender           VARCHAR(20),
+    pronouns         VARCHAR(20),
+    ethnicity        VARCHAR(50),
+    occupation       VARCHAR(100),
+    setting          VARCHAR(50),
+    level            VARCHAR(20),
+    time_setting     VARCHAR(50),
+    avatar_img       TEXT,
+    descriptions     TEXT,
+    chief_concern    TEXT,
+    vital_signs      JSON,
+    instructions     JSON,
+    case_rules       JSON,
+    persona          JSON,
+    status           VARCHAR(20) DEFAULT 'active',
+    created_at       TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TIMESTAMP   DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE clinicalcases (
+CREATE TABLE clinicalcases
+(
     clinicalcaseid VARCHAR(20) PRIMARY KEY,
-    patientid VARCHAR(50) NOT NULL,
-    title TEXT,
-    type VARCHAR(50),
-    descriptions TEXT,
-    symptom TEXT,
+    patientid      VARCHAR(50) NOT NULL,
+    title          TEXT,
+    type           VARCHAR(50),
+    descriptions   TEXT,
+    symptom        TEXT,
     medicalhistory TEXT,
-    pe TEXT,
-    status VARCHAR(10) DEFAULT 'active',
-    createdBy VARCHAR(50),
-    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_patient FOREIGN KEY (patientid) REFERENCES patients(patientid)
+    pe             TEXT,
+    status         VARCHAR(10) DEFAULT 'active',
+    createdBy      VARCHAR(50),
+    createdAt      TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
+    updatedAt      TIMESTAMP   DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_patient FOREIGN KEY (patientid) REFERENCES patients (patientid)
 );
 
-CREATE TABLE labtestitem (
-    itemid INT PRIMARY KEY,
-    label TEXT,
-    fluid VARCHAR(20),
+CREATE TABLE labtestitem
+(
+    itemid   INT PRIMARY KEY,
+    label    TEXT,
+    fluid    VARCHAR(20),
     category ENUM('Blood Gas', 'Chemistry', 'Hematology'),
-    count DECIMAL(12,0)
+    count    DECIMAL(12, 0)
 );
 
-CREATE TABLE laboratorytest (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE laboratorytest
+(
+    id             INT AUTO_INCREMENT PRIMARY KEY,
     clinicalcaseid VARCHAR(20) NOT NULL,
-    itemid INT NOT NULL,
-    value TEXT NOT NULL,
-    rangelower VARCHAR(20),
-    rangeupper VARCHAR(20),
-    CONSTRAINT fk_lab_case FOREIGN KEY (clinicalcaseid) REFERENCES clinicalcases(clinicalcaseid),
-    CONSTRAINT fk_lab_item FOREIGN KEY (itemid) REFERENCES labtestitem(itemid)
+    itemid         INT         NOT NULL,
+    value          TEXT        NOT NULL,
+    rangelower     VARCHAR(20),
+    rangeupper     VARCHAR(20),
+    CONSTRAINT fk_lab_case FOREIGN KEY (clinicalcaseid) REFERENCES clinicalcases (clinicalcaseid),
+    CONSTRAINT fk_lab_item FOREIGN KEY (itemid) REFERENCES labtestitem (itemid)
 );
 
-CREATE TABLE radiologyreport (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE radiologyreport
+(
+    id             INT AUTO_INCREMENT PRIMARY KEY,
     clinicalcaseid VARCHAR(20) NOT NULL,
-    noteid VARCHAR(20),
-    modality ENUM('CT','Ultrasound','Radiograph','Drainage','MRI','MRCP','ERCP'),
-    region VARCHAR(50),
-    examname TEXT,
-    text TEXT,
-    CONSTRAINT fk_radio_case FOREIGN KEY (clinicalcaseid) REFERENCES clinicalcases(clinicalcaseid)
+    noteid         VARCHAR(20),
+    modality       ENUM('CT','Ultrasound','Radiograph','Drainage','MRI','MRCP','ERCP'),
+    region         VARCHAR(50),
+    examname       TEXT,
+    text           TEXT,
+    CONSTRAINT fk_radio_case FOREIGN KEY (clinicalcaseid) REFERENCES clinicalcases (clinicalcaseid)
 );
 
 
 
-CREATE TABLE knowledge_resources (
-    id VARCHAR(50) PRIMARY KEY,
-    expertid VARCHAR(50) NOT NULL,
-    title VARCHAR(255) NOT NULL,
-    content TEXT,
-    link TEXT,
+CREATE TABLE knowledge_resources
+(
+    id         VARCHAR(50) PRIMARY KEY,
+    expertid   VARCHAR(50)  NOT NULL,
+    title      VARCHAR(255) NOT NULL,
+    content    TEXT,
+    link       TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_resource_expert FOREIGN KEY (expertid) REFERENCES users(userid)
+    CONSTRAINT fk_resource_expert FOREIGN KEY (expertid) REFERENCES users (userid)
 );
 
-CREATE TABLE roadmaps (
-    id VARCHAR(50) PRIMARY KEY,
-    learnerid VARCHAR(50) NOT NULL,
-    content TEXT,
-    version VARCHAR(20),
+CREATE TABLE roadmaps
+(
+    id         VARCHAR(50) PRIMARY KEY,
+    learnerid  VARCHAR(50) NOT NULL,
+    content    TEXT,
+    version    VARCHAR(20),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_roadmap_learner FOREIGN KEY (learnerid) REFERENCES users(userid) ON DELETE CASCADE
+    CONSTRAINT fk_roadmap_learner FOREIGN KEY (learnerid) REFERENCES users (userid) ON DELETE CASCADE
 );
 
 
 
-
-CREATE TABLE practice_sessions (
-    id VARCHAR(50) PRIMARY KEY,
-    learnerid VARCHAR(50) NOT NULL,
+CREATE TABLE practice_sessions
+(
+    id             VARCHAR(50) PRIMARY KEY,
+    learnerid      VARCHAR(50) NOT NULL,
     clinicalcaseid VARCHAR(20) NOT NULL,
-    start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    end_time TIMESTAMP NULL,
-    duration INT, 
-    is_active BOOLEAN DEFAULT TRUE,
-    status ENUM('Practicing', 'Completed', 'Abandoned') DEFAULT 'Practicing',
-    CONSTRAINT fk_practice_learner FOREIGN KEY (learnerid) REFERENCES users(userid),
-    CONSTRAINT fk_practice_to_patient FOREIGN KEY (clinicalcaseid) REFERENCES patients(patientid) ON DELETE CASCADE
+    start_time     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    end_time       TIMESTAMP NULL,
+    duration       INT,
+    is_active      BOOLEAN   DEFAULT TRUE,
+    status         ENUM('Practicing', 'Completed', 'Abandoned') DEFAULT 'Practicing',
+    CONSTRAINT fk_practice_learner FOREIGN KEY (learnerid) REFERENCES users (userid),
+    CONSTRAINT fk_practice_to_patient FOREIGN KEY (clinicalcaseid) REFERENCES patients (patientid) ON DELETE CASCADE
 );
 
-CREATE TABLE evaluation_results (
-    result_id VARCHAR(50) PRIMARY KEY,
-    session_id VARCHAR(50) NOT NULL,
-    user_id VARCHAR(50) NOT NULL,
-    clinical_case_id VARCHAR(50) NOT NULL,
-    module_id VARCHAR(50) DEFAULT 'EPA_STANDARD_V1', 
-    case_type VARCHAR(50) DEFAULT 'Diagnosis',
-    discussion_type VARCHAR(50) DEFAULT 'Message Type',
-    duration_text VARCHAR(50) DEFAULT 'N/A',
-    vp_conversation_log JSON,   
-    ai_reasoning_log JSON,      
-    final_diagnosis TEXT,       
-    overall_score DECIMAL(5,2),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_eval_session FOREIGN KEY (session_id) REFERENCES practice_sessions(id) ON DELETE CASCADE
+CREATE TABLE evaluation_results
+(
+    result_id           VARCHAR(50) PRIMARY KEY,
+    session_id          VARCHAR(50) NOT NULL,
+    user_id             VARCHAR(50) NOT NULL,
+    clinical_case_id    VARCHAR(50) NOT NULL,
+    module_id           VARCHAR(50) DEFAULT 'EPA_STANDARD_V1',
+    case_type           VARCHAR(50) DEFAULT 'Diagnosis',
+    discussion_type     VARCHAR(50) DEFAULT 'Message Type',
+    duration_text       VARCHAR(50) DEFAULT 'N/A',
+    vp_conversation_log JSON,
+    ai_reasoning_log    JSON,
+    final_diagnosis     TEXT,
+    overall_score       DECIMAL(5, 2),
+    created_at          TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_eval_session FOREIGN KEY (session_id) REFERENCES practice_sessions (id) ON DELETE CASCADE
 );
 
-CREATE TABLE epa_scores (
-    score_id VARCHAR(50) PRIMARY KEY,
-    result_id VARCHAR(50) NOT NULL,
-    epa_id VARCHAR(20) NOT NULL,
-    entrustment_level INT,       
-    numerical_score DECIMAL(5,2),
-    feedback_detail TEXT,        
-    CONSTRAINT fk_eval_epa FOREIGN KEY (result_id) REFERENCES evaluation_results(result_id) ON DELETE CASCADE
+CREATE TABLE epa_scores
+(
+    score_id          VARCHAR(50) PRIMARY KEY,
+    result_id         VARCHAR(50) NOT NULL,
+    epa_id            VARCHAR(20) NOT NULL,
+    entrustment_level INT,
+    numerical_score   DECIMAL(5, 2),
+    feedback_detail   TEXT,
+    CONSTRAINT fk_eval_epa FOREIGN KEY (result_id) REFERENCES evaluation_results (result_id) ON DELETE CASCADE
 );
 
-CREATE TABLE evaluation_warnings (
-    warning_id VARCHAR(50) PRIMARY KEY,
-    result_id VARCHAR(50) NOT NULL,
-    label VARCHAR(100),        
+CREATE TABLE evaluation_warnings
+(
+    warning_id  VARCHAR(50) PRIMARY KEY,
+    result_id   VARCHAR(50) NOT NULL,
+    label       VARCHAR(100),
     description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_eval_warning FOREIGN KEY (result_id) REFERENCES evaluation_results(result_id) ON DELETE CASCADE
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_eval_warning FOREIGN KEY (result_id) REFERENCES evaluation_results (result_id) ON DELETE CASCADE
 );
 
 
 
-
-CREATE TABLE guidelines (
-    id VARCHAR(50) PRIMARY KEY,
-    expertid VARCHAR(50) NOT NULL,
-    title VARCHAR(255),
+CREATE TABLE guidelines
+(
+    id          VARCHAR(50) PRIMARY KEY,
+    expertid    VARCHAR(50) NOT NULL,
+    title       VARCHAR(255),
     description TEXT,
-    content TEXT, 
-    version VARCHAR(20),
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_guideline_expert FOREIGN KEY (expertid) REFERENCES users(userid)
+    content     TEXT,
+    version     VARCHAR(20),
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_guideline_expert FOREIGN KEY (expertid) REFERENCES users (userid)
 );
 
-CREATE TABLE system_feedbacks (
-    id VARCHAR(50) PRIMARY KEY,
-    senderid VARCHAR(50) NOT NULL,
-    description TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_feedback_sender FOREIGN KEY (senderid) REFERENCES users(userid)
+CREATE TABLE system_feedbacks
+(
+    id          VARCHAR(50) PRIMARY KEY,
+    senderid    VARCHAR(50) NOT NULL,
+    description TEXT        NOT NULL,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_feedback_sender FOREIGN KEY (senderid) REFERENCES users (userid)
 );
-
 
 
 
@@ -240,53 +276,56 @@ CREATE TABLE assessments (
     CONSTRAINT fk_assessment_creator FOREIGN KEY (creator_id) REFERENCES users(userid) ON DELETE CASCADE
 );
 
-CREATE TABLE assessment_questions (
-    question_id VARCHAR(50) PRIMARY KEY,
-    assessment_id VARCHAR(50) NOT NULL,
-    question_type ENUM('MultipleChoice', 'MultipleResponse', 'TrueFalse', 'FillInBlank', 'ShortAnswer') NOT NULL,
+CREATE TABLE assessment_questions
+(
+    question_id     VARCHAR(50) PRIMARY KEY,
+    assessment_id   VARCHAR(50) NOT NULL,
+    question_type   ENUM('MultipleChoice', 'MultipleResponse', 'TrueFalse', 'FillInBlank', 'ShortAnswer') NOT NULL,
     cognitive_level ENUM('Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'),
-    content TEXT NOT NULL,           
-    options JSON,                    
-    explanation TEXT,                
-    points DECIMAL(5,2) DEFAULT 1.00,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_aq_assessment FOREIGN KEY (assessment_id) REFERENCES assessments(assessment_id) ON DELETE CASCADE
+    content         TEXT        NOT NULL,
+    options         JSON,
+    explanation     TEXT,
+    points          DECIMAL(5, 2) DEFAULT 1.00,
+    created_at      TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_aq_assessment FOREIGN KEY (assessment_id) REFERENCES assessments (assessment_id) ON DELETE CASCADE
 );
 
-CREATE TABLE assessment_attempts (
-    attempt_id VARCHAR(50) PRIMARY KEY,
+CREATE TABLE assessment_attempts
+(
+    attempt_id    VARCHAR(50) PRIMARY KEY,
     assessment_id VARCHAR(50) NOT NULL,
-    user_id VARCHAR(50) NOT NULL,
-    start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    end_time TIMESTAMP NULL,
-    score DECIMAL(5,2),
-    is_passed BOOLEAN,
-    status ENUM('InProgress', 'Completed', 'Abandoned') DEFAULT 'InProgress',
-    CONSTRAINT fk_attempt_assessment FOREIGN KEY (assessment_id) REFERENCES assessments(assessment_id) ON DELETE CASCADE
+    user_id       VARCHAR(50) NOT NULL,
+    start_time    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    end_time      TIMESTAMP NULL,
+    score         DECIMAL(5, 2),
+    is_passed     BOOLEAN,
+    status        ENUM('InProgress', 'Completed', 'Abandoned') DEFAULT 'InProgress',
+    CONSTRAINT fk_attempt_assessment FOREIGN KEY (assessment_id) REFERENCES assessments (assessment_id) ON DELETE CASCADE
 );
 
-CREATE TABLE attempt_answers (
-    answer_id VARCHAR(50) PRIMARY KEY,
-    attempt_id VARCHAR(50) NOT NULL,
-    question_id VARCHAR(50) NOT NULL,
-    user_choice JSON,             
-    is_correct BOOLEAN,
-    points_earned DECIMAL(5,2) DEFAULT 0.00,
-    is_flagged BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_ans_attempt FOREIGN KEY (attempt_id) REFERENCES assessment_attempts(attempt_id) ON DELETE CASCADE,
-    CONSTRAINT fk_ans_question FOREIGN KEY (question_id) REFERENCES assessment_questions(question_id)
+CREATE TABLE attempt_answers
+(
+    answer_id     VARCHAR(50) PRIMARY KEY,
+    attempt_id    VARCHAR(50) NOT NULL,
+    question_id   VARCHAR(50) NOT NULL,
+    user_choice   JSON,
+    is_correct    BOOLEAN,
+    points_earned DECIMAL(5, 2) DEFAULT 0.00,
+    is_flagged    BOOLEAN       DEFAULT FALSE,
+    created_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_ans_attempt FOREIGN KEY (attempt_id) REFERENCES assessment_attempts (attempt_id) ON DELETE CASCADE,
+    CONSTRAINT fk_ans_question FOREIGN KEY (question_id) REFERENCES assessment_questions (question_id)
 );
 
-CREATE TABLE assessment_issues (
-    issue_id VARCHAR(50) PRIMARY KEY,
-    question_id VARCHAR(50) NOT NULL,
-    reporter_id VARCHAR(50) NOT NULL,
-    label VARCHAR(100),             
-    descriptions TEXT NOT NULL,
-    feedback TEXT,                  
-    status ENUM('Open', 'InReview', 'Resolved', 'Rejected') DEFAULT 'Open',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_issue_question FOREIGN KEY (question_id) REFERENCES assessment_questions(question_id) ON DELETE CASCADE
+CREATE TABLE assessment_issues
+(
+    issue_id     VARCHAR(50) PRIMARY KEY,
+    question_id  VARCHAR(50) NOT NULL,
+    reporter_id  VARCHAR(50) NOT NULL,
+    label        VARCHAR(100),
+    descriptions TEXT        NOT NULL,
+    feedback     TEXT,
+    status       ENUM('Open', 'InReview', 'Resolved', 'Rejected') DEFAULT 'Open',
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_issue_question FOREIGN KEY (question_id) REFERENCES assessment_questions (question_id) ON DELETE CASCADE
 );
-

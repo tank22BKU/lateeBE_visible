@@ -28,7 +28,8 @@ from dtos import (
     ClinicalReasoningRequest,
     ClinicalReasoningResponse,
 )
-from ragLoader import RAGLoader
+#from ragLoader import RAGLoader
+from ragLoaderVer2 import RAGLoader
 
 load_dotenv()
 # --------------------

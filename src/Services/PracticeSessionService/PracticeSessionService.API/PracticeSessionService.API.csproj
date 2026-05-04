@@ -9,13 +9,16 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="15.0.1" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.15" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PracticeSessionService.Application\PracticeSessionService.Application.csproj" />
-    <ProjectReference Include="..\PracticeSessionService.Infrastructure\PracticeSessionService.Infrastructure.csproj" />
+    <ProjectReference
+      Include="..\PracticeSessionService.Application\PracticeSessionService.Application.csproj" />
+    <ProjectReference
+      Include="..\PracticeSessionService.Infrastructure\PracticeSessionService.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
