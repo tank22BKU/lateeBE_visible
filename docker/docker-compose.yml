@@ -70,7 +70,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__VirtualPatientDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
-      <<: *auth-env
+      # <<: *auth-env
     networks:
       - latee-network
 
@@ -333,7 +333,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__AuthDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
-      <<: *auth-env
+      # <<: *auth-env
     networks:
       - latee-network
 

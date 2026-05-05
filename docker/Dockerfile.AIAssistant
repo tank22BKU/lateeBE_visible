@@ -13,9 +13,9 @@ WORKDIR /src
 
 COPY src/Services/AIAssistantService/python_api/requirements.txt .
 
-RUN python -c "from fastembed import TextEmbedding; TextEmbedding(model_name='jinaai/jina-embeddings-v2-small-en')"
-
 RUN pip install --no-cache-dir -r requirements.txt
+
+RUN python -c "from fastembed import TextEmbedding; TextEmbedding(model_name='jinaai/jina-embeddings-v2-small-en')"
 
 COPY src/Services/AIAssistantService/python_api/ .
 

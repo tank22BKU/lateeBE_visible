@@ -7,8 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="15.0.1" />
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.3" />
     <PackageReference Include="DotNetEnv" Version="3.1.1" />
@@ -16,7 +14,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RoadmapService.Application\RoadmapService.Application.csproj" />
-    <ProjectReference Include="..\RoadmapService.Infrastructure\RoadmapService.Infrastructure.csproj" />
+    <ProjectReference
+      Include="..\RoadmapService.Infrastructure\RoadmapService.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

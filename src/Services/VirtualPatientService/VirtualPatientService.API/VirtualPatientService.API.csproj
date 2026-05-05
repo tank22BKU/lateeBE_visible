@@ -7,15 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="15.0.1" />
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\VirtualPatientService.Application\VirtualPatientService.Application.csproj" />
-    <ProjectReference Include="..\VirtualPatientService.Infrastructure\VirtualPatientService.Infrastructure.csproj" />
+    <ProjectReference
+      Include="..\VirtualPatientService.Application\VirtualPatientService.Application.csproj" />
+    <ProjectReference
+      Include="..\VirtualPatientService.Infrastructure\VirtualPatientService.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

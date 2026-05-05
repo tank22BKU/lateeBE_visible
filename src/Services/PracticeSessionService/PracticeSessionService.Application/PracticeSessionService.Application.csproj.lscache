@@ -248,7 +248,7 @@ Queries/SavePracticeSessions/
  WindowsBase.dll
 <NUGET>/
  automapper.extensions.microsoft.dependencyinjection/12.0.1/lib/netstandard2.1/AutoMapper.Extensions.Microsoft.DependencyInjection.dll
- automapper/15.0.1/lib/net9.0/AutoMapper.dll
+ automapper/12.0.1/lib/netstandard2.1/AutoMapper.dll
  fluentvalidation.dependencyinjectionextensions/12.1.0/lib/net8.0/FluentValidation.DependencyInjectionExtensions.dll
  fluentvalidation/12.1.0/lib/net8.0/FluentValidation.dll
  mediatr.contracts/2.0.1/lib/netstandard2.0/MediatR.Contracts.dll

@@ -1,6 +1,10 @@
+using VirtualPatientService.Application;
 using VirtualPatientService.Infrastructure;
 using VirtualPatientService.Infrastructure.Persistance;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using System.Text;
 using System.Text.Json;
 
@@ -17,12 +21,15 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
     });
+
+// Database Connection
 var connectionString = builder.Configuration.GetConnectionString("VirtualPatientDb");
 builder.Services.AddDbContext<VirtualPatientDbContext>(options =>
 {
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 });
 
+// Dependency Injection
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services

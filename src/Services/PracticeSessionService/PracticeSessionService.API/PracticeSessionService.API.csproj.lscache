@@ -370,11 +370,12 @@ Program.cs
  WindowsBase.dll
 <NUGET>/
  automapper.extensions.microsoft.dependencyinjection/12.0.1/lib/netstandard2.1/AutoMapper.Extensions.Microsoft.DependencyInjection.dll
- automapper/15.0.1/lib/net9.0/AutoMapper.dll
+ automapper/12.0.1/lib/netstandard2.1/AutoMapper.dll
  fluentvalidation.dependencyinjectionextensions/12.1.0/lib/net8.0/FluentValidation.DependencyInjectionExtensions.dll
  fluentvalidation/12.1.0/lib/net8.0/FluentValidation.dll
  mediatr.contracts/2.0.1/lib/netstandard2.0/MediatR.Contracts.dll
  mediatr/13.1.0/lib/net9.0/MediatR.dll
+ microsoft.aspnetcore.authentication.jwtbearer/9.0.4/lib/net9.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll
  microsoft.aspnetcore.openapi/9.0.15/lib/net9.0/Microsoft.AspNetCore.OpenApi.dll
  microsoft.entityframeworkcore.abstractions/9.0.0/lib/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll
  microsoft.entityframeworkcore.relational/9.0.0/lib/net8.0/Microsoft.EntityFrameworkCore.Relational.dll
@@ -383,6 +384,8 @@ Program.cs
  microsoft.identitymodel.abstractions/8.14.0/lib/net9.0/Microsoft.IdentityModel.Abstractions.dll
  microsoft.identitymodel.jsonwebtokens/8.14.0/lib/net9.0/Microsoft.IdentityModel.JsonWebTokens.dll
  microsoft.identitymodel.logging/8.14.0/lib/net9.0/Microsoft.IdentityModel.Logging.dll
+ microsoft.identitymodel.protocols.openidconnect/8.0.1/lib/net9.0/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+ microsoft.identitymodel.protocols/8.0.1/lib/net9.0/Microsoft.IdentityModel.Protocols.dll
  microsoft.identitymodel.tokens/8.14.0/lib/net9.0/Microsoft.IdentityModel.Tokens.dll
  microsoft.openapi/1.6.17/lib/netstandard2.0/Microsoft.OpenApi.dll
  mysqlconnector/2.4.0/lib/net9.0/MySqlConnector.dll
@@ -390,6 +393,7 @@ Program.cs
  swashbuckle.aspnetcore.swagger/6.6.2/lib/net8.0/Swashbuckle.AspNetCore.Swagger.dll
  swashbuckle.aspnetcore.swaggergen/6.6.2/lib/net8.0/Swashbuckle.AspNetCore.SwaggerGen.dll
  swashbuckle.aspnetcore.swaggerui/6.6.2/lib/net8.0/Swashbuckle.AspNetCore.SwaggerUI.dll
+ system.identitymodel.tokens.jwt/8.0.1/lib/net9.0/System.IdentityModel.Tokens.Jwt.dll
 
 [analyzerReferences]
 <DOTNET>/packs/Microsoft.AspNetCore.App.Ref/9.0.15/analyzers/dotnet/cs/
