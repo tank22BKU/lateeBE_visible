@@ -75,7 +75,7 @@ CREATE TABLE virtual_patient (
     status ENUM('active', 'inactive') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_virtual_patient_clinical_case FOREIGN KEY (case_id) REFERENCES clinical_case(case_id)Sign in to enable AI completions, or disable inline completions in Settings (DBCode > AI).
+    CONSTRAINT fk_virtual_patient_clinical_case FOREIGN KEY (case_id) REFERENCES clinical_case(case_id)
 );
 
 CREATE TABLE expert_virtual_patient_management (
