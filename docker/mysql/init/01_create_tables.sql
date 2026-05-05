@@ -5,13 +5,42 @@
     email      VARCHAR(100) UNIQUE NOT NULL,
     phone      VARCHAR(20),
     birthday   DATE,
-    ssn        VARCHAR(20),
+-- ssn VARCHAR(20),
     password   VARCHAR(255)        NOT NULL,
     gender     VARCHAR(10),
     address    TEXT,
     role       ENUM('Learner', 'Expert', 'Admin') NOT NULL,
-    status     VARCHAR(20) DEFAULT 'active',
-    created_at TIMESTAMP   DEFAULT CURRENT_TIMESTAMP
+    status     ENUM('active', 'inactive') DEFAULT 'active',
+    avatar_url VARCHAR(255),
+    is_deleted BOOLEAN   DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE admin
+(
+    aid VARCHAR(50) PRIMARY KEY,
+    ssn VARCHAR(20) NOT NULL UNIQUE,
+    CONSTRAINT fk_admin_users FOREIGN KEY (aid) REFERENCES users (userid)
+);
+
+CREATE TABLE learner
+(
+    lid VARCHAR(50) PRIMARY KEY,
+    ssn VARCHAR(20) NOT NULL UNIQUE,
+    CONSTRAINT fk_learner_users FOREIGN KEY (lid) REFERENCES users (userid)
+);
+
+CREATE TABLE expert
+(
+    eid              VARCHAR(50) PRIMARY KEY,
+    ssn              VARCHAR(20) NOT NULL UNIQUE,
+    bio_quote        TEXT,
+    education_detail TEXT,
+    title_position   VARCHAR(255),
+    expertise_skill  TEXT,
+    social_link      VARCHAR(255),
+    CONSTRAINT fk_expert_users FOREIGN KEY (eid) REFERENCES users (userid)
 );
 
 CREATE TABLE user_refresh_tokens
@@ -38,104 +67,234 @@ CREATE TABLE revoked_access_tokens
     reason     VARCHAR(100)
 );
 
-CREATE TABLE notifications
+CREATE TABLE evaluation_clinical_criteria
 (
     id          VARCHAR(50) PRIMARY KEY,
-    userid      VARCHAR(50) NOT NULL,
-    title       VARCHAR(255),
     description TEXT,
-    status      ENUM('Read', 'Unread') DEFAULT 'Unread',
+    version     VARCHAR(20),
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_noti_user FOREIGN KEY (userid) REFERENCES users (userid) ON DELETE CASCADE
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+CREATE TABLE expert_criteria_management
+(
+    expert_id   VARCHAR(50) NOT NULL,
+    criteria_id VARCHAR(50) NOT NULL,
+    PRIMARY KEY (expert_id, criteria_id),
+    CONSTRAINT fk_expert_criteria_expert FOREIGN KEY (expert_id) REFERENCES expert (eid),
+    CONSTRAINT fk_expert_criteria_criteria FOREIGN KEY (criteria_id) REFERENCES evaluation_clinical_criteria (id)
 );
 
-CREATE TABLE patients
+CREATE TABLE clinical_case
 (
-    patientid        VARCHAR(50) PRIMARY KEY,
-    clinical_case_id VARCHAR(50),
-    name             VARCHAR(100) NOT NULL,
-    age              INT,
-    gender           VARCHAR(20),
-    pronouns         VARCHAR(20),
-    ethnicity        VARCHAR(50),
-    occupation       VARCHAR(100),
-    setting          VARCHAR(50),
-    level            VARCHAR(20),
-    time_setting     VARCHAR(50),
-    avatar_img       TEXT,
-    descriptions     TEXT,
-    chief_concern    TEXT,
-    vital_signs      JSON,
-    instructions     JSON,
-    case_rules       JSON,
-    persona          JSON,
-    status           VARCHAR(20) DEFAULT 'active',
-    created_at       TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
-    updated_at       TIMESTAMP   DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
-CREATE TABLE clinicalcases
-(
-    clinicalcaseid VARCHAR(20) PRIMARY KEY,
-    patientid      VARCHAR(50) NOT NULL,
-    title          TEXT,
+    case_id        VARCHAR(50) PRIMARY KEY,
+    title          VARCHAR(255) NOT NULL,
+    description    TEXT,
     type           VARCHAR(50),
-    descriptions   TEXT,
+    status         VARCHAR(50),
+    pe             TEXT,
     symptom        TEXT,
     medicalhistory TEXT,
-    pe             TEXT,
-    status         VARCHAR(10) DEFAULT 'active',
-    createdBy      VARCHAR(50),
-    createdAt      TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
-    updatedAt      TIMESTAMP   DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_patient FOREIGN KEY (patientid) REFERENCES patients (patientid)
+    created_by     VARCHAR(50)  NOT NULL,
+    eccid          VARCHAR(50)  NOT NULL,
+    created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_clinical_case_expert FOREIGN KEY (created_by) REFERENCES expert (eid),
+    CONSTRAINT fk_clinical_case_evaluation FOREIGN KEY (eccid) REFERENCES evaluation_clinical_criteria (id)
+);
+
+CREATE TABLE virtual_patient
+(
+    patient_id   VARCHAR(50) PRIMARY KEY,
+    case_id      VARCHAR(50)  NOT NULL,
+    name         VARCHAR(100) NOT NULL,
+    age          INT,
+    gender       VARCHAR(10),
+    pronouns     VARCHAR(50),
+    occupation   VARCHAR(255),
+    ethnicity    VARCHAR(100),
+    persona      TEXT,
+    vital_signs  TEXT,
+    instructions TEXT,
+    behaviors    TEXT,
+    time_setting INT,
+    level        VARCHAR(50),
+    avatar_image VARCHAR(255),
+    case_rule    TEXT,
+    status       ENUM('active', 'inactive') DEFAULT 'active',
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_virtual_patient_clinical_case FOREIGN KEY (case_id) REFERENCES clinical_case (case_id)
+);
+
+CREATE TABLE expert_virtual_patient_management
+(
+    expert_id  VARCHAR(50) NOT NULL,
+    virtual_id VARCHAR(50) NOT NULL,
+    PRIMARY KEY (expert_id, virtual_id),
+    CONSTRAINT fk_expert_virtual_expert FOREIGN KEY (expert_id) REFERENCES expert (eid),
+    CONSTRAINT fk_expert_virtual_patient FOREIGN KEY (virtual_id) REFERENCES virtual_patient (patient_id)
+);
+
+CREATE TABLE expert_clinical_case_management
+(
+    expert_id VARCHAR(50) NOT NULL,
+    case_id   VARCHAR(50) NOT NULL,
+    PRIMARY KEY (expert_id, case_id),
+    CONSTRAINT fk_expert_case_expert FOREIGN KEY (expert_id) REFERENCES expert (eid),
+    CONSTRAINT fk_expert_case_clinical FOREIGN KEY (case_id) REFERENCES clinical_case (case_id)
+);
+
+CREATE TABLE notification
+(
+    id          VARCHAR(50) PRIMARY KEY,
+    sender      VARCHAR(50) NOT NULL,
+    receiver    VARCHAR(50) NOT NULL,
+    description TEXT        NOT NULL,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status      ENUM('unread', 'read') DEFAULT 'unread',
+    CONSTRAINT fk_notification_sender FOREIGN KEY (sender) REFERENCES users (userid),
+    CONSTRAINT fk_notification_receiver FOREIGN KEY (receiver) REFERENCES users (userid)
+);
+
+CREATE TABLE system_feedback
+(
+    id          VARCHAR(50) PRIMARY KEY,
+    learner_id  VARCHAR(50) NOT NULL,
+    description TEXT        NOT NULL,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_system_feedback_learner FOREIGN KEY (learner_id) REFERENCES learner (lid)
+);
+
+CREATE TABLE expert_system_feedback
+(
+    expert_id          VARCHAR(50) NOT NULL,
+    system_feedback_id VARCHAR(50) NOT NULL,
+    PRIMARY KEY (expert_id, system_feedback_id),
+    CONSTRAINT fk_expert_system_feedback_expert FOREIGN KEY (expert_id) REFERENCES expert (eid),
+    CONSTRAINT fk_expert_system_feedback_feedback FOREIGN KEY (system_feedback_id) REFERENCES system_feedback (id)
 );
 
 CREATE TABLE labtestitem
 (
     itemid   INT PRIMARY KEY,
     label    TEXT,
-    fluid    VARCHAR(20),
+    fluid    VARCHAR(50),
     category ENUM('Blood Gas', 'Chemistry', 'Hematology'),
     count    DECIMAL(12, 0)
 );
 
 CREATE TABLE laboratorytest
 (
-    id             INT AUTO_INCREMENT PRIMARY KEY,
-    clinicalcaseid VARCHAR(20) NOT NULL,
-    itemid         INT         NOT NULL,
-    value          TEXT        NOT NULL,
-    rangelower     VARCHAR(20),
-    rangeupper     VARCHAR(20),
-    CONSTRAINT fk_lab_case FOREIGN KEY (clinicalcaseid) REFERENCES clinicalcases (clinicalcaseid),
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    clinicalcase_id VARCHAR(50) NOT NULL,
+    itemid          INT         NOT NULL,
+    value           TEXT        NOT NULL,
+    rangelower      VARCHAR(50),
+    rangeupper      VARCHAR(50),
+    CONSTRAINT fk_lab_case FOREIGN KEY (clinicalcase_id) REFERENCES clinical_case (case_id),
     CONSTRAINT fk_lab_item FOREIGN KEY (itemid) REFERENCES labtestitem (itemid)
+);
+
+CREATE TABLE expert_laboratory
+(
+    expert_id  VARCHAR(50) NOT NULL,
+    labtest_id INT         NOT NULL,
+    PRIMARY KEY (expert_id, labtest_id),
+    CONSTRAINT fk_expert_item FOREIGN KEY (expert_id) REFERENCES expert (eid),
+    CONSTRAINT fk_expert_lab FOREIGN KEY (labtest_id) REFERENCES laboratorytest (id)
 );
 
 CREATE TABLE radiologyreport
 (
-    id             INT AUTO_INCREMENT PRIMARY KEY,
-    clinicalcaseid VARCHAR(20) NOT NULL,
-    noteid         VARCHAR(20),
-    modality       ENUM('CT','Ultrasound','Radiograph','Drainage','MRI','MRCP','ERCP'),
-    region         VARCHAR(50),
-    examname       TEXT,
-    text           TEXT,
-    CONSTRAINT fk_radio_case FOREIGN KEY (clinicalcaseid) REFERENCES clinicalcases (clinicalcaseid)
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    clinicalcase_id VARCHAR(20) NOT NULL,
+    noteid          VARCHAR(20),
+    modality        ENUM('CT','Ultrasound','Radiograph','Drainage','MRI','MRCP','ERCP'),
+    region          VARCHAR(50),
+    examname        TEXT,
+    text            TEXT,
+    CONSTRAINT fk_radio_case FOREIGN KEY (clinicalcase_id) REFERENCES clinical_case (case_id)
 );
 
-
+CREATE TABLE expert_radiology
+(
+    expert_id           VARCHAR(50) NOT NULL,
+    radiology_report_id INT NOT NULL,
+    PRIMARY KEY (expert_id, radiology_report_id),
+    CONSTRAINT fk_expert_radio FOREIGN KEY (expert_id) REFERENCES expert(eid),
+    CONSTRAINT fk_expert_radio_report FOREIGN KEY (radiology_report_id) REFERENCES radiologyreport (id)
+);
 
 CREATE TABLE knowledge_resources
 (
     id         VARCHAR(50) PRIMARY KEY,
-    expertid   VARCHAR(50)  NOT NULL,
     title      VARCHAR(255) NOT NULL,
     content    TEXT,
     link       TEXT,
+    imageUrl   TEXT,
+    authorlist TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_resource_expert FOREIGN KEY (expertid) REFERENCES users (userid)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE expert_knowledge
+(
+    expert_id             VARCHAR(50) NOT NULL,
+    knowledge_resource_id VARCHAR(50) NOT NULL,
+    PRIMARY KEY (expert_id, knowledge_resource_id),
+    CONSTRAINT fk_expert_resource FOREIGN KEY (expert_id) REFERENCES expert (eid),
+    CONSTRAINT fk_expert_resource_knowledge FOREIGN KEY (knowledge_resource_id) REFERENCES knowledge_resources (id)
+);
+
+CREATE TABLE guideline
+(
+    id          VARCHAR(50) PRIMARY KEY,
+    description TEXT NOT NULL,
+    version     VARCHAR(20),
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE expert_guideline_management
+(
+    expert_id    VARCHAR(50) NOT NULL,
+    guideline_id VARCHAR(50) NOT NULL,
+    PRIMARY KEY (expert_id, guideline_id),
+    CONSTRAINT fk_expert_guideline_expert FOREIGN KEY (expert_id) REFERENCES expert (eid),
+    CONSTRAINT fk_expert_guideline_guideline FOREIGN KEY (guideline_id) REFERENCES guideline (id)
+);
+
+CREATE TABLE practice_sessions
+(
+    id                  VARCHAR(50) PRIMARY KEY,
+    learner_id          VARCHAR(50) NOT NULL,
+    patient_id          VARCHAR(50) NOT NULL,
+    final_diagnosis     TEXT,
+    ai_reasoning_log    JSON,
+    vp_conversation_log JSON,
+    module_id           VARCHAR(50) DEFAULT 'EPA_STANDARD_V1',
+    discussion_type     VARCHAR(50) DEFAULT 'Message Type',
+    guidelines_id       VARCHAR(50),
+    start_time          TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
+    end_time            TIMESTAMP NULL,
+    status              ENUM('Practicing', 'Completed', 'Abandoned') DEFAULT 'Practicing',
+    created_at          TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_practice_learner FOREIGN KEY (learner_id) REFERENCES users (userid),
+    CONSTRAINT fk_practice_to_patient FOREIGN KEY (patient_id) REFERENCES virtual_patient (patient_id) ON DELETE CASCADE,
+    CONSTRAINT fk_practice_to_guidelines FOREIGN KEY (guidelines_id) REFERENCES guideline (id) ON DELETE SET NULL
+);
+
+CREATE TABLE evaluation
+(
+    id                  VARCHAR(50) PRIMARY KEY,
+    epa_id              VARCHAR(20) NOT NULL,
+    practice_session_id VARCHAR(50) NOT NULL,
+    score               DECIMAL(5, 2),
+    duration            INT,
+    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    feedback_detail     TEXT,
+    entrustment_level   INT,
+    CONSTRAINT fk_eval_practice FOREIGN KEY (practice_session_id) REFERENCES practice_sessions (id) ON DELETE CASCADE
 );
 
 CREATE TABLE roadmaps
@@ -148,92 +307,46 @@ CREATE TABLE roadmaps
     CONSTRAINT fk_roadmap_learner FOREIGN KEY (learnerid) REFERENCES users (userid) ON DELETE CASCADE
 );
 
-
-
-CREATE TABLE practice_sessions
+CREATE TABLE summarize_roadmap
 (
-    id             VARCHAR(50) PRIMARY KEY,
-    learnerid      VARCHAR(50) NOT NULL,
-    clinicalcaseid VARCHAR(20) NOT NULL,
-    start_time     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    end_time       TIMESTAMP NULL,
-    duration       INT,
-    is_active      BOOLEAN   DEFAULT TRUE,
-    status         ENUM('Practicing', 'Completed', 'Abandoned') DEFAULT 'Practicing',
-    CONSTRAINT fk_practice_learner FOREIGN KEY (learnerid) REFERENCES users (userid),
-    CONSTRAINT fk_practice_to_patient FOREIGN KEY (clinicalcaseid) REFERENCES patients (patientid) ON DELETE CASCADE
+    roadmap_id    VARCHAR(50) NOT NULL,
+    evaluation_id VARCHAR(50) NOT NULL,
+    PRIMARY KEY (roadmap_id, evaluation_id),
+    CONSTRAINT fk_roadmap_summarize FOREIGN KEY (roadmap_id) REFERENCES roadmaps (id) ON DELETE CASCADE,
+    CONSTRAINT fk_roadmap_eval FOREIGN KEY (evaluation_id) REFERENCES evaluation (id) ON DELETE CASCADE
 );
 
-CREATE TABLE evaluation_results
+CREATE TABLE practice_feedback
 (
-    result_id           VARCHAR(50) PRIMARY KEY,
-    session_id          VARCHAR(50) NOT NULL,
-    user_id             VARCHAR(50) NOT NULL,
-    clinical_case_id    VARCHAR(50) NOT NULL,
-    module_id           VARCHAR(50) DEFAULT 'EPA_STANDARD_V1',
-    case_type           VARCHAR(50) DEFAULT 'Diagnosis',
-    discussion_type     VARCHAR(50) DEFAULT 'Message Type',
-    duration_text       VARCHAR(50) DEFAULT 'N/A',
-    vp_conversation_log JSON,
-    ai_reasoning_log    JSON,
-    final_diagnosis     TEXT,
-    overall_score       DECIMAL(5, 2),
-    created_at          TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_eval_session FOREIGN KEY (session_id) REFERENCES practice_sessions (id) ON DELETE CASCADE
+    id                  VARCHAR(50) PRIMARY KEY,
+    overall_attempt     TEXT,
+    overall_label       TEXT,
+    strength            TEXT,
+    improvement         TEXT,
+    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    evaluation_id       VARCHAR(50) NOT NULL,
+    practice_session_id VARCHAR(50) NOT NULL,
+    CONSTRAINT fk_feedback_practice FOREIGN KEY (practice_session_id) REFERENCES practice_sessions (id) ON DELETE CASCADE,
+    CONSTRAINT fk_feedback_eval FOREIGN KEY (evaluation_id) REFERENCES evaluation (id) ON DELETE SET NULL
 );
 
-CREATE TABLE epa_scores
+CREATE TABLE warning
 (
-    score_id          VARCHAR(50) PRIMARY KEY,
-    result_id         VARCHAR(50) NOT NULL,
-    epa_id            VARCHAR(20) NOT NULL,
-    entrustment_level INT,
-    numerical_score   DECIMAL(5, 2),
-    feedback_detail   TEXT,
-    CONSTRAINT fk_eval_epa FOREIGN KEY (result_id) REFERENCES evaluation_results (result_id) ON DELETE CASCADE
+    id                  VARCHAR(50) PRIMARY KEY,
+    practice_session_id VARCHAR(50) NOT NULL,
+    learner_id          VARCHAR(50) NOT NULL,
+    label               VARCHAR(100),
+    description         TEXT,
+    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_eval_warning FOREIGN KEY (practice_session_id) REFERENCES practice_sessions (id) ON DELETE CASCADE,
+    CONSTRAINT fk_warning_learner FOREIGN KEY (learner_id) REFERENCES users (userid)
 );
-
-CREATE TABLE evaluation_warnings
-(
-    warning_id  VARCHAR(50) PRIMARY KEY,
-    result_id   VARCHAR(50) NOT NULL,
-    label       VARCHAR(100),
-    description TEXT,
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_eval_warning FOREIGN KEY (result_id) REFERENCES evaluation_results (result_id) ON DELETE CASCADE
-);
-
-
-
-CREATE TABLE guidelines
-(
-    id          VARCHAR(50) PRIMARY KEY,
-    expertid    VARCHAR(50) NOT NULL,
-    title       VARCHAR(255),
-    description TEXT,
-    content     TEXT,
-    version     VARCHAR(20),
-    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_guideline_expert FOREIGN KEY (expertid) REFERENCES users (userid)
-);
-
-CREATE TABLE system_feedbacks
-(
-    id          VARCHAR(50) PRIMARY KEY,
-    senderid    VARCHAR(50) NOT NULL,
-    description TEXT        NOT NULL,
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_feedback_sender FOREIGN KEY (senderid) REFERENCES users (userid)
-);
-
 
 
 CREATE TABLE assessments
 (
     assessment_id            VARCHAR(50) PRIMARY KEY,
-    creator_id               VARCHAR(50)  NOT NULL,
-    clinical_case_id         VARCHAR(20),
-    course_id                VARCHAR(50),
     module_id                VARCHAR(50),
     specialty                VARCHAR(100),
     topic                    VARCHAR(100) NOT NULL,
@@ -246,63 +359,82 @@ CREATE TABLE assessments
     time_limit_minutes       INT,
     passing_score_percentage DECIMAL(5, 2) DEFAULT 80.00,
     max_attempts             INT           DEFAULT 1,
-    generation_prompt        TEXT,
     allowed_question_types   JSON,
     is_active                BOOLEAN       DEFAULT TRUE,
     created_at               TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
     updated_at               TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE assessment_questions
+CREATE TABLE assessment_session
 (
-    question_id     VARCHAR(50) PRIMARY KEY,
+    session_id         VARCHAR(50) NOT NULL PRIMARY KEY,
+    practice_session_id VARCHAR(50) NOT NULL,
+    overall_score       DECIMAL(5, 2) DEFAULT 0.00,
+    learner_id          VARCHAR(50) NOT NULL,
+    attempt_no          INT           DEFAULT 1,
+    duration            INT,
+    start_time          TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+    end_time            TIMESTAMP,
+    status              ENUM('InProgress', 'Completed', 'Abandoned') DEFAULT 'InProgress',
+    is_passed           BOOLEAN,
+    CONSTRAINT fk_session_learner FOREIGN KEY (learner_id) REFERENCES users (userid) ON DELETE CASCADE,
+    CONSTRAINT fk_session_practice FOREIGN KEY (practice_session_id) REFERENCES practice_sessions (id) ON DELETE CASCADE
+);
+
+CREATE TABLE question
+(
+    id              VARCHAR(50) NOT NULL PRIMARY KEY,
     assessment_id   VARCHAR(50) NOT NULL,
+    question        TEXT        NOT NULL,
+    question_option JSON,
     question_type   ENUM('MultipleChoice', 'MultipleResponse', 'TrueFalse', 'FillInBlank', 'ShortAnswer') NOT NULL,
     cognitive_level ENUM('Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'),
-    content         TEXT        NOT NULL,
-    options         JSON,
     explanation     TEXT,
     points          DECIMAL(5, 2) DEFAULT 1.00,
     created_at      TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_aq_assessment FOREIGN KEY (assessment_id) REFERENCES assessments (assessment_id) ON DELETE CASCADE
+    updated_at      TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_question_assessment FOREIGN KEY (assessment_id) REFERENCES assessments (assessment_id) ON DELETE CASCADE
 );
 
-CREATE TABLE assessment_attempts
+CREATE TABLE assessment_answer
 (
-    attempt_id    VARCHAR(50) PRIMARY KEY,
-    assessment_id VARCHAR(50) NOT NULL,
-    user_id       VARCHAR(50) NOT NULL,
-    start_time    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    end_time      TIMESTAMP NULL,
-    score         DECIMAL(5, 2),
-    is_passed     BOOLEAN,
-    status        ENUM('InProgress', 'Completed', 'Abandoned') DEFAULT 'InProgress',
-    CONSTRAINT fk_attempt_assessment FOREIGN KEY (assessment_id) REFERENCES assessments (assessment_id) ON DELETE CASCADE
-);
-
-CREATE TABLE attempt_answers
-(
-    answer_id     VARCHAR(50) PRIMARY KEY,
-    attempt_id    VARCHAR(50) NOT NULL,
+    id            VARCHAR(50) PRIMARY KEY,
+    session_id    VARCHAR(50) NOT NULL,
     question_id   VARCHAR(50) NOT NULL,
     user_choice   JSON,
-    is_correct    BOOLEAN,
+    is_correct    BOOLEAN       DEFAULT FALSE,
     points_earned DECIMAL(5, 2) DEFAULT 0.00,
     is_flagged    BOOLEAN       DEFAULT FALSE,
     created_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_ans_attempt FOREIGN KEY (attempt_id) REFERENCES assessment_attempts (attempt_id) ON DELETE CASCADE,
-    CONSTRAINT fk_ans_question FOREIGN KEY (question_id) REFERENCES assessment_questions (question_id)
+    CONSTRAINT fk_ans_session FOREIGN KEY (session_id) REFERENCES assessment_session (session_id) ON DELETE CASCADE,
+    CONSTRAINT fk_ans_question FOREIGN KEY (question_id) REFERENCES question (id) ON DELETE CASCADE
 );
 
-CREATE TABLE assessment_issues
+CREATE TABLE issue
 (
-    issue_id     VARCHAR(50) PRIMARY KEY,
-    question_id  VARCHAR(50) NOT NULL,
-    reporter_id  VARCHAR(50) NOT NULL,
-    label        VARCHAR(100),
-    descriptions TEXT        NOT NULL,
-    feedback     TEXT,
-    status       ENUM('Open', 'InReview', 'Resolved', 'Rejected') DEFAULT 'Open',
-    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_issue_question FOREIGN KEY (question_id) REFERENCES assessment_questions (question_id) ON DELETE CASCADE
+    id                  VARCHAR(50) PRIMARY KEY,
+    assessment_id       VARCHAR(50),
+    practice_session_id VARCHAR(50),
+    learner_id          VARCHAR(50) NOT NULL,
+    ItemType            ENUM('Assessment', 'Practice') NOT NULL,
+    is_deleted          BOOLEAN   DEFAULT false,
+    editDeadline        INT         NOT NULL,
+    description         TEXT        NOT NULL,
+    label               VARCHAR(100),
+    status              ENUM('Open', 'InReview', 'Resolved', 'Rejected') DEFAULT 'Open',
+    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_issue_assessment FOREIGN KEY (assessment_id) REFERENCES assessments (assessment_id) ON DELETE CASCADE,
+    CONSTRAINT fk_issue_practice FOREIGN KEY (practice_session_id) REFERENCES practice_sessions (id) ON DELETE CASCADE,
+    CONSTRAINT fk_issue_learner FOREIGN KEY (learner_id) REFERENCES users (userid) ON DELETE CASCADE
+);
+
+CREATE TABLE resolved_issue
+(
+    issue_id  VARCHAR(50) NOT NULL,
+    expert_id VARCHAR(50) NOT NULL,
+    feedback  TEXT,
+    PRIMARY KEY (issue_id, expert_id),
+    CONSTRAINT fk_issue_resolved FOREIGN KEY (issue_id) REFERENCES issue (id) ON DELETE CASCADE,
+    CONSTRAINT fk_issue_expert FOREIGN KEY (expert_id) REFERENCES expert (eid ) ON DELETE CASCADE
 );
