@@ -14,50 +14,64 @@ public class EvaluationRepository : IEvaluationRepository
         _db = db;
     }
 
-    public async Task<EvaluationResult?> GetByIdAsync(string id)
+    public async Task<Evaluation?> GetByIdAsync(string id)
     {
-        return await _db.EvaluationResults
-            .Include(x => x.EpaScores)
-            .Include(x => x.Warnings)
-            .FirstOrDefaultAsync(x => x.ResultId == id);
+        return await _db.Evaluations.FirstOrDefaultAsync(x => x.Id == id);
     }
 
-    public async Task<IEnumerable<EvaluationResult>> GetByUserIdAsync(string userId)
+    public async Task<PracticeSession?> GetPracticeSessionByIdAsync(string id)
     {
-        return await _db.EvaluationResults
+        return await _db.PracticeSessions.FirstOrDefaultAsync(x => x.Id == id);
+    }
+
+    public async Task<List<Warning>> GetWarningsByPracticeSessionIdAsync(string practiceSessionId)
+    {
+        return await _db.Warnings
             .AsNoTracking()
-            .Where(x => x.UserId == userId)
+            .Where(x => x.PracticeSessionId == practiceSessionId)
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync();
     }
 
-    public async Task AddAsync(EvaluationResult result)
+    public async Task<List<Evaluation>> GetByLearnerIdAsync(string learnerId)
     {
-        await _db.EvaluationResults.AddAsync(result);
+        return await _db.Evaluations
+            .Join(_db.PracticeSessions,
+                eval => eval.PracticeSessionId,
+                session => session.Id,
+                (eval, session) => new { eval, session })
+            .Where(x => x.session.LearnerId == learnerId)
+            .OrderByDescending(x => x.eval.CreatedAt)
+            .Select(x => x.eval)
+            .AsNoTracking()
+            .ToListAsync();
     }
 
-    public Task UpdateAsync(EvaluationResult result)
+    public async Task AddEvaluationAsync(Evaluation evaluation)
     {
-        _db.EvaluationResults.Update(result);
+        await _db.Evaluations.AddAsync(evaluation);
+    }
+
+    public async Task AddWarningsAsync(IEnumerable<Warning> warnings)
+    {
+        await _db.Warnings.AddRangeAsync(warnings);
+    }
+
+    public Task UpdatePracticeSessionAsync(PracticeSession session)
+    {
+        _db.PracticeSessions.Update(session);
         return Task.CompletedTask;
     }
 
     public async Task DeleteAsync(string id)
     {
-        var entity = await _db.EvaluationResults.FirstOrDefaultAsync(x => x.ResultId == id);
+        var entity = await _db.Evaluations.FirstOrDefaultAsync(x => x.Id == id);
         if (entity != null)
         {
-            _db.EvaluationResults.Remove(entity);
+            _db.Evaluations.Remove(entity);
         }
     }
 
     public Task SaveChangesAsync() => _db.SaveChangesAsync();
-
-    public async Task<string> AddPracticeSessionAsync(PracticeSession session)
-    {
-        _db.PracticeSessions.Add(session);
-        await _db.SaveChangesAsync();
-        return session.Id;
-    }
     
 }

@@ -12,13 +12,13 @@ public interface IAssessmentRepository
     Task AddAsync(Assessment assessment);
     Task UpdateAsync(Assessment assessment);
     Task DeleteAsync(Assessment assessment);
-    Task AddQuestionsAsync(IEnumerable<AssessmentQuestion> questions);
+    Task AddQuestionsAsync(IEnumerable<Question> questions);
 
-    Task<AssessmentQuestion?> GetQuestionByIdAsync(string questionId);
-    Task AddQuestionAsync(AssessmentQuestion question);
-    Task UpdateQuestionAsync(AssessmentQuestion question);
-    Task DeleteQuestionAsync(AssessmentQuestion question);
+    Task<Question?> GetQuestionByIdAsync(string questionId);
+    Task AddQuestionAsync(Question question);
+    Task UpdateQuestionAsync(Question question);
+    Task DeleteQuestionAsync(Question question);
 
-    Task AddAttemptAsync(AssessmentAttempt attempt);
-    Task<AssessmentAttempt?> GetAttemptWithAnswersAsync(string attemptId);
+    Task AddSessionAsync(AssessmentSession session);
+    Task<AssessmentSession?> GetSessionWithAnswersAsync(string sessionId);
 }

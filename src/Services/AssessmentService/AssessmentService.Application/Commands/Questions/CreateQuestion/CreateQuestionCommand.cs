@@ -25,20 +25,21 @@ public class CreateQuestionHandler : IRequestHandler<CreateQuestionCommand, stri
         var assessment = await _repo.GetByIdAsync(request.AssessmentId);
         if (assessment == null) throw new Exception("Assessment không tồn tại.");
 
-        var question = new AssessmentQuestion
+        var question = new Question
         {
-            QuestionId = Guid.NewGuid().ToString("N"),
+            Id = Guid.NewGuid().ToString("N"),
             AssessmentId = request.AssessmentId,
+            Content = request.Content,
+            QuestionOption = request.Options != null ? JsonSerializer.Serialize(request.Options) : null,
             QuestionType = request.QuestionType,
             CognitiveLevel = request.CognitiveLevel,
-            Content = request.Content,
-            Options = request.Options != null ? JsonSerializer.Serialize(request.Options) : null,
             Explanation = request.Explanation,
             Points = request.Points,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
 
         await _repo.AddQuestionAsync(question);
-        return question.QuestionId;
+        return question.Id;
     }
 }

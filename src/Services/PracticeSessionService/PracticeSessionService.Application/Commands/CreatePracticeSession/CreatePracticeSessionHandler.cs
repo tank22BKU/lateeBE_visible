@@ -23,10 +23,13 @@ public class CreatePracticeSessionHandler : IRequestHandler<CreatePracticeSessio
         {
             Id = finalSessionId,
             LearnerId = request.LearnerId!,
-            ClinicalCaseId = request.ClinicalCaseId!,
+            PatientId = request.PatientId!,
+            ModuleId = request.ModuleId ?? "EPA_STANDARD_V1",
+            DiscussionType = request.DiscussionType ?? "Message Type",
+            GuidelinesId = request.GuidelinesId,
             Status = request.Status ?? "Practicing",
             StartTime = DateTime.UtcNow,
-            IsActive = true
+            CreatedAt = DateTime.UtcNow
         };
 
         await _repository.AddSessionAsync(session);

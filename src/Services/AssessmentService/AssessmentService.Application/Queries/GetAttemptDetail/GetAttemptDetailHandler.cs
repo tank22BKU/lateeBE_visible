@@ -17,37 +17,47 @@ public class GetAttemptDetailHandler : IRequestHandler<GetAttemptDetailQuery, Ge
 
     public async Task<GetAttemptDetailDto?> Handle(GetAttemptDetailQuery request, CancellationToken cancellationToken)
     {
-        var attempt = await _repo.GetAttemptWithAnswersAsync(request.AttemptId);
-        if (attempt == null) return null;
-
-        var assessment = await _repo.GetByIdWithQuestionsAsync(attempt.AssessmentId);
-        if (assessment == null) return null;
+        var session = await _repo.GetSessionWithAnswersAsync(request.AttemptId);
+        if (session == null) return null;
 
         return new GetAttemptDetailDto
         {
-            AttemptId = attempt.AttemptId,
-            Score = attempt.Score,
-            IsPassed = attempt.IsPassed,
-            CorrectCount = attempt.Answers.Count(x => x.IsCorrect),
-            Questions = assessment.Questions.Select(q => 
-            {
-                var userAns = attempt.Answers.FirstOrDefault(a => a.QuestionId == q.QuestionId);
-                var options = JsonSerializer.Deserialize<List<OptionResultDto>>(q.Options ?? "[]", new JsonSerializerOptions 
-                { 
-                    PropertyNameCaseInsensitive = true 
-                }) ?? new List<OptionResultDto>();
-
-                return new QuestionResultDto
-                {
-                    QuestionId = q.QuestionId,
-                    Content = q.Content,
-                    Explanation = q.Explanation,
-                    UserAnswerId = userAns?.UserChoice,
-                    CorrectAnswerId = options.FirstOrDefault(o => o.IsCorrect)?.Id,
-                    IsCorrect = userAns?.IsCorrect ?? false,
-                    Options = options
-                };
-            }).ToList()
+            AttemptId = session.SessionId,
+            Score = session.OverallScore,
+            IsPassed = session.IsPassed ?? false,
+            CorrectCount = session.Answers.Count(x => x.IsCorrect),
+            Questions = await BuildQuestionResultsAsync(session, cancellationToken)
         };
+    }
+
+    private async Task<List<QuestionResultDto>> BuildQuestionResultsAsync(
+        AssessmentService.Domain.Entities.AssessmentSession session,
+        CancellationToken cancellationToken)
+    {
+        var results = new List<QuestionResultDto>();
+
+        foreach (var answer in session.Answers)
+        {
+            var question = await _repo.GetQuestionByIdAsync(answer.QuestionId);
+            if (question == null) continue;
+
+            var options = JsonSerializer.Deserialize<List<OptionResultDto>>(question.QuestionOption ?? "[]", new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            }) ?? new List<OptionResultDto>();
+
+            results.Add(new QuestionResultDto
+            {
+                QuestionId = question.Id,
+                Content = question.Content,
+                Explanation = question.Explanation,
+                UserAnswerId = answer.UserChoice,
+                CorrectAnswerId = options.FirstOrDefault(o => o.IsCorrect)?.Id,
+                IsCorrect = answer.IsCorrect,
+                Options = options
+            });
+        }
+
+        return results;
     }
 }

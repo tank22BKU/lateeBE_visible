@@ -5,12 +5,12 @@ using MediatR;
 
 namespace PracticeSessionService.Application.Queries.SavePracticeSessions;
 
-public class SubmitEvaluationHandler 
+public class SavePracticeSessionsHandler 
     : IRequestHandler<SavePracticeSessionsRequest, SavePracticeSessionsResponse>
 {
     private readonly IPracticeSessionRepository _repo;
 
-    public SubmitEvaluationHandler(IPracticeSessionRepository repo)
+    public SavePracticeSessionsHandler(IPracticeSessionRepository repo)
     {
         _repo = repo;
     }
@@ -19,33 +19,39 @@ public class SubmitEvaluationHandler
         SavePracticeSessionsRequest request,
         CancellationToken cancellationToken)
     {
-        var entity = new PracticeSessionResult
+        var session = await _repo.GetSessionByIdAsync(request.SessionId);
+        if (session == null)
         {
-            ResultId = request.ResultId,
-            SessionId = request.SessionId,
-            UserId = request.UserId,
-            ClinicalCaseId = request.ClinicalCaseId,
-            ModuleId = request.ModuleId,
+            throw new Exception("Practice session not found");
+        }
 
-            VpConversationLog = JsonSerializer.Serialize(request.VpConversationLog),
+        session.FinalDiagnosis = request.FinalDiagnosis ?? session.FinalDiagnosis;
+        session.VpConversationLog = request.VpConversationLog != null
+            ? JsonSerializer.Serialize(request.VpConversationLog)
+            : session.VpConversationLog;
+        session.AiReasoningLog = request.AiReasoningLog != null
+            ? JsonSerializer.Serialize(request.AiReasoningLog)
+            : session.AiReasoningLog;
+        session.ModuleId = request.ModuleId ?? session.ModuleId;
+        session.DiscussionType = request.DiscussionType ?? session.DiscussionType;
+        session.GuidelinesId = request.GuidelinesId ?? session.GuidelinesId;
+        session.EndTime = DateTime.UtcNow;
+        session.Status = "Completed";
 
-            AiReasoningLog = JsonSerializer.Serialize(request.AiReasoningLog),
+        var warnings = request.Warnings.Select(w => new Warning
+        {
+            Id = w.WarningId,
+            PracticeSessionId = request.SessionId,
+            LearnerId = request.LearnerId,
+            Label = w.Label,
+            Description = w.Description,
+            CreatedAt = DateTime.UtcNow
+        }).ToList();
 
-            FinalDiagnosis = request.FinalDiagnosis,
+        await _repo.UpdateSessionAsync(session);
+        await _repo.AddWarningsAsync(warnings);
+        await _repo.SaveChangesAsync();
 
-            OverallScore = request.OverallScore,
-
-            Warnings = request.Warnings?.Select(w => new EvaluationWarning
-            {
-                WarningId = w.WarningId,
-                ResultId = request.ResultId,
-                Label = w.Label,
-                Description = w.Description
-            }).ToList() ?? new List<EvaluationWarning>()
-        };
-
-        string result = await _repo.AddAsync(entity);
-
-        return new SavePracticeSessionsResponse(result);
+        return new SavePracticeSessionsResponse(session.Id);
     }
 }

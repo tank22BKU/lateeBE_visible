@@ -4,7 +4,6 @@ using EvaluationService.Application.Commands.SubmitEvaluation;
 using EvaluationService.Application.Commands.DeleteEvaluation;
 using EvaluationService.Application.Queries.GetReport;
 using EvaluationService.Application.Queries.GetHistory;
-using EvaluationService.Application.Commands.GeneratePracticeSession;
 
 namespace EvaluationService.API.Controllers;
 
@@ -37,10 +36,4 @@ public class EvaluationController : ControllerBase {
         return deleted ? NoContent() : NotFound();
     }
 
-    [HttpPost("practice-session")]
-    public async Task<IActionResult> GeneratePracticeSession([FromBody] GeneratePracticeSessionCommand request)
-    {
-        var result = await _mediator.Send(request);
-        return Ok(result);
-    }
 }

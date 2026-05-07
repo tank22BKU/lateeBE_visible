@@ -13,10 +13,10 @@ public class AssessmentDetailDto : AssessmentSummaryDto
 
 public class AssessmentQuestionDto
 {
-    public string QuestionId { get; set; } = string.Empty;
+    public string Id { get; set; } = string.Empty;
+    public string Question { get; set; } = string.Empty;
+    public object? QuestionOption { get; set; }
     public string QuestionType { get; set; } = string.Empty;
-    public string Content { get; set; } = string.Empty;
-    public object? Options { get; set; } 
     public string? Explanation { get; set; }
     public decimal Points { get; set; }
 }

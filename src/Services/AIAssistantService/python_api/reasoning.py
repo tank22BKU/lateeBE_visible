@@ -13,75 +13,36 @@ from config import logger
 from config import (
     CLINICAL_REASONING_PROMPT,
     DIFY_PROMPT,
-    DIFY_PROMPT_VER2
+    DIFY_PROMPT_VER2,
+    DIFY_PROMPT_V3,
+    DIFY_PROMPT_V4,
+    DIFY_PROMPT_V4_1
 )
 
+# ALL_DIMENSIONS = [
+#     "Cơ sở bằng chứng",
+#     "Chẩn đoán phân biệt",
+#     "Dữ kiện mâu thuẫn",
+#     "Giải thích cơ chế bệnh sinh",
+#     "Thông tin còn thiếu",
+#     "Ưu tiên chẩn đoán nguy hiểm",
+#     "Độ chắc chắn của quyết định",
+#     "Hành động lâm sàng tiếp theo",
+# ]
+
 ALL_DIMENSIONS = [
-    "Cơ sở bằng chứng",
-    "Chẩn đoán phân biệt",
-    "Dữ kiện mâu thuẫn",
-    "Giải thích cơ chế bệnh sinh",
-    "Thông tin còn thiếu",
-    "Ưu tiên chẩn đoán nguy hiểm",
-    "Độ chắc chắn của quyết định",
-    "Hành động lâm sàng tiếp theo",
+    {"id": "evidence", "label": "Evidence Base"},
+    {"id": "differential", "label": "Differential Diagnosis"},
+    {"id": "contradiction", "label": "Contradictory Findings"},
+    {"id": "pathophysiology", "label": "Pathophysiology"},
+    {"id": "missing_info", "label": "Missing Information"},
+    {"id": "danger_priority", "label": "Prioritize Dangerous Diagnosis"},
+    {"id": "confidence", "label": "Diagnostic Confidence"},
+    {"id": "next_step", "label": "Next Clinical Action"},
 ]
 
-async def clinical_reasoning_endpoint(req: ClinicalReasoningRequest):
-
-    try:
-        from app import get_llm, executor
-
-        llm = get_llm()
-    except Exception as e:
-        raise HTTPException(status_code=503, detail=f"LLM not available: {e}")
-
-    history_text = ""
-    if req.interaction_history:
-        history_text = "\nLịch sử tương tác:"
-        for q in req.interaction_history:
-            history_text += f"Khía cạnh câu hỏi: {q.dimension}. Câu hỏi: {q.question} + Câu Trả lời của người học: {q.answer}\n"
-
-    # print(f"Interaction history text for reasoning:\n{history_text}")
-
-    system_prompt = DIFY_PROMPT.format(
-        patient_case=req.patient_case,
-        learner_diagnosis=req.learner_diagnosis,
-        interaction_history=history_text,
-    )
-    messages = [SystemMessage(content=system_prompt)]
-
-    try:
-        loop = asyncio.get_event_loop()
-        resp = await asyncio.wait_for(
-            loop.run_in_executor(executor, lambda: llm.invoke(messages)),
-            timeout=90.0,
-        )
-        content = resp.content.strip()
-
-        import re
-
-        json_match = re.search(r"\{.*\}", content, re.DOTALL)
-
-        if json_match:
-            result = json.loads(json_match.group())
-            logger.info(f"[DEBUG] Parsed reasoning result: {result}")
-        else:
-            result = {"dimension": "", "question": content, "stop": False}
-
-    except asyncio.TimeoutError:
-        raise HTTPException(status_code=504, detail="Reasoning generation timed out")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Reasoning generation failed: {e}")
-
-    return ClinicalReasoningResponse(
-        dimension=result.get("dimension", ""),
-        question=result.get("question", ""),
-        stop=result.get("stop", False),
-    )
-
 async def clinical_reasoning_stream_hf(req: ClinicalReasoningRequest):
-
+    #logger.info(f"[START][HF] reasoning : {req.interaction_history}")
     try:
         client = OpenAI(
             base_url="https://router.huggingface.co/v1",
@@ -93,43 +54,32 @@ async def clinical_reasoning_stream_hf(req: ClinicalReasoningRequest):
     # =====================
     # Build prompt (GIỮ NGUYÊN)
     # =====================
-    history_text = ""
-    USED_DIMENSIONS = []
+    history_items = []
+    valid_ids = {d["id"] for d in ALL_DIMENSIONS}
+    used_dimension_ids = set()
     if req.interaction_history:
-        history_text = ""
         for q in req.interaction_history:
-            USED_DIMENSIONS.append(q.dimension)
-            history_text += (
-                f"Khía cạnh câu hỏi: {q.dimension}. " +
-                f"Câu hỏi: {q.question}" +
-                f"Câu Trả lời của người học: {q.answer}\n"
-            )
+            dimension = (str(q.dimension or "").strip().lower())
 
-    # system_prompt = DIFY_PROMPT.format(
-    #     patient_case=req.patient_case,
-    #     learner_diagnosis=req.learner_diagnosis,
-    #     interaction_history=history_text,
-    # )
-    logger.info(f"Used dimensions: {USED_DIMENSIONS}")
-    available_dimensions = [] + [d for d in ALL_DIMENSIONS if d not in USED_DIMENSIONS]
-    # if len(available_dimensions) == 0:
-    #     final_data = {
-    #         "type": "done",
-    #         "dimension": "",
-    #         "question": "",
-    #         "stop": True,
-    #         "full_raw": "",  # debug optional
-    #     }
-    # 
-    #     return final_data  
+            if dimension in valid_ids:
+                used_dimension_ids.add(dimension)
+                
+            history_items.append({
+                "question_dimension": q.dimension,
+                "ai_question": q.question,
+                "learner_answer": q.answer
+            })
+
+    logger.info(f"Used dimensions: {used_dimension_ids}")
+    available_dimensions = [d["id"] for d in ALL_DIMENSIONS if d["id"] not in used_dimension_ids]
     
     logger.info(f"Available dimensions: {available_dimensions}")
     
-    system_prompt = DIFY_PROMPT_VER2.format(
+    system_prompt = DIFY_PROMPT_V4_1.format(
         patient_case=req.patient_case,
         learner_diagnosis=req.learner_diagnosis,
-        interaction_history=history_text,
-        dimensions=available_dimensions
+        interaction_history=json.dumps(history_items, ensure_ascii=False, indent=2),
+        dimensions=json.dumps(available_dimensions, ensure_ascii=False, indent=2),
     )
 
     messages = [
@@ -161,6 +111,9 @@ async def clinical_reasoning_stream_hf(req: ClinicalReasoningRequest):
                 messages=messages,
                 stream=True,
                 temperature=0.1,
+                top_p=0.8,
+                max_tokens=300,
+                response_format={"type": "json_object"},
             )
 
             # stream token cho UI
@@ -187,14 +140,6 @@ async def clinical_reasoning_stream_hf(req: ClinicalReasoningRequest):
             elif "```" in clean_response:
                 clean_response = clean_response.split("```")[1].split("```")[0]
 
-            # json_match = re.search(r"\{.*\}", clean_response, re.DOTALL)
-            # 
-            # if json_match:
-            #     try:
-            #         result = json.loads(json_match.group())
-            #         logger.info(f"[DEBUG] Parsed reasoning result: {result}")
-            #     except:
-            #         result = None
             json_matches = re.findall(
                 r"\{(?:[^{}]|(?:\{[^{}]*\}))*\}",
                 clean_response,

@@ -10,10 +10,10 @@ using AssessmentService.Application.DTOs;
 namespace AssessmentService.Application.Commands.CreateFullAssessment;
 
 public record CreateFullAssessmentCommand(
-    string CreatorId, string Title, string Specialty, string Topic, 
+    string Title, string Specialty, string Topic, 
     string DifficultyLevel, string Goal, string Descriptions,
     int NumQuestions, int TimeLimitMinutes, decimal PassingScorePercentage,
-    int MaxAttempts, string GenerationPrompt, string Language = "English", 
+    int MaxAttempts, string Language = "English", 
     string? PdfFileName = null
 ) : IRequest<object>;
 
@@ -40,7 +40,7 @@ public class CreateFullAssessmentHandler: IRequestHandler<CreateFullAssessmentCo
             - Module Description: {request.Descriptions}
 
             Specific Instructions from user:
-            {request.GenerationPrompt}
+            {request.Descriptions}
         ";
 
         string? pdfText = null;
@@ -78,18 +78,16 @@ public class CreateFullAssessmentHandler: IRequestHandler<CreateFullAssessmentCo
         var assessment = new Assessment
         {
             AssessmentId = Guid.NewGuid().ToString("N"),
-            CreatorId = request.CreatorId,
             Title = request.Title,
             Specialty = request.Specialty,
             Topic = request.Topic,
             DifficultyLevel = request.DifficultyLevel,
             Goal = request.Goal,
             Descriptions = request.Descriptions,
-            NumQuestions = generatedQuestions.Count, 
+            NumQuestions = generatedQuestions.Count,
             TimeLimitMinutes = request.TimeLimitMinutes,
             PassingScorePercentage = request.PassingScorePercentage,
             MaxAttempts = request.MaxAttempts,
-            GenerationPrompt = request.GenerationPrompt,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -97,16 +95,18 @@ public class CreateFullAssessmentHandler: IRequestHandler<CreateFullAssessmentCo
 
         await _repo.AddAsync(assessment);
 
-        var questionEntities = generatedQuestions.Select(q => new AssessmentQuestion
+        var questionEntities = generatedQuestions.Select(q => new Question
         {
-            QuestionId = Guid.NewGuid().ToString("N"),
+            Id = Guid.NewGuid().ToString("N"),
             AssessmentId = assessment.AssessmentId,
-            QuestionType = q.QuestionType ?? "MultipleChoice",
             Content = q.Content,
-            Options = JsonSerializer.Serialize(q.Options),
+            QuestionOption = JsonSerializer.Serialize(q.Options),
+            QuestionType = q.QuestionType ?? "MultipleChoice",
+            CognitiveLevel = q.CognitiveLevel,
             Explanation = q.Explanation,
             Points = 1.0m,
             CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         }).ToList();
 
         await _repo.AddQuestionsAsync(questionEntities);

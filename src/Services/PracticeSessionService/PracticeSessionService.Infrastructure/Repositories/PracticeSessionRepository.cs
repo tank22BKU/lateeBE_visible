@@ -14,30 +14,38 @@ public class PracticeSessionRepository : IPracticeSessionRepository
         _db = db;
     }
     
-    public async Task<PracticeSessionResult?> GetByIdAsync(string id)
-    {
-        return await _db.EvaluationResults
-            .Include(x => x.Warnings)
-            .FirstOrDefaultAsync(x => x.ResultId == id);
-    }
-
     public async Task<PracticeSession?> GetSessionByIdAsync(string id)
     {
         return await _db.PracticeSessions
-            .Include(x => x.EvaluationResults)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
-    public async Task<string> AddAsync(PracticeSessionResult entity)
-    {
-        _db.EvaluationResults.Add(entity);
-        await _db.SaveChangesAsync();
-        return entity.ResultId;
-    }
     public async Task<string> AddSessionAsync(PracticeSession entity)
     {
         _db.PracticeSessions.Add(entity);
         await _db.SaveChangesAsync();
         return entity.Id;
     }
+
+    public Task UpdateSessionAsync(PracticeSession entity)
+    {
+        _db.PracticeSessions.Update(entity);
+        return Task.CompletedTask;
+    }
+
+    public async Task<List<Warning>> GetWarningsBySessionIdAsync(string sessionId)
+    {
+        return await _db.Warnings
+            .AsNoTracking()
+            .Where(x => x.PracticeSessionId == sessionId)
+            .OrderByDescending(x => x.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task AddWarningsAsync(IEnumerable<Warning> warnings)
+    {
+        await _db.Warnings.AddRangeAsync(warnings);
+    }
+
+    public Task SaveChangesAsync() => _db.SaveChangesAsync();
 }

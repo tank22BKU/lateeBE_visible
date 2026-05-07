@@ -3,16 +3,17 @@ using MediatR;
 using PracticeSessionService.Application.Queries.GetPracticeSessions;
 using PracticeSessionService.Application.Queries.SavePracticeSessions;
 using PracticeSessionService.Application.Commands.CreatePracticeSession;
+using PracticeSessionService.Application.Queries.GetClinicalCases;
 
 namespace PracticeSessionService.API.Controllers;
 
 [ApiController]
 [Route("api/practice-sessions")]
-public class ClinicalCasesController : ControllerBase
+public class PracticeSessionController : ControllerBase
 {
     private readonly IMediator _mediator;
 
-    public ClinicalCasesController(IMediator mediator)
+    public PracticeSessionController(IMediator mediator)
     {
         _mediator = mediator;
     }
@@ -40,7 +41,25 @@ public class ClinicalCasesController : ControllerBase
         var result = await _mediator.Send(
             new GetPracticeSessionsRequest
             {
-                ResultId = id
+                SessionId = id
+            }
+        );
+
+        return Ok(result);
+    }
+
+    [HttpGet("clinical-cases")]
+    public async Task<IActionResult> GetClinicalCases(
+        [FromQuery] string? status,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
+    {
+        var result = await _mediator.Send(
+            new GetClinicalCasesRequest
+            {
+                Status = status,
+                Page = page,
+                PageSize = pageSize
             }
         );
 

@@ -18,6 +18,7 @@ public static class DependencyInjection
 
         // Repository (cách đơn giản, rõ ràng)
         services.AddScoped<IVirtualPatientRepository, VirtualPatientRepository>();
+        services.AddScoped<IClinicalCaseRepository, ClinicalCaseRepository>();
 
         return services;
     }

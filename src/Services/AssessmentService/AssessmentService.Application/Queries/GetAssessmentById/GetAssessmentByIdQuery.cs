@@ -26,9 +26,12 @@ public class GetAssessmentByIdHandler : IRequestHandler<GetAssessmentByIdQuery, 
             Goal = assessment.Goal, Specialty = assessment.Specialty, TimeLimitMinutes = assessment.TimeLimitMinutes,
             Questions = assessment.Questions.Select(q => new AssessmentQuestionDto
             {
-                QuestionId = q.QuestionId, QuestionType = q.QuestionType, Content = q.Content,
-                Options = string.IsNullOrEmpty(q.Options) ? null : JsonSerializer.Deserialize<object>(q.Options),
-                Explanation = q.Explanation, Points = q.Points
+                Id = q.Id,
+                Question = q.Content,
+                QuestionOption = string.IsNullOrEmpty(q.QuestionOption) ? null : JsonSerializer.Deserialize<object>(q.QuestionOption),
+                QuestionType = q.QuestionType,
+                Explanation = q.Explanation,
+                Points = q.Points
             }).ToList()
         };
     }

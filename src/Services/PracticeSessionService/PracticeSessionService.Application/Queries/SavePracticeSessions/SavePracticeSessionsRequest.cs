@@ -6,18 +6,13 @@ namespace PracticeSessionService.Application.Queries.SavePracticeSessions;
 
 public class SavePracticeSessionsRequest : IRequest<SavePracticeSessionsResponse>
 {
-    public string ResultId { get; set; } = default!;
     public string SessionId { get; set; } = default!;
-    public string UserId { get; set; } = default!;
-    public string ClinicalCaseId { get; set; } = default!;
-
-    public string ModuleId { get; set; } = "EPA_STANDARD_V1";
-
-    public object VpConversationLog { get; set; } = default!;
-    public object AiReasoningLog { get; set; } = default!;
-
-    public string FinalDiagnosis { get; set; } = default!;
-    public decimal OverallScore { get; set; }
-
+    public string LearnerId { get; set; } = default!;
+    public string? FinalDiagnosis { get; set; }
+    public object? VpConversationLog { get; set; }
+    public object? AiReasoningLog { get; set; }
+    public string? ModuleId { get; set; }
+    public string? DiscussionType { get; set; }
+    public string? GuidelinesId { get; set; }
     public List<WarningDto> Warnings { get; set; } = [];
 }

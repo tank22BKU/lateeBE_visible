@@ -1,10 +1,7 @@
-using VirtualPatientService.Domain.Entities;
-
 namespace VirtualPatientService.Domain.Repositories;
 
-public interface IVirtualPatientRepository
+public interface IClinicalCaseRepository
 {
-    Task<VirtualPatient?> GetByIdAsync(string patientId);
-    Task<List<VirtualPatient>> GetAllAsync();
-    Task<(List<VirtualPatient> Items, int Total)> GetPagedAsync(string? gender, int page, int pageSize);
+	Task<Entities.ClinicalCase?> GetByIdAsync(string caseId);
+	Task<Dictionary<string, Entities.ClinicalCase>> GetByIdsAsync(IEnumerable<string> caseIds);
 }

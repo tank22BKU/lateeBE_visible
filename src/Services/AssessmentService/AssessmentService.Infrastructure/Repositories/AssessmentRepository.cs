@@ -53,44 +53,43 @@ public class AssessmentRepository : IAssessmentRepository
         await _db.SaveChangesAsync();
     }
 
-    public async Task AddQuestionsAsync(IEnumerable<AssessmentQuestion> questions)
+    public async Task AddQuestionsAsync(IEnumerable<Question> questions)
     {
-        _db.AssessmentQuestions.AddRange(questions);
+        _db.Questions.AddRange(questions);
         await _db.SaveChangesAsync();
     }
 
-    public async Task<AssessmentQuestion?> GetQuestionByIdAsync(string questionId) => 
-        await _db.AssessmentQuestions.FirstOrDefaultAsync(q => q.QuestionId == questionId);
+    public async Task<Question?> GetQuestionByIdAsync(string questionId) => 
+        await _db.Questions.FirstOrDefaultAsync(q => q.Id == questionId);
 
-    public async Task AddQuestionAsync(AssessmentQuestion question)
+    public async Task AddQuestionAsync(Question question)
     {
-        _db.AssessmentQuestions.Add(question);
+        _db.Questions.Add(question);
         await _db.SaveChangesAsync();
     }
 
-    public async Task UpdateQuestionAsync(AssessmentQuestion question)
+    public async Task UpdateQuestionAsync(Question question)
     {
-        _db.AssessmentQuestions.Update(question);
+        _db.Questions.Update(question);
         await _db.SaveChangesAsync();
     }
 
-    public async Task DeleteQuestionAsync(AssessmentQuestion question)
+    public async Task DeleteQuestionAsync(Question question)
     {
-        _db.AssessmentQuestions.Remove(question);
+        _db.Questions.Remove(question);
         await _db.SaveChangesAsync();
     }
 
-
-    public async Task AddAttemptAsync(AssessmentAttempt attempt)
+    public async Task AddSessionAsync(AssessmentSession session)
     {
-        _db.Set<AssessmentAttempt>().Add(attempt);
+        _db.AssessmentSessions.Add(session);
         await _db.SaveChangesAsync();
     }
 
-    public async Task<AssessmentAttempt?> GetAttemptWithAnswersAsync(string attemptId)
+    public async Task<AssessmentSession?> GetSessionWithAnswersAsync(string sessionId)
     {
-        return await _db.AssessmentAttempts
+        return await _db.AssessmentSessions
             .Include(a => a.Answers) 
-            .FirstOrDefaultAsync(a => a.AttemptId == attemptId);
+            .FirstOrDefaultAsync(a => a.SessionId == sessionId);
     }
 }

@@ -11,8 +11,8 @@ public class PracticeSessionDbContext : DbContext
     }
 
     public DbSet<PracticeSession> PracticeSessions => Set<PracticeSession>();
-    public DbSet<PracticeSessionResult> EvaluationResults => Set<PracticeSessionResult>();
-    public DbSet<EvaluationWarning> EvaluationWarnings => Set<EvaluationWarning>();
+    public DbSet<Warning> Warnings => Set<Warning>();
+    public DbSet<ClinicalCase> ClinicalCases => Set<ClinicalCase>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -30,14 +30,34 @@ public class PracticeSessionDbContext : DbContext
                 .IsRequired();
 
             entity.Property(x => x.LearnerId)
-                .HasColumnName("learnerid")
+                .HasColumnName("learner_id")
                 .HasMaxLength(50)
                 .IsRequired();
 
-            entity.Property(x => x.ClinicalCaseId)
-                .HasColumnName("clinicalcaseid")
-                .HasMaxLength(20)
+            entity.Property(x => x.PatientId)
+                .HasColumnName("patient_id")
+                .HasMaxLength(50)
                 .IsRequired();
+
+            entity.Property(x => x.FinalDiagnosis)
+                .HasColumnName("final_diagnosis");
+
+            entity.Property(x => x.AiReasoningLog)
+                .HasColumnName("ai_reasoning_log")
+                .HasColumnType("json");
+
+            entity.Property(x => x.VpConversationLog)
+                .HasColumnName("vp_conversation_log")
+                .HasColumnType("json");
+
+            entity.Property(x => x.ModuleId)
+                .HasColumnName("module_id");
+
+            entity.Property(x => x.DiscussionType)
+                .HasColumnName("discussion_type");
+
+            entity.Property(x => x.GuidelinesId)
+                .HasColumnName("guidelines_id");
 
             entity.Property(x => x.StartTime)
                 .HasColumnName("start_time")
@@ -46,91 +66,28 @@ public class PracticeSessionDbContext : DbContext
             entity.Property(x => x.EndTime)
                 .HasColumnName("end_time");
 
-            entity.Property(x => x.Duration)
-                .HasColumnName("duration");
-
-            entity.Property(x => x.IsActive)
-                .HasColumnName("is_active")
-                .HasDefaultValue(true);
-
             entity.Property(x => x.Status)
                 .HasColumnName("status")
                 .HasDefaultValue("Practicing");
 
-            entity.HasMany(x => x.EvaluationResults)
-                .WithOne()
-                .HasForeignKey(e => e.SessionId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        b.Entity<PracticeSessionResult>(entity =>
-        {
-            entity.ToTable("evaluation_results");
-
-            entity.HasKey(x => x.ResultId);
-
-            entity.Property(x => x.ResultId)
-                .HasColumnName("result_id")
-                .HasMaxLength(50)
-                .IsRequired();
-
-            entity.Property(x => x.SessionId)
-                .HasColumnName("session_id")
-                .HasMaxLength(50)
-                .IsRequired();
-
-            entity.Property(x => x.UserId)
-                .HasColumnName("user_id")
-                .HasMaxLength(50)
-                .IsRequired();
-
-            entity.Property(x => x.ClinicalCaseId)
-                .HasColumnName("clinical_case_id")
-                .HasMaxLength(50)
-                .IsRequired();
-
-            entity.Property(x => x.ModuleId)
-                .HasColumnName("module_id")
-                .HasMaxLength(50)
-                .HasDefaultValue("EPA_STANDARD_V1");
-
-            entity.Property(x => x.VpConversationLog)
-                .HasColumnName("vp_conversation_log")
-                .HasColumnType("json");
-
-            entity.Property(x => x.AiReasoningLog)
-                .HasColumnName("ai_reasoning_log")
-                .HasColumnType("json");
-
-            entity.Property(x => x.FinalDiagnosis)
-                .HasColumnName("final_diagnosis")
-                .HasColumnType("text");
-
-            entity.Property(x => x.OverallScore)
-                .HasColumnName("overall_score")
-                .HasPrecision(5, 2);
-
             entity.Property(x => x.CreatedAt)
-                .HasColumnName("created_at")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-            entity.HasMany(e => e.Warnings)
-                .WithOne(w => w.PracticeSessionResult)
-                .HasForeignKey(w => w.ResultId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasColumnName("created_at");
         });
 
-        b.Entity<EvaluationWarning>(entity =>
+        b.Entity<Warning>(entity =>
         {
-            entity.ToTable("evaluation_warnings");
+            entity.ToTable("warning");
 
-            entity.HasKey(e => e.WarningId);
+            entity.HasKey(e => e.Id);
 
-            entity.Property(e => e.WarningId)
-                .HasColumnName("warning_id");
+            entity.Property(e => e.Id)
+                .HasColumnName("id");
 
-            entity.Property(e => e.ResultId)
-                .HasColumnName("result_id");
+            entity.Property(e => e.PracticeSessionId)
+                .HasColumnName("practice_session_id");
+
+            entity.Property(e => e.LearnerId)
+                .HasColumnName("learner_id");
 
             entity.Property(e => e.Label)
                 .HasColumnName("label");
@@ -140,6 +97,61 @@ public class PracticeSessionDbContext : DbContext
 
             entity.Property(e => e.CreatedAt)
                 .HasColumnName("created_at");
+        });
+
+        b.Entity<ClinicalCase>(entity =>
+        {
+            entity.ToTable("clinical_case");
+
+            entity.HasKey(e => e.CaseId);
+
+            entity.Property(e => e.CaseId)
+                .HasColumnName("case_id")
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(e => e.Title)
+                .HasColumnName("title")
+                .HasMaxLength(255)
+                .IsRequired();
+
+            entity.Property(e => e.Description)
+                .HasColumnName("description")
+                .HasColumnType("TEXT");
+
+            entity.Property(e => e.Type)
+                .HasColumnName("type")
+                .HasMaxLength(50);
+
+            entity.Property(e => e.Status)
+                .HasColumnName("status")
+                .HasMaxLength(50);
+
+            entity.Property(e => e.Pe)
+                .HasColumnName("pe")
+                .HasColumnType("TEXT");
+
+            entity.Property(e => e.Symptom)
+                .HasColumnName("symptom")
+                .HasColumnType("TEXT");
+
+            entity.Property(e => e.MedicalHistory)
+                .HasColumnName("medicalhistory")
+                .HasColumnType("TEXT");
+
+            entity.Property(e => e.CreatedBy)
+                .HasColumnName("created_by")
+                .HasMaxLength(50);
+
+            entity.Property(e => e.EccId)
+                .HasColumnName("eccid")
+                .HasMaxLength(50);
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("created_at");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnName("updated_at");
         });
     }
 }

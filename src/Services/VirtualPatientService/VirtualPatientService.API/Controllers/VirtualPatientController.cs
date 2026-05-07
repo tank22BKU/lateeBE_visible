@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MediatR;
+using VirtualPatientService.Application.Queries.GetVirtualPatientByID;
 using VirtualPatientService.Application.Queries.GetVirtualPatients;
 
 namespace VirtualPatientService.API.Controllers;

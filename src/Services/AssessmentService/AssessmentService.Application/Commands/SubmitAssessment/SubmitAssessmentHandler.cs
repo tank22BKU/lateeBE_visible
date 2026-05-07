@@ -5,17 +5,6 @@ using AssessmentService.Domain.Repositories;
 
 namespace AssessmentService.Application.Commands.SubmitAssessment;
 
-public record SubmitAssessmentCommand(
-    string AssessmentId,
-    string UserId,
-    int DurationSeconds,
-    List<UserAnswerDto> Answers
-) : IRequest<SubmitResultDto>;
-
-public record UserAnswerDto(string QuestionId, string SelectedOptionId);
-
-public record SubmitResultDto(string AttemptId, decimal Score, bool IsPassed, int CorrectCount);
-
 public class SubmitAssessmentHandler : IRequestHandler<SubmitAssessmentCommand, SubmitResultDto>
 {
     private readonly IAssessmentRepository _repo;
@@ -32,15 +21,17 @@ public class SubmitAssessmentHandler : IRequestHandler<SubmitAssessmentCommand, 
 
         var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
-        var attempt = new AssessmentAttempt
+        var session = new AssessmentSession
         {
-            AttemptId = Guid.NewGuid().ToString("N"), 
+            SessionId = Guid.NewGuid().ToString("N"),
             AssessmentId = request.AssessmentId,
-            UserId = request.UserId,
+            LearnerId = request.UserId,
+            AttemptNo = 1,
+            Duration = request.DurationSeconds,
             StartTime = DateTime.UtcNow.AddSeconds(-request.DurationSeconds),
             EndTime = DateTime.UtcNow,
             Status = "Completed",
-            Answers = new List<AttemptAnswer>() 
+            Answers = new List<AssessmentAnswer>()
         };
 
         int correctCount = 0;
@@ -48,10 +39,10 @@ public class SubmitAssessmentHandler : IRequestHandler<SubmitAssessmentCommand, 
 
         foreach (var userAnswer in request.Answers)
         {
-            var question = assessment.Questions.FirstOrDefault(q => q.QuestionId == userAnswer.QuestionId);
+            var question = assessment.Questions.FirstOrDefault(q => q.Id == userAnswer.QuestionId);
             if (question == null) continue;
 
-            var options = JsonSerializer.Deserialize<List<OptionElement>>(question.Options ?? "[]", jsonOptions);
+            var options = JsonSerializer.Deserialize<List<OptionElement>>(question.QuestionOption ?? "[]", jsonOptions);
     
             var correctOption = options?.FirstOrDefault(o => o.IsCorrect);
 
@@ -64,10 +55,11 @@ public class SubmitAssessmentHandler : IRequestHandler<SubmitAssessmentCommand, 
                 totalPointsEarned += question.Points;
             }
 
-            attempt.Answers.Add(new AttemptAnswer
+            session.Answers.Add(new AssessmentAnswer
             {
-                AnswerId = Guid.NewGuid().ToString("N"),
-                QuestionId = question.QuestionId,
+                Id = Guid.NewGuid().ToString("N"),
+                SessionId = session.SessionId,
+                QuestionId = question.Id,
                 UserChoice = userAnswer.SelectedOptionId ?? string.Empty,
                 IsCorrect = isCorrect,
                 PointsEarned = isCorrect ? question.Points : 0
@@ -75,12 +67,12 @@ public class SubmitAssessmentHandler : IRequestHandler<SubmitAssessmentCommand, 
         }
 
         decimal maxPoints = assessment.Questions.Sum(q => q.Points);
-        attempt.Score = maxPoints > 0 ? (totalPointsEarned / maxPoints) * 100 : 0;
-        attempt.IsPassed = attempt.Score >= assessment.PassingScorePercentage;
+        session.OverallScore = maxPoints > 0 ? (totalPointsEarned / maxPoints) * 100 : 0;
+        session.IsPassed = session.OverallScore >= assessment.PassingScorePercentage;
 
-        await _repo.AddAttemptAsync(attempt);
+        await _repo.AddSessionAsync(session);
 
-        return new SubmitResultDto(attempt.AttemptId, attempt.Score, attempt.IsPassed, correctCount);
+        return new SubmitResultDto(session.SessionId, session.OverallScore, session.IsPassed ?? false, correctCount);
     }
 }
 
