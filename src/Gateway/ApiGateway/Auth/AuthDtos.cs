@@ -12,6 +12,7 @@ public sealed record AuthResponse(
     string RefreshToken,
     DateTime RefreshTokenExpiresAt,
     string TokenType,
+    string UserId,
     string Username,
     string Role
 );

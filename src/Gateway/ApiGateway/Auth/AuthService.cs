@@ -430,6 +430,7 @@ public sealed class AuthService
             refreshToken,
             refreshExpiresAt,
             "Bearer",
+            user.UserId,
             user.Username,
             user.Role
         );
