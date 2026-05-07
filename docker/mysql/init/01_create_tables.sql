@@ -300,11 +300,11 @@ CREATE TABLE evaluation
 CREATE TABLE roadmaps
 (
     id         VARCHAR(50) PRIMARY KEY,
-    learnerid  VARCHAR(50) NOT NULL,
-    content    TEXT,
+    learner_id  VARCHAR(50) NOT NULL,
+    content    JSON,
     version    VARCHAR(20),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_roadmap_learner FOREIGN KEY (learnerid) REFERENCES users (userid) ON DELETE CASCADE
+    CONSTRAINT fk_roadmap_learner FOREIGN KEY (learner_id) REFERENCES users (userid) ON DELETE CASCADE
 );
 
 CREATE TABLE summarize_roadmap
@@ -328,7 +328,7 @@ CREATE TABLE practice_feedback
     evaluation_id       VARCHAR(50) NOT NULL,
     practice_session_id VARCHAR(50) NOT NULL,
     CONSTRAINT fk_feedback_practice FOREIGN KEY (practice_session_id) REFERENCES practice_sessions (id) ON DELETE CASCADE,
-    CONSTRAINT fk_feedback_eval FOREIGN KEY (evaluation_id) REFERENCES evaluation (id) ON DELETE SET NULL
+    CONSTRAINT fk_feedback_eval FOREIGN KEY (evaluation_id) REFERENCES evaluation (id) ON DELETE CASCADE
 );
 
 CREATE TABLE warning
