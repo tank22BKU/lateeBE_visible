@@ -41,7 +41,7 @@
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {
-                "Host": "roadmap",
+                "Host": "roadmap-api",
                 "Port": 8080
                 }
             ],
@@ -52,7 +52,8 @@
                 "PUT",
                 "DELETE"
             ],
-            "SwaggerKey": "roadmap"
+            "SwaggerKey": "roadmap",
+            "Timeout": 60000
         },
         {
             "DownstreamPathTemplate": "/api/{everything}",
@@ -105,7 +106,7 @@
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {
-                "Host": "roadmap",
+                "Host": "roadmap-api",
                 "Port": 8080
                 }
             ],

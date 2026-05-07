@@ -19,16 +19,6 @@ from config import (
     DIFY_PROMPT_V4_1
 )
 
-# ALL_DIMENSIONS = [
-#     "Cơ sở bằng chứng",
-#     "Chẩn đoán phân biệt",
-#     "Dữ kiện mâu thuẫn",
-#     "Giải thích cơ chế bệnh sinh",
-#     "Thông tin còn thiếu",
-#     "Ưu tiên chẩn đoán nguy hiểm",
-#     "Độ chắc chắn của quyết định",
-#     "Hành động lâm sàng tiếp theo",
-# ]
 
 ALL_DIMENSIONS = [
     {"id": "evidence", "label": "Evidence Base"},

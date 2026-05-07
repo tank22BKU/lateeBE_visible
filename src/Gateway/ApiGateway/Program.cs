@@ -53,10 +53,20 @@ builder.Services
                 }
 
                 var authService = context.HttpContext.RequestServices.GetRequiredService<AuthService>();
-                var isRevoked = await authService.IsAccessTokenRevokedAsync(jti, context.HttpContext.RequestAborted);
-                if (isRevoked)
+                // var isRevoked = await authService.IsAccessTokenRevokedAsync(jti, context.HttpContext.RequestAborted);
+                // if (isRevoked)
+                // {
+                //     context.Fail("Access token has been revoked.");
+                // }
+                try
                 {
-                    context.Fail("Access token has been revoked.");
+                    var isRevoked = await authService.IsAccessTokenRevokedAsync(jti, context.HttpContext.RequestAborted);
+                    if (isRevoked)
+                        context.Fail("revoked");
+                }
+                catch
+                {
+                    context.Fail("revocation check failed");
                 }
             }
         };

@@ -1,5 +1,5 @@
 ﻿x-auth-env: &auth-env
-  Security__AuthorizationEnabled: ${AUTHORIZATION_ENABLED:-false}
+  Security__AuthorizationEnabled: ${AUTHORIZATION_ENABLED:-true}
   Jwt__Issuer: ${JWT_ISSUER:-latee-auth}
   Jwt__Audience: ${JWT_AUDIENCE:-latee-clients}
   Jwt__SigningKey: ${JWT_SIGNING_KEY:-latee_super_secret_signing_key_2026_change_me}
@@ -266,6 +266,7 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.Roadmap
+      target: dev
     container_name: roadmap-api
     ports:
       - "8006:8080"
@@ -275,8 +276,14 @@ services:
       - mysql
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      DOTNET_USE_POLLING_FILE_WATCHER: "1"
       ConnectionStrings__RoadmapDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
       <<: *auth-env
+    command: dotnet watch --project src/Services/RoadmapService/RoadmapService.API/RoadmapService.API.csproj run --no-launch-profile --urls http://0.0.0.0:8080
+    volumes:
+      - ../src:/src/src
+      - roadmap_nuget_cache:/root/.nuget/packages
     networks:
       - latee-network
   evaluation:
@@ -352,6 +359,7 @@ volumes:
   ollama_data:
   ollama_vp_data:
   ai_assistant_faiss:
+  roadmap_nuget_cache:
 
 networks:
   latee-network:

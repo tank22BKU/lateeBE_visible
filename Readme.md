@@ -47,7 +47,7 @@ dotnet add src/Services/AssessmentService/AssessmentService.API package Swashbuc
 
 
 - Application
-dotnet add src/Services/EvaluationService/EvaluationService.Application package AutoMapper --version 15.1.0
+dotnet add src/Services/EvaluationService/EvaluationService.Application package AutoMapper --version 12.0.1
 dotnet add src/Services/EvaluationService/EvaluationService.Application package AutoMapper.Extensions.Microsoft.DependencyInjection --version 12.0.1
 dotnet add src/Services/EvaluationService/EvaluationService.Application package FluentValidation --version 12.1.0
 dotnet add src/Services/EvaluationService/EvaluationService.Application package FluentValidation.DependencyInjectionExtensions --version 12.1.0

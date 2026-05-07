@@ -30,7 +30,7 @@ if (!string.IsNullOrEmpty(geminiModel))
 var connectionString =
     builder.Configuration.GetConnectionString("RoadmapDb");
 
-builder.Services.AddDbContext<ClinicalCaseDbContext>(options =>
+builder.Services.AddDbContext<RoadmapDbContext>(options =>
 {
     options.UseMySql(
         connectionString,
