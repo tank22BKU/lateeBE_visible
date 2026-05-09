@@ -286,6 +286,57 @@ services:
       - roadmap_nuget_cache:/root/.nuget/packages
     networks:
       - latee-network
+
+  knowledgeresource:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.KnowledgeResource
+      target: dev
+    container_name: knowledgeresource-api
+    ports:
+      - "8009:8080"
+    env_file:
+      - ../.env
+    depends_on:
+      - mysql
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      DOTNET_USE_POLLING_FILE_WATCHER: "1"
+      ConnectionStrings__KnowledgeResourceDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      <<: *auth-env
+    command: dotnet watch --project src/Services/KnowledgeResourceService/KnowledgeResourceService.API/KnowledgeResourceService.API.csproj run --no-launch-profile --urls http://0.0.0.0:8080
+    volumes:
+      - ../src:/src/src
+      - knowledge_nuget_cache:/root/.nuget/knowledge_packages
+    networks:
+      - latee-network
+
+  user:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.UserService
+      target: dev
+    container_name: user-api
+    ports:
+      - "8010:8080"
+    env_file:
+      - ../.env
+    depends_on:
+      - mysql
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      DOTNET_USE_POLLING_FILE_WATCHER: "1"
+      ConnectionStrings__UserDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      <<: *auth-env
+    command: dotnet watch --project src/Services/UserService/UserService.API/UserService.API.csproj run --no-launch-profile --urls http://0.0.0.0:8080
+    volumes:
+      - ../src:/src/src
+      - user_nuget_cache:/root/.nuget/user_packages
+    networks:
+      - latee-network
+
   evaluation:
     build:
       context: ..
@@ -360,7 +411,9 @@ volumes:
   ollama_vp_data:
   ai_assistant_faiss:
   roadmap_nuget_cache:
-
+  knowledge_nuget_cache:
+  user_nuget_cache:
+    
 networks:
   latee-network:
     driver: bridge

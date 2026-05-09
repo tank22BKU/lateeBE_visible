@@ -5,7 +5,7 @@
     email      VARCHAR(100) UNIQUE NOT NULL,
     phone      VARCHAR(20),
     birthday   DATE,
--- ssn VARCHAR(20),
+    -- ssn VARCHAR(20),
     password   VARCHAR(255)        NOT NULL,
     gender     VARCHAR(10),
     address    TEXT,
@@ -87,9 +87,9 @@ CREATE TABLE expert_criteria_management
 CREATE TABLE clinical_case
 (
     case_id        VARCHAR(50) PRIMARY KEY,
-    title          VARCHAR(255) NOT NULL,
+    title          TEXT NOT NULL,
     description    TEXT,
-    type           VARCHAR(50),
+    type           TEXT,
     status         VARCHAR(50),
     pe             TEXT,
     symptom        TEXT,
@@ -113,14 +113,17 @@ CREATE TABLE virtual_patient
     occupation   VARCHAR(255),
     ethnicity    VARCHAR(100),
     persona      TEXT,
+    chief_concern VARCHAR(255),
     vital_signs  TEXT,
     instructions TEXT,
     behaviors    TEXT,
+    learning_objectives TEXT,
     time_setting INT,
-    level        VARCHAR(50),
-    avatar_image VARCHAR(255),
+    argument_time INT,
+    level        ENUM('Beginner', 'Intermediate', 'Advanced', 'Expert') DEFAULT 'Intermediate',
     case_rule    TEXT,
     status       ENUM('active', 'inactive') DEFAULT 'active',
+    avatar_image VARCHAR(255),
     created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_virtual_patient_clinical_case FOREIGN KEY (case_id) REFERENCES clinical_case (case_id)
@@ -300,11 +303,11 @@ CREATE TABLE evaluation
 CREATE TABLE roadmaps
 (
     id         VARCHAR(50) PRIMARY KEY,
-    learner_id  VARCHAR(50) NOT NULL,
+    learnerid  VARCHAR(50) NOT NULL,
     content    JSON,
     version    VARCHAR(20),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_roadmap_learner FOREIGN KEY (learner_id) REFERENCES users (userid) ON DELETE CASCADE
+    CONSTRAINT fk_roadmap_learner FOREIGN KEY (learnerid) REFERENCES users (userid) ON DELETE CASCADE
 );
 
 CREATE TABLE summarize_roadmap
@@ -340,7 +343,7 @@ CREATE TABLE warning
     description         TEXT,
     created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_eval_warning FOREIGN KEY (practice_session_id) REFERENCES practice_sessions (id) ON DELETE CASCADE,
-    CONSTRAINT fk_warning_learner FOREIGN KEY (learner_id) REFERENCES users (userid)
+    CONSTRAINT fk_warning_learner FOREIGN KEY (learner_id) REFERENCES users (userid) ON DELETE CASCADE
 );
 
 
@@ -368,7 +371,7 @@ CREATE TABLE assessments
 CREATE TABLE assessment_session
 (
     session_id         VARCHAR(50) NOT NULL PRIMARY KEY,
-    practice_session_id VARCHAR(50) NOT NULL,
+    assessment_id      VARCHAR(50) NOT NULL,
     overall_score       DECIMAL(5, 2) DEFAULT 0.00,
     learner_id          VARCHAR(50) NOT NULL,
     attempt_no          INT           DEFAULT 1,
@@ -378,7 +381,7 @@ CREATE TABLE assessment_session
     status              ENUM('InProgress', 'Completed', 'Abandoned') DEFAULT 'InProgress',
     is_passed           BOOLEAN,
     CONSTRAINT fk_session_learner FOREIGN KEY (learner_id) REFERENCES users (userid) ON DELETE CASCADE,
-    CONSTRAINT fk_session_practice FOREIGN KEY (practice_session_id) REFERENCES practice_sessions (id) ON DELETE CASCADE
+    CONSTRAINT fk_session_assessment FOREIGN KEY (assessment_id) REFERENCES assessments (assessment_id) ON DELETE CASCADE
 );
 
 CREATE TABLE question
