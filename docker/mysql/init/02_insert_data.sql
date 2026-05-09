@@ -1,13 +1,13 @@
 ﻿-- User
 INSERT INTO users (userid, name, email, phone, birthday, password, gender, address, role, avatar_url)
 VALUES 
-('USR-EXP-001', 'Tachibana Hana', 'hana.tachibana@latee.com', '(568) 333-111-222', '1990-05-15', '$2y$10$e0MYzXy', 'Female', 'Shibuya, Tokyo, Japan', 'Expert', '/images/doctorFEMALE.jpeg'),
-('USR-EXP-002', 'Andrew Nguyen', 'andrew.nguyen@latee.com', '(568) 367-987-237', '1982-11-20', '$2y$10$e0MYzXy', 'Male', 'Hudson, Wisconsin (WI), 54016', 'Expert', '/images/d22.jpg');
+('USR-EXP-001', 'Tachibana Hana', 'hana.tachibana@latee.com', '(568) 333-111-222', '1990-05-15', 'expert1', 'Female', 'Shibuya, Tokyo, Japan', 'Expert', '/images/doctorFEMALE.jpeg'),
+('USR-EXP-002', 'Andrew Nguyen', 'andrew.nguyen@latee.com', '(568) 367-987-237', '1982-11-20', 'expert2', 'Male', 'Hudson, Wisconsin (WI), 54016', 'Expert', '/images/d22.jpg');
 
 INSERT INTO users (userid, name, email, phone, birthday, password, gender, address, role, status)
 VALUES 
-('USR-ADM-01', 'Nguyen Quan Tri', 'admin.system@latee.com', '0901234567', '1985-01-01', '$2y$10$hash_admin', 'Male', 'Hanoi, Vietnam', 'Admin', 'active'),
-('USR-LRN-01', 'Tran Van Hoc', 'hoc.tran@student.com', '0912345678', '2002-09-20', '$2y$10$hash_learner', 'Male', 'Ho Chi Minh City, Vietnam', 'Learner', 'active');
+('USR-ADM-01', 'Nguyen Quan Tri', 'admin.system@latee.com', '0901234567', '1985-01-01', 'admin1', 'Male', 'Hanoi, Vietnam', 'Admin', 'active'),
+('USR-LRN-01', 'Tran Van Hoc', 'hoc.tran@student.com', '0912345678', '2002-09-20', 'learner1', 'Male', 'Ho Chi Minh City, Vietnam', 'Learner', 'active');
 
 -- Admin
 INSERT INTO admin (aid, ssn)

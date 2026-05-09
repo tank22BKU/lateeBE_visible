@@ -1,5 +1,5 @@
 ﻿x-auth-env: &auth-env
-  Security__AuthorizationEnabled: ${AUTHORIZATION_ENABLED:-true}
+  Security__AuthorizationEnabled: ${AUTHORIZATION_ENABLED:-false}
   Jwt__Issuer: ${JWT_ISSUER:-latee-auth}
   Jwt__Audience: ${JWT_AUDIENCE:-latee-clients}
   Jwt__SigningKey: ${JWT_SIGNING_KEY:-latee_super_secret_signing_key_2026_change_me}
@@ -75,10 +75,6 @@ services:
     networks:
       - latee-network
 
-  # =========================================================
-  # VIRTUAL PATIENT AI (Llama 3.1 + Adapter)
-  # =========================================================
-
   virtualpatient-python:
     build:
       context: ..
@@ -87,75 +83,21 @@ services:
     ports:
       - "8005:8080"
     depends_on:
-      ollama-warmup-vp:
-        condition: service_completed_successfully
-      virtualpatient:
-        condition: service_started
-    environment:
-      OLLAMA_URL: "http://ollama-vp:11434"
-      OLLAMA_MODEL: "virtual-patient-model"
-      VIRTUAL_PATIENT_API_URL: "http://virtualpatient:8080/api/virtual-patients"
-    networks:
-      - latee-network
-
-  ollama-vp:
-    image: ollama/ollama:latest
-    container_name: ollama-vp
-    ports:
-      - "11435:11434"
+      - virtualpatient
     volumes:
-      - ollama_vp_data:/root/.ollama
-      - ./Llama-3.1-Virtual-Patient-MimicIV_Ver2.0:/root/.ollama/adapters_setup:ro
-      - ./ollama_vp_setup:/root/.ollama/setup:ro
-    networks:
-      - latee-network
+      - ./Llama-3.1-Virtual-Patient-MimicIV_Ver2.0/vp_llama_finetuning.gguf:/app/models/vp_llama_finetuning.gguf:ro
     environment:
-      - OLLAMA_NUM_PARALLEL=1
-      - OLLAMA_FLASH_ATTENTION=1
-      - OLLAMA_MAX_LOADED_MODELS=1
-      - OLLAMA_NUM_GPU=1
+      VIRTUAL_PATIENT_API_URL: "http://virtualpatient:8080/api/virtual-patients"
+      PYTHONUNBUFFERED: "1"
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
               count: 1
-              capabilities: [ gpu ]
-
-  ollama-warmup-vp:
-    image: ollama/ollama:latest
-    container_name: ollama-warmup-vp
-    depends_on:
-      ollama-vp:
-        condition: service_started
-    volumes:
-      - ollama_data:/root/.ollama
-      - ./Llama-3.1-Virtual-Patient-MimicIV_Ver2.0:/root/.ollama/adapters_setup:ro
-      - ./ollama_vp_setup:/root/.ollama/setup:ro
-    environment:
-      - OLLAMA_HOST=http://ollama-vp:11434
-    entrypoint: [ "/bin/sh" ]
-    command:
-      - "-c"
-      - |
-        echo "Waiting for Ollama API..."
-        until ollama list > /dev/null 2>&1; do sleep 2; done
-
-        # Kiểm tra nếu chưa có base model thì mới pull
-        if ! ollama list | grep -q "llama3.1:8b"; then
-          echo "Pulling Llama 3.1 8B..."
-          ollama pull llama3.1:8b
-        else
-          echo "Base model already exists. Skipping pull."
-        fi
-
-        echo "Applying adapter via Modelfile..."
-        ollama create virtual-patient-model -f /root/.ollama/setup/Modelfile.VP
-        echo "Warmup Done Successfully!"
-    restart: "no"
+              capabilities: [gpu]
     networks:
       - latee-network
-
   # =========================================================
   # AI Assistant, Gateway, Redis...
   # =========================================================
@@ -350,8 +292,8 @@ services:
 
 volumes:
   mysql_data:
-  ollama_data:
-  ollama_vp_data:
+  # ollama_data:
+  # ollama_vp_data:
   ai_assistant_faiss:
 
 networks:
