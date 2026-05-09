@@ -16,51 +16,55 @@ public class ClinicalCaseRepository : IClinicalCaseRepository
 
     public async Task<List<ClinicalCase>> GetAllAsync()
     {
-        return await _db.ClinicalCases.ToListAsync();
-    }
-
-    public async Task<List<ClinicalCase>> GetFirstAsync()
-    {
-        return await _db.ClinicalCases.ToListAsync();
-    }
-
-    public Task<ClinicalCase?> GetByIdAsync(string id)
-    {
-        return _db.ClinicalCases
-            .FirstOrDefaultAsync(x => x.ClinicalCaseId == id);
-    }
-
-    public Task<List<ClinicalCase>> GetActiveAsync(int limit)
-    {
-        return _db.ClinicalCases
-            .Where(x => x.Status == "active")
+        return await _db.ClinicalCases
+            .AsNoTracking()
             .OrderByDescending(x => x.CreatedAt)
-            .Take(limit)
             .ToListAsync();
+    }
+
+    public Task<ClinicalCase?> GetByIdAsync(string caseId)
+    {
+        return _db.ClinicalCases
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.CaseId == caseId);
+    }
+
+    public async Task AddAsync(ClinicalCase clinicalCase)
+    {
+        _db.ClinicalCases.Add(clinicalCase);
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task UpdateAsync(ClinicalCase clinicalCase)
+    {
+        _db.ClinicalCases.Update(clinicalCase);
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(ClinicalCase clinicalCase)
+    {
+        _db.ClinicalCases.Remove(clinicalCase);
+        await _db.SaveChangesAsync();
     }
 
     public async Task<(List<ClinicalCase> Items, int Total)>
     GetPagedAsync(string? status, int page, int pageSize)
     {
-        var ClinicalcasesQuery = _db.ClinicalCases.AsNoTracking();
-        var VirtualPatinetsQuery = _db.VirtualPatients.AsNoTracking();
+        var clinicalCasesQuery = _db.ClinicalCases.AsNoTracking();
 
         if (!string.IsNullOrEmpty(status))
         {
-            ClinicalcasesQuery = ClinicalcasesQuery.Where(x => x.Status == status);
+            clinicalCasesQuery = clinicalCasesQuery.Where(x => x.Status == status);
         }
 
-        VirtualPatinetsQuery = VirtualPatinetsQuery;
+        var total = await clinicalCasesQuery.CountAsync();
 
-        var total = await ClinicalcasesQuery.CountAsync();
-
-        var items = await ClinicalcasesQuery
-            .OrderByDescending(x => x.CreatedAt) // BẮT BUỘC
+        var items = await clinicalCasesQuery
+            .OrderByDescending(x => x.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
 
         return (items, total);
     }
-
 }

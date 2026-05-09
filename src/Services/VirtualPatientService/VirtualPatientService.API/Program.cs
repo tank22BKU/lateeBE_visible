@@ -1,10 +1,10 @@
 using VirtualPatientService.Application;
 using VirtualPatientService.Infrastructure;
 using VirtualPatientService.Infrastructure.Persistance;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using System.Text;
 using System.Text.Json;
 
@@ -15,15 +15,10 @@ var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "latee-auth";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "latee-clients";
 var jwtSigningKey = builder.Configuration["Jwt:SigningKey"] ?? "latee_super_secret_signing_key_2026_change_me";
 
-// ==========================================
-// 1. JSON CONFIG: Chuyển toàn bộ sang camelCase
-// ==========================================
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        // Chuyển Property (Name -> name, PatientId -> patientId)
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-        // Chuyển Key của Dictionary (VitalSigns, Persona) sang camelCase
         options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
     });
 

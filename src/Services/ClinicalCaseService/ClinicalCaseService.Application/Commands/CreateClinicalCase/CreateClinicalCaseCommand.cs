@@ -1,0 +1,66 @@
+using ClinicalCaseService.Application.Queries.GetClinicalCases;
+using ClinicalCaseService.Domain.Entities;
+using ClinicalCaseService.Domain.Repositories;
+using MediatR;
+
+namespace ClinicalCaseService.Application.Commands.CreateClinicalCase;
+
+public record CreateClinicalCaseCommand(
+	string CaseId,
+	string Title,
+	string? Description,
+	string? CaseType,
+	string? Status,
+	string? Pe,
+	string? Symptom,
+	string? MedicalHistory,
+	string CreatedBy,
+	string EccId
+) : IRequest<ClinicalCaseDto>;
+
+public class CreateClinicalCaseHandler : IRequestHandler<CreateClinicalCaseCommand, ClinicalCaseDto>
+{
+	private readonly IClinicalCaseRepository _repo;
+
+	public CreateClinicalCaseHandler(IClinicalCaseRepository repo)
+	{
+		_repo = repo;
+	}
+
+	public async Task<ClinicalCaseDto> Handle(CreateClinicalCaseCommand request, CancellationToken cancellationToken)
+	{
+		var clinicalCase = new ClinicalCase
+		{
+			CaseId = request.CaseId,
+			Title = request.Title,
+			Description = request.Description,
+			CaseType = request.CaseType,
+			Status = string.IsNullOrWhiteSpace(request.Status) ? "active" : request.Status,
+			Pe = request.Pe,
+			Symptom = request.Symptom,
+			MedicalHistory = request.MedicalHistory,
+			CreatedBy = request.CreatedBy,
+			EccId = request.EccId,
+			CreatedAt = DateTime.UtcNow,
+			UpdatedAt = DateTime.UtcNow
+		};
+
+		await _repo.AddAsync(clinicalCase);
+
+		return new ClinicalCaseDto
+		{
+			CaseId = clinicalCase.CaseId,
+			Title = clinicalCase.Title,
+			Description = clinicalCase.Description,
+			CaseType = clinicalCase.CaseType,
+			Status = clinicalCase.Status,
+			Pe = clinicalCase.Pe,
+			Symptom = clinicalCase.Symptom,
+			MedicalHistory = clinicalCase.MedicalHistory,
+			CreatedBy = clinicalCase.CreatedBy,
+			EccId = clinicalCase.EccId,
+			CreatedAt = clinicalCase.CreatedAt,
+			UpdatedAt = clinicalCase.UpdatedAt
+		};
+	}
+}

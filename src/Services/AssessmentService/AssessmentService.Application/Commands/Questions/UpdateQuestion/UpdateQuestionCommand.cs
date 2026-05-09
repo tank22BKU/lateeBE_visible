@@ -27,9 +27,10 @@ public class UpdateQuestionHandler : IRequestHandler<UpdateQuestionCommand, bool
         question.QuestionType = request.QuestionType;
         question.CognitiveLevel = request.CognitiveLevel;
         question.Content = request.Content;
-        question.Options = request.Options != null ? JsonSerializer.Serialize(request.Options) : null;
+        question.QuestionOption = request.Options != null ? JsonSerializer.Serialize(request.Options) : null;
         question.Explanation = request.Explanation;
         question.Points = request.Points;
+        question.UpdatedAt = DateTime.UtcNow;
 
         await _repo.UpdateQuestionAsync(question);
         return true;

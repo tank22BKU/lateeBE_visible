@@ -57,20 +57,54 @@ async def get_patient_detail_from_net(patient_id: str) -> Optional[Dict[str, Any
             print(f"CONNECTION ERROR to .NET: {e}")
     return None
 
+def _parse_json_or_value(value: Any) -> Any:
+    if value is None:
+        return None
+    if isinstance(value, (dict, list)):
+        return value
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError:
+            return value
+    return value
+
 def _build_system_prompt_from_detail(data: Dict[str, Any]) -> Dict[str, str]:
     name = data.get("name", "Patient")
     age = data.get("age", "Unknown")
     gender = data.get("gender", "Unknown")
     occupation = data.get("occupation", "Unknown")
-    description = data.get("description", "")
+
+    # description = data.get("description", "")
     chief_concern = data.get("chiefConcern", "")
-    vitals = data.get("vitalSigns") or {}
-    persona = data.get("persona") or {}
+    medical_history = data.get("medicalHistory", "")
+    symptom = data.get("symptom", "")
+
+    vitals = _parse_json_or_value(data.get("vitalSigns")) or {}
+    persona = _parse_json_or_value(data.get("persona")) or {}
+    case_rule = _parse_json_or_value(data.get("caseRule"))
+    instructions = _parse_json_or_value(data.get("instructions"))
     
     emotional_state = persona.get("emotional_state", "Neutral")
     rules = persona.get("behavioral_rules") or []
-    behavioral_rules_str = "\n".join([f"- {rule}" for rule in rules])
-    vitals_str = ", ".join([f"{k}: {v}" for k, v in vitals.items()])
+    behavioral_rules_str = "\n".join([f"- {rule}" for rule in rules]) if rules else ""
+    vitals_str = ", ".join([f"{k}: {v}" for k, v in vitals.items()]) if isinstance(vitals, dict) else str(vitals)
+
+    case_rule_str = ""
+    if isinstance(case_rule, dict):
+        case_rule_str = json.dumps(case_rule, ensure_ascii=False)
+    elif isinstance(case_rule, list):
+        case_rule_str = "\n".join([f"- {rule}" for rule in case_rule])
+    elif case_rule:
+        case_rule_str = str(case_rule)
+
+    instructions_str = ""
+    if isinstance(instructions, dict):
+        instructions_str = json.dumps(instructions, ensure_ascii=False)
+    elif isinstance(instructions, list):
+        instructions_str = "\n".join([f"- {item}" for item in instructions])
+    elif instructions:
+        instructions_str = str(instructions)
 
     system_prompt = (
         f"You are {name}, a {age}-year-old {gender} working as a {occupation}.\n"
@@ -80,7 +114,14 @@ def _build_system_prompt_from_detail(data: Dict[str, Any]) -> Dict[str, str]:
         f"- Mood: {emotional_state}\n{behavioral_rules_str}\n\n"
 
         "*** GROUND TRUTH (YOUR MEDICAL RECORD) ***\n"
-        f"- Concern: {chief_concern}\n- Vitals: {vitals_str}\n- History: {description}\n\n"
+        f"- Symptom: {symptom or chief_concern}\n"
+        f"- Concern: {chief_concern}\n"
+        f"- Vitals: {vitals_str}\n"
+        f"- Medical History: {medical_history}\n"
+        # f"- History: {description}\n\n"
+
+        "*** CASE RULES & INSTRUCTIONS ***\n"
+        f"- Rules: {case_rule_str}\n- Instructions: {instructions_str}\n\n"
 
          "*** CRITICAL INSTRUCTIONS ***\n"
         "1. STAY IN CHARACTER: You are a normal human patient. If asked about medical knowledge, act unsure or confused.\n"

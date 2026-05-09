@@ -35,4 +35,5 @@ public class EvaluationController : ControllerBase {
         var deleted = await _mediator.Send(new DeleteEvaluationCommand(id));
         return deleted ? NoContent() : NotFound();
     }
+
 }

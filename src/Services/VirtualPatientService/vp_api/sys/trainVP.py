@@ -42,11 +42,8 @@ clear_gpu_memory()
 # 2. LOAD DATASET & CHIA TRAIN/TEST (QUAN TRỌNG)
 # ==========================================
 print("--> Đang load và chia dữ liệu...")
-
-# Load toàn bộ dữ liệu
 full_dataset = load_dataset("json", data_files="train_dataset.jsonl", split="train")
 
-# Chia 80% Train - 20% Test (seed=42 để cố định kết quả chia)
 dataset_dict = full_dataset.train_test_split(test_size=0.2, seed=42)
 
 train_dataset = dataset_dict['train']
@@ -72,7 +69,7 @@ model = AutoModelForCausalLM.from_pretrained(
     MODEL_NAME,
     quantization_config=bnb_config,
     device_map="auto",
-    # offload_folder="offload_temp", # Bật nếu VRAM thấp
+    # offload_folder="offload_temp", 
     max_memory={0: "7GiB", "cpu": "32GiB"}
 )
 
@@ -102,7 +99,7 @@ def formatting_prompts_func(example):
     return output_texts
 
 # ==========================================
-# 6. CẤU HÌNH TRAINING (CÓ VALIDATION)
+# 6. CẤU HÌNH TRAINING 
 # ==========================================
 training_args = TrainingArguments(
     output_dir="./results",

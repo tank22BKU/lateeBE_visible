@@ -26,9 +26,18 @@ public class GetClinicalCasesHandler : IRequestHandler<GetClinicalCasesQuery, Pa
         {
             Items = items.Select(x => new ClinicalCaseDto
             {
-                Id = x.ClinicalCaseId,
+                CaseId = x.CaseId,
                 Title = x.Title,
-                Type = x.CaseType
+                Description = x.Description,
+                CaseType = x.CaseType,
+                Status = x.Status,
+                Pe = x.Pe,
+                Symptom = x.Symptom,
+                MedicalHistory = x.MedicalHistory,
+                CreatedBy = x.CreatedBy,
+                EccId = x.EccId,
+                CreatedAt = x.CreatedAt,
+                UpdatedAt = x.UpdatedAt
             }).ToList(),
             Total = total,
             Page = q.Page,

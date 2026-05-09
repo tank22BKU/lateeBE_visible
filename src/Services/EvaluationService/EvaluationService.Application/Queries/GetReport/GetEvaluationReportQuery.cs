@@ -17,54 +17,42 @@ public class GetEvaluationReportHandler : IRequestHandler<GetEvaluationReportQue
 
     public async Task<EvaluationReportDto?> Handle(GetEvaluationReportQuery request, CancellationToken cancellationToken)
     {
-        var entity = await _repo.GetByIdAsync(request.ResultId);
-        if (entity == null)
+        var evaluation = await _repo.GetByIdAsync(request.ResultId);
+        if (evaluation == null)
         {
             return null;
         }
 
-        var titleMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        var session = await _repo.GetPracticeSessionByIdAsync(evaluation.PracticeSessionId);
+        if (session == null)
         {
-            ["EPA_1"] = "Information Gathering",
-            ["EPA_2"] = "Diagnosis Reasoning & Differential Diagnosis",
-            ["EPA_3"] = "Diagnosis Testing",
-            ["EPA_4"] = "Management Plan & Safe Order Entry",
-            ["EPA_5"] = "Patient Education, Shared Decision-Making & Follow-Up"
-        };
+            return null;
+        }
+
+        var warnings = await _repo.GetWarningsByPracticeSessionIdAsync(evaluation.PracticeSessionId);
 
         return new EvaluationReportDto
         {
-            ResultId = entity.ResultId,
-            SessionId = entity.SessionId,
-            UserId = entity.UserId,
-            ClinicalCaseId = entity.ClinicalCaseId,
-            ModuleId = entity.ModuleId,
-            VpConversationLog = entity.VpConversationLog ?? string.Empty,
-            AiReasoningLog = entity.AiReasoningLog ?? string.Empty,
-            FinalDiagnosis = entity.FinalDiagnosis ?? string.Empty,
-            OverallScore = entity.OverallScore,
-            FinalScore = entity.OverallScore,
-            CorrectAnswer = entity.FinalDiagnosis ?? string.Empty,
-            CaseType = entity.CaseType,
-            DiscussionType = entity.DiscussionType,
-            Duration = entity.DurationText,
-            Evaluation = $"Module {entity.ModuleId}",
-            CreatedAt = entity.CreatedAt,
-            Warnings = entity.Warnings.Select(x => new WarningDto
+            EvaluationId = evaluation.Id,
+            EpaId = evaluation.EpaId,
+            PracticeSessionId = evaluation.PracticeSessionId,
+            LearnerId = session.LearnerId,
+            PatientId = session.PatientId,
+            ModuleId = session.ModuleId ?? string.Empty,
+            DiscussionType = session.DiscussionType ?? "Message Type",
+            FinalDiagnosis = session.FinalDiagnosis ?? string.Empty,
+            VpConversationLog = session.VpConversationLog ?? string.Empty,
+            AiReasoningLog = session.AiReasoningLog ?? string.Empty,
+            Score = evaluation.Score,
+            Duration = evaluation.Duration,
+            FeedbackDetail = evaluation.FeedbackDetail,
+            EntrustmentLevel = evaluation.EntrustmentLevel,
+            CreatedAt = evaluation.CreatedAt,
+            Warnings = warnings.Select(x => new WarningDto
             {
-                WarningId = x.WarningId,
-                Label = x.WarningType,
-                Description = x.WarningMessage
-            }).ToList(),
-            EpaScores = entity.EpaScores.Select(x => new EvaluationEpaScoreDto
-            {
-                ScoreId = x.ScoreId,
-                EpaId = x.EpaId,
-                Title = titleMap.TryGetValue(x.EpaId, out var title) ? title : x.EpaId,
-                EntrustmentLevel = x.EntrustmentLevel,
-                NumericalScore = x.NumericalScore,
-                MaxScore = 20,
-                FeedbackDetail = x.FeedbackDetail
+                WarningId = x.Id,
+                Label = x.Label ?? string.Empty,
+                Description = x.Description ?? string.Empty
             }).ToList()
         };
     }
@@ -72,33 +60,20 @@ public class GetEvaluationReportHandler : IRequestHandler<GetEvaluationReportQue
 
 public class EvaluationReportDto
 {
-    public string ResultId { get; set; } = default!;
-    public string SessionId { get; set; } = default!;
-    public string UserId { get; set; } = default!;
-    public string ClinicalCaseId { get; set; } = default!;
+    public string EvaluationId { get; set; } = default!;
+    public string EpaId { get; set; } = default!;
+    public string PracticeSessionId { get; set; } = default!;
+    public string LearnerId { get; set; } = default!;
+    public string PatientId { get; set; } = default!;
     public string ModuleId { get; set; } = default!;
+    public string DiscussionType { get; set; } = default!;
+    public string FinalDiagnosis { get; set; } = default!;
     public string VpConversationLog { get; set; } = default!;
     public string AiReasoningLog { get; set; } = default!;
-    public string FinalDiagnosis { get; set; } = default!;
-    public decimal OverallScore { get; set; }
-    public decimal FinalScore { get; set; }
-    public string CorrectAnswer { get; set; } = default!;
-    public string CaseType { get; set; } = default!;
-    public string DiscussionType { get; set; } = default!;
-    public string Duration { get; set; } = default!;
-    public string Evaluation { get; set; } = default!;
+    public decimal? Score { get; set; }
+    public int? Duration { get; set; }
+    public string? FeedbackDetail { get; set; }
+    public int? EntrustmentLevel { get; set; }
     public DateTime CreatedAt { get; set; }
     public List<WarningDto> Warnings { get; set; } = [];
-    public List<EvaluationEpaScoreDto> EpaScores { get; set; } = [];
-}
-
-public class EvaluationEpaScoreDto
-{
-    public string ScoreId { get; set; } = default!;
-    public string EpaId { get; set; } = default!;
-    public string Title { get; set; } = default!;
-    public int EntrustmentLevel { get; set; }
-    public decimal NumericalScore { get; set; }
-    public decimal MaxScore { get; set; }
-    public string FeedbackDetail { get; set; } = default!;
 }

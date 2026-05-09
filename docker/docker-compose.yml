@@ -52,7 +52,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__AssessmentDb: "Server=latee-mysql;Port=3306;Database=latee;Uid=user;Pwd=pass;AllowPublicKeyRetrieval=True"
-      GeminiAi__ApiKey: ${GEMINI_API_KEY}
+      GeminiAi__ApiKey: ${GEMINI_15_API_KEY}
       <<: *auth-env
     env_file:
       - ../.env
@@ -160,72 +160,72 @@ services:
   # AI Assistant, Gateway, Redis...
   # =========================================================
   
-  #  ollama:
-  #    image: ollama/ollama:latest
-  #    container_name: ollama
-  #    ports:
-  #      - "11434:11434"
-  #    volumes:
-  #      - ollama_data:/root/.ollama
-  #    networks:
-  #      - latee-network
-  #    environment:
-  #      - OLLAMA_NUM_PARALLEL=2
-  #      - OLLAMA_FLASH_ATTENTION=1
-  #      - OLLAMA_NUM_GPU=1
-  #      - OLLAMA_MAX_LOADED_MODELS=1
-  #      - OLLAMA_KEEP_ALIVE=15m
-  #      - OLLAMA_NUM_THREAD=2
-  #      - OLLAMA_NUM_CTX=4096
-  #      - OLLAMA_LOG_LEVEL=warn
-  #    deploy:
-  #      resources:
-  #        reservations:
-  #          devices:
-  #            - driver: nvidia
-  #              count: 1
-  #              capabilities: [ gpu ]
-  #    healthcheck:
-  #      test: [ "CMD", "ollama", "list" ]
-  #      interval: 120s
-  #      timeout: 5s
-  #      retries: 5
-  #      start_period: 30s
-  #
-  #  ollama-warmup:
-  #    image: ollama/ollama:latest
-  #    container_name: ollama-warmup
-  #    depends_on:
-  #      ollama:
-  #        condition: service_healthy
-  #    environment:
-  #      - OLLAMA_HOST=http://ollama:11434
-  #    entrypoint: [ "/bin/sh", "-c" ]
-  #    command:
-  #      - "-c"
-  #      - |
-  #        echo "Waiting for Ollama API..."
-  #        until ollama list > /dev/null 2>&1; do sleep 2; done
-  #        
-  #        if ! ollama list | grep -q "llama3.1:8b"; then
-  #            ollama pull llama3.1:8b
-  #        else
-  #          echo "Model already exists"
-  #        fi
-  #
-  #        echo "Verifying model is available..."
-  #        until ollama list | grep -q "llama3.1:8b"; do
-  #          sleep 2
-  #        done
-  #
-  #        echo "Warmup model..."
-  #        ollama run llama3.1:8b "hello"
-  #
-  #        echo "Warmup completed successfully!"
-  #      
-  #    restart: "no"
-  #    networks:
-  #      - latee-network
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: ollama
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   networks:
+  #     - latee-network
+  #   environment:
+  #     - OLLAMA_NUM_PARALLEL=2
+  #     - OLLAMA_FLASH_ATTENTION=1
+  #     - OLLAMA_NUM_GPU=1
+  #     - OLLAMA_MAX_LOADED_MODELS=1
+  #     - OLLAMA_KEEP_ALIVE=15m
+  #     - OLLAMA_NUM_THREAD=2
+  #     - OLLAMA_NUM_CTX=4096
+  #     - OLLAMA_LOG_LEVEL=warn
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [ gpu ]
+  #   healthcheck:
+  #     test: [ "CMD", "ollama", "list" ]
+  #     interval: 120s
+  #     timeout: 5s
+  #     retries: 5
+  #     start_period: 30s
+  
+  # ollama-warmup:
+  #   image: ollama/ollama:latest
+  #   container_name: ollama-warmup
+  #   depends_on:
+  #     ollama:
+  #       condition: service_healthy
+  #   environment:
+  #     - OLLAMA_HOST=http://ollama:11434
+  #   entrypoint: [ "/bin/sh", "-c" ]
+  #   command:
+  #     - "-c"
+  #     - |
+  #       echo "Waiting for Ollama API..."
+  #       until ollama list > /dev/null 2>&1; do sleep 2; done
+        
+  #       if ! ollama list | grep -q "llama3.1:8b"; then
+  #           ollama pull llama3.1:8b
+  #       else
+  #         echo "Model already exists"
+  #       fi
+  
+  #       echo "Verifying model is available..."
+  #       until ollama list | grep -q "llama3.1:8b"; do
+  #         sleep 2
+  #       done
+  
+  #       echo "Warmup model..."
+  #       ollama run llama3.1:8b "hello"
+  
+  #       echo "Warmup completed successfully!"
+      
+  #   restart: "no"
+  #   networks:
+  #     - latee-network
 
   ai-assistant:
     build:
@@ -351,6 +351,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__EvaluationDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      <<: *auth-env
     networks:
       - latee-network
   practice-session:

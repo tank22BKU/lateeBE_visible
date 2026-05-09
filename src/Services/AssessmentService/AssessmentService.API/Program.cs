@@ -1,10 +1,11 @@
 using AssessmentService.Application;
 using AssessmentService.Infrastructure;
 using AssessmentService.Infrastructure.Persistance;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,7 +18,7 @@ var jwtSigningKey = builder.Configuration["Jwt:SigningKey"] ?? "latee_super_secr
 // =======================
 // Database
 // =======================
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("AssessmentDb") ?? "Server=localhost;Port=3306;Database=latee;User=user;Password=pass;";
 
 builder.Services.AddDbContext<AssessmentDbContext>(options =>
 {

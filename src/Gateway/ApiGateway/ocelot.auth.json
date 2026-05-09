@@ -115,6 +115,28 @@
 
 
         {
+            "DownstreamPathTemplate": "/api/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "evaluation",
+                    "Port": 8080
+                }
+            ],
+            "UpstreamPathTemplate": "/evaluation/api/{everything}",
+            "UpstreamHttpMethod": [
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE"
+            ],
+            "SwaggerKey": "evaluation",
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            }
+        },
+        {
             "DownstreamPathTemplate": "/swagger/{everything}",
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [

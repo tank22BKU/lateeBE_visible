@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using ClinicalCaseService.Domain.Entities;
+﻿using ClinicalCaseService.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using VirtualPatientService.Domain.Entities;
 
 namespace ClinicalCaseService.Infrastructure.Persistence;
@@ -23,32 +23,31 @@ public class ClinicalCaseDbContext : DbContext
 
         b.Entity<ClinicalCase>(entity =>
         {
-            entity.ToTable("clinicalcases");
+            entity.ToTable("clinical_case");
 
-            // Primary Key
-            entity.HasKey(x => x.ClinicalCaseId);
+            entity.HasKey(x => x.CaseId);
 
-            entity.Property(x => x.ClinicalCaseId)
-                .HasColumnName("clinicalcaseid")
-                .HasMaxLength(20)
-                .IsRequired();
-
-            entity.Property(x => x.PatientId)
-                .HasColumnName("patientid")
-                .HasMaxLength(10)
+            entity.Property(x => x.CaseId)
+                .HasColumnName("case_id")
+                .HasMaxLength(50)
                 .IsRequired();
 
             entity.Property(x => x.Title)
                 .HasColumnName("title")
+                .HasColumnType("TEXT")
+                .IsRequired();
+
+            entity.Property(x => x.Description)
+                .HasColumnName("description")
                 .HasColumnType("TEXT");
 
             entity.Property(x => x.CaseType)
                 .HasColumnName("type")
-                .HasMaxLength(50);
-
-            entity.Property(x => x.Descriptions)
-                .HasColumnName("descriptions")
                 .HasColumnType("TEXT");
+
+            entity.Property(x => x.Status)
+                .HasColumnName("status")
+                .HasMaxLength(50);
 
             entity.Property(x => x.Symptom)
                 .HasColumnName("symptom")
@@ -62,21 +61,22 @@ public class ClinicalCaseDbContext : DbContext
                 .HasColumnName("pe")
                 .HasColumnType("TEXT");
 
-            entity.Property(x => x.Status)
-                .HasColumnName("status")
-                .HasMaxLength(10)
-                .HasDefaultValue("active");
-
             entity.Property(x => x.CreatedBy)
-                .HasColumnName("createdBy")
-                .HasMaxLength(50);
+                .HasColumnName("created_by")
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(x => x.EccId)
+                .HasColumnName("eccid")
+                .HasMaxLength(50)
+                .IsRequired();
 
             entity.Property(x => x.CreatedAt)
-                .HasColumnName("createdAt")
+                .HasColumnName("created_at")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             entity.Property(x => x.UpdatedAt)
-                .HasColumnName("updatedAt")
+                .HasColumnName("updated_at")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .ValueGeneratedOnAddOrUpdate();
         });

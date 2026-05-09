@@ -1,7 +1,6 @@
 // src/SWIFTJOIN.Application/DependencyInjection.cs
 using System.Reflection;
 using FluentValidation;
-using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AssessmentService.Application;

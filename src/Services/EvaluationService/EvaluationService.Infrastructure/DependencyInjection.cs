@@ -12,7 +12,6 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddScoped<IEvaluationRepository, EvaluationRepository>();
-        services.AddHttpClient<IGeminiAiRepository, GeminiAiRepository>();
 
         return services;
     }

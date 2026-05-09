@@ -368,6 +368,7 @@ CREATE TABLE assessments
     updated_at               TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+
 CREATE TABLE assessment_session
 (
     session_id         VARCHAR(50) NOT NULL PRIMARY KEY,

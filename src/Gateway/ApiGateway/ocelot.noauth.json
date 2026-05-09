@@ -55,6 +55,24 @@
             "SwaggerKey": "roadmap"
         },
         {
+            "DownstreamPathTemplate": "/api/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "evaluation",
+                    "Port": 8080
+                }
+            ],
+            "UpstreamPathTemplate": "/evaluation/api/{everything}",
+            "UpstreamHttpMethod": [
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE"
+            ],
+            "SwaggerKey": "evaluation"
+        },
+        {
             "DownstreamPathTemplate": "/swagger/{everything}",
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
@@ -298,6 +316,16 @@
                     "Name": "Roadmap API",
                     "Version": "v1",
                     "Url": "http://roadmap:8080/swagger/v1/swagger.json"
+                }
+            ]
+        },
+        {
+            "Key": "evaluation",
+            "Config": [
+                {
+                    "Name": "Evaluation API",
+                    "Version": "v1",
+                    "Url": "http://evaluation:8080/swagger/v1/swagger.json"
                 }
             ]
         },
