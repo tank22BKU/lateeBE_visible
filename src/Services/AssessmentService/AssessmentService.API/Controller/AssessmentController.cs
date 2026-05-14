@@ -13,6 +13,7 @@ using AssessmentService.Application.Queries.GetAssessmentById;
 using AssessmentService.Application.Commands.CreateFullAssessment;
 using AssessmentService.Application.Commands.SubmitAssessment;
 using AssessmentService.Application.Queries.GetAttemptDetails;
+using AssessmentService.Application.Queries.GetAllAttempts;
 namespace AssessmentService.API.Controllers;
 
 [ApiController]
@@ -30,10 +31,10 @@ public class AssessmentController : ControllerBase
     public async Task<IActionResult> Create([FromBody] CreateAssessmentCommand command)
     {
         var assessmentId = await _mediator.Send(command);
-        return CreatedAtAction(nameof(GetById), new { id = assessmentId }, new 
-        { 
-            message = "Assessment created successfully.", 
-            assessmentId = assessmentId 
+        return CreatedAtAction(nameof(GetById), new { id = assessmentId }, new
+        {
+            message = "Assessment created successfully.",
+            assessmentId = assessmentId
         });
     }
 
@@ -59,8 +60,8 @@ public class AssessmentController : ControllerBase
     public async Task<IActionResult> GetById(string id)
     {
         var result = await _mediator.Send(new GetAssessmentByIdQuery(id));
-        
-        if (result == null) 
+
+        if (result == null)
             return NotFound(new { message = $"Don't find assessment with ID: {id}" });
 
         return Ok(result);
@@ -73,8 +74,8 @@ public class AssessmentController : ControllerBase
             return BadRequest(new { message = "ID on URL and in Body payload do not match." });
 
         var result = await _mediator.Send(command);
-        
-        if (!result) 
+
+        if (!result)
             return NotFound(new { message = $"Don't find assessment with ID: {id}" });
 
         return NoContent();
@@ -84,8 +85,8 @@ public class AssessmentController : ControllerBase
     public async Task<IActionResult> Delete(string id)
     {
         var result = await _mediator.Send(new DeleteAssessmentCommand(id));
-        
-        if (!result) 
+
+        if (!result)
             return NotFound(new { message = $"Don't find assessment with ID: {id}" });
 
         return NoContent();
@@ -93,12 +94,13 @@ public class AssessmentController : ControllerBase
     [HttpPost("full-generation")]
     public async Task<IActionResult> CreateFullAssessment([FromBody] CreateFullAssessmentCommand command)
     {
-        try 
+        try
         {
             var result = await _mediator.Send(command);
-            return Ok(new { 
-                message = "Generating full assessment successful.", 
-                data = result 
+            return Ok(new
+            {
+                message = "Generating full assessment successful.",
+                data = result
             });
         }
         catch (Exception ex)
@@ -111,8 +113,8 @@ public class AssessmentController : ControllerBase
     public async Task<IActionResult> GenerateQuestionsWithAI(string id, [FromBody] GenerateQuestionsRequest req)
     {
         var result = await _mediator.Send(new GenerateAssessmentQuestionsCommand(id, req.AdditionalPrompt));
-        
-        if (!result) 
+
+        if (!result)
             return BadRequest(new { message = "Cannot generate questions or assessment ID does not exist." });
 
         return Ok(new { message = "Successfully generated and saved questions to the database." });
@@ -142,8 +144,8 @@ public class AssessmentController : ControllerBase
             return BadRequest(new { message = "QuestionId on URL and Body do not match." });
 
         var result = await _mediator.Send(command);
-        
-        if (!result) 
+
+        if (!result)
             return NotFound(new { message = $"Don't find question with ID: {questionId}" });
 
         return NoContent();
@@ -153,8 +155,8 @@ public class AssessmentController : ControllerBase
     public async Task<IActionResult> DeleteQuestion(string questionId)
     {
         var result = await _mediator.Send(new DeleteQuestionCommand(questionId));
-        
-        if (!result) 
+
+        if (!result)
             return NotFound(new { message = $"Don't find question with ID: {questionId}" });
 
         return NoContent();
@@ -164,12 +166,13 @@ public class AssessmentController : ControllerBase
     [HttpPost("api/attempts/submit")]
     public async Task<IActionResult> SubmitAssessment([FromBody] SubmitAssessmentCommand command)
     {
-        try 
+        try
         {
             var result = await _mediator.Send(command);
-            return Ok(new { 
-                message = "Submit assessment successful.", 
-                data = result 
+            return Ok(new
+            {
+                message = "Submit assessment successful.",
+                data = result
             });
         }
         catch (Exception ex)
@@ -181,9 +184,20 @@ public class AssessmentController : ControllerBase
     public async Task<IActionResult> GetAttemptDetail(string attemptId)
     {
         var result = await _mediator.Send(new GetAttemptDetailQuery(attemptId));
-        
-        if (result == null) 
+
+        if (result == null)
             return NotFound(new { message = "Không tìm thấy kết quả lượt thi." });
+
+        return Ok(new { data = result });
+    }
+
+    [HttpGet("{assessmentId}/learner/{learnerId}/attempts")]
+    public async Task<IActionResult> GetAllAttempts(string assessmentId, string learnerId)
+    {
+        var result = await _mediator.Send(new GetAllAttemptsQuery(assessmentId, learnerId));
+
+        if (result == null || result.Count == 0)
+            return NotFound(new { message = "Không tìm thấy lượt thi nào cho learner này." });
 
         return Ok(new { data = result });
     }

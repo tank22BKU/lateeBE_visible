@@ -86,6 +86,7 @@ dotnet add package Google.GenAI
 + docker compose -f docker/do*cker-compose.yml up -d --build*
 + docker exec ollama ollama pull llama3.1:8b
 + docker compose -f docker/docker-compose.yml up
++ docker compose --env-file .env -f docker/docker-compose.yml up
 
 ### CONFIGURATION
 -Ở RoadmapService.../../appsettings.json thêm gemini api key 

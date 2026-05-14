@@ -136,6 +136,20 @@
                 "AllowedScopes": []
             }
         },
+      {
+        "DownstreamPathTemplate": "/swagger/{everything}",
+        "DownstreamScheme": "http",
+        "DownstreamHostAndPorts": [
+          {
+            "Host": "evaluation",
+            "Port": 8080
+          }
+        ],
+        "UpstreamPathTemplate": "/evaluation/swagger/{everything}",
+        "UpstreamHttpMethod": [
+          "GET"
+        ]
+      },
         {
             "DownstreamPathTemplate": "/swagger/{everything}",
             "DownstreamScheme": "http",
@@ -497,6 +511,15 @@
                     "Name": "Gateway Auth API",
                     "Version": "v1",
                     "Url": "http://api-gateway:8080/gateway-auth/swagger/v1/swagger.json"
+                }
+            ]
+        },{
+            "Key": "evaluation",
+            "Config": [
+                {
+                    "Name": "Evaluation API",
+                    "Version": "v1",
+                    "Url": "http://evaluation:8080/swagger/v1/swagger.json"
                 }
             ]
         }

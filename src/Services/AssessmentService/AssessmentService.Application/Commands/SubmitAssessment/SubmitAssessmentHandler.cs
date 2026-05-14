@@ -17,7 +17,19 @@ public class SubmitAssessmentHandler : IRequestHandler<SubmitAssessmentCommand, 
     public async Task<SubmitResultDto> Handle(SubmitAssessmentCommand request, CancellationToken cancellationToken)
     {
         var assessment = await _repo.GetByIdWithQuestionsAsync(request.AssessmentId);
-        if (assessment == null) throw new Exception("Assessment không tồn tại.");
+
+        if (assessment == null)
+            throw new Exception("Assessment không tồn tại.");
+
+        // Get previous attempts for this user and assessment
+        var previousSessions = await _repo.GetSessionsForLearnerAndAssessmentAsync(
+            request.UserId, request.AssessmentId);
+
+        int attemptCount = previousSessions.Count;
+
+        // Check if user has exceeded max attempts
+        if (attemptCount >= assessment.MaxAttempts)
+            throw new Exception($"You have exceeded the maximum number of attempts ({assessment.MaxAttempts}) for this assessment.");
 
         var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
@@ -26,7 +38,7 @@ public class SubmitAssessmentHandler : IRequestHandler<SubmitAssessmentCommand, 
             SessionId = Guid.NewGuid().ToString("N"),
             AssessmentId = request.AssessmentId,
             LearnerId = request.UserId,
-            AttemptNo = 1,
+            AttemptNo = attemptCount + 1,
             Duration = request.DurationSeconds,
             StartTime = DateTime.UtcNow.AddSeconds(-request.DurationSeconds),
             EndTime = DateTime.UtcNow,
@@ -43,12 +55,12 @@ public class SubmitAssessmentHandler : IRequestHandler<SubmitAssessmentCommand, 
             if (question == null) continue;
 
             var options = JsonSerializer.Deserialize<List<OptionElement>>(question.QuestionOption ?? "[]", jsonOptions);
-    
+
             var correctOption = options?.FirstOrDefault(o => o.IsCorrect);
 
-            bool isCorrect = correctOption != null && 
+            bool isCorrect = correctOption != null &&
                             string.Equals(correctOption.Id?.Trim(), userAnswer.SelectedOptionId?.Trim(), StringComparison.OrdinalIgnoreCase);
-            
+
             if (isCorrect)
             {
                 correctCount++;
@@ -60,7 +72,8 @@ public class SubmitAssessmentHandler : IRequestHandler<SubmitAssessmentCommand, 
                 Id = Guid.NewGuid().ToString("N"),
                 SessionId = session.SessionId,
                 QuestionId = question.Id,
-                UserChoice = userAnswer.SelectedOptionId ?? string.Empty,
+                //UserChoice = userAnswer.SelectedOptionId ?? string.Empty,
+                UserChoice = JsonSerializer.Serialize(userAnswer.SelectedOptionId),
                 IsCorrect = isCorrect,
                 PointsEarned = isCorrect ? question.Points : 0
             });
@@ -76,8 +89,9 @@ public class SubmitAssessmentHandler : IRequestHandler<SubmitAssessmentCommand, 
     }
 }
 
-public class OptionElement 
-{ 
-    public string Id { get; set; } = string.Empty; 
-    public bool IsCorrect { get; set; } 
+public class OptionElement
+{
+    public string Id { get; set; } = string.Empty;
+    public string Text { get; set; } = string.Empty;
+    public bool IsCorrect { get; set; }
 }

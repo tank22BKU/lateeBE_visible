@@ -14,5 +14,6 @@ public sealed record AuthResponse(
     string TokenType,
     string UserId,
     string Username,
-    string Role
+    string Role,
+    string? AvatarUrl
 );
