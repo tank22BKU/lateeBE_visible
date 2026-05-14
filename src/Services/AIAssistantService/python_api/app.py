@@ -28,7 +28,7 @@ from dtos import (
     ClinicalReasoningRequest,
     ClinicalReasoningResponse,
 )
-#from ragLoader import RAGLoader
+# from ragLoader import RAGLoader
 from ragLoaderVer2 import RAGLoader
 
 load_dotenv()
@@ -122,15 +122,12 @@ else:
     HISTORY_STORE = MemoryHistoryStore()
 
 
-def init_llm():
-    return ChatOllama(
-        model="llama3.1:8b",
-        base_url="http://ollama:11434",
-        temperature=0.1,
-        num_predict=1024,
-        top_p=0.85,
-        repeat_penalty=1.15,
-    )
+# Middleware to strip trailing spaces from request paths
+@app.middleware("http")
+async def normalize_path_middleware(request, call_next):
+    """Strip trailing spaces from URL path to prevent 404 errors"""
+    request.scope["path"] = request.scope["path"].rstrip()
+    return await call_next(request)
 
 
 IS_RERUNNING = False
@@ -173,6 +170,12 @@ async def assistant_hf_chat(req: AssistantRequest):
 
 """
 API endpoints for question validation and clinical reasoning, implemented in separate modules for clarity.
+# Middleware to strip trailing spaces from request paths
+@app.middleware("http")
+async def normalize_path_middleware(request, call_next):
+    
+    request.scope["path"] = request.scope["path"].rstrip()
+    return await call_next(request)
 """
 
 
@@ -197,7 +200,7 @@ Clinical reasoning endpoint, also implemented in separate module.
 #     from reasoning import clinical_reasoning_endpoint
 #     return await clinical_reasoning_endpoint(req)
 
-@app.post("/clinicalreasoning/hf", response_model=ClinicalReasoningResponse)
+@app.post("/clinicalreasoning/hf")
 async def clinical_reasoning_chat_hf(req: ClinicalReasoningRequest):
     from reasoning import clinical_reasoning_stream_hf
     return await clinical_reasoning_stream_hf(req)
