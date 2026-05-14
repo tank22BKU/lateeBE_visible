@@ -303,11 +303,11 @@ CREATE TABLE evaluation
 CREATE TABLE roadmaps
 (
     id         VARCHAR(50) PRIMARY KEY,
-    learnerid  VARCHAR(50) NOT NULL,
+    learner_id  VARCHAR(50) NOT NULL,
     content    JSON,
     version    VARCHAR(20),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_roadmap_learner FOREIGN KEY (learnerid) REFERENCES users (userid) ON DELETE CASCADE
+    CONSTRAINT fk_roadmap_learner FOREIGN KEY (learner_id) REFERENCES users (userid) ON DELETE CASCADE
 );
 
 CREATE TABLE summarize_roadmap
