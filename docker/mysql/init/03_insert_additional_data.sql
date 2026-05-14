@@ -1,3 +1,13 @@
+ALTER TABLE practice_sessions
+    ADD COLUMN has_practice_feedback  BOOLEAN DEFAULT FALSE 
+        COMMENT 'True khi đã gen practice_feedback ít nhất 1 lần',
+    ADD COLUMN feedback_generated_at  TIMESTAMP NULL 
+        COMMENT 'Thời điểm gen practice_feedback lần đầu',
+    ADD COLUMN final_score            INT NULL 
+        COMMENT 'Điểm tổng sau modifier (0-110)',
+    ADD COLUMN final_entrustment_level INT NULL 
+        COMMENT 'Entrustment Level tổng hợp (1-5)';
+
 INSERT INTO guideline (id, description, version)
 VALUES
 (

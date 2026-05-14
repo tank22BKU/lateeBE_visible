@@ -27,8 +27,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("SwaggerCors", policy =>
     {
         policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+            .AllowAnyMethod()
+            .AllowAnyHeader();
     });
 });
 

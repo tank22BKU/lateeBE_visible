@@ -3,26 +3,20 @@ using EvaluationService.Domain.Repositories;
 
 namespace EvaluationService.Application.Commands.DeleteEvaluation;
 
-public record DeleteEvaluationCommand(string EvaluationId) : IRequest<bool>;
+public record DeleteEvaluationCommand(string Id) : IRequest<bool>;
 
-public class DeleteEvaluationHandler : IRequestHandler<DeleteEvaluationCommand, bool>
+public sealed class DeleteEvaluationHandler : IRequestHandler<DeleteEvaluationCommand, bool>
 {
     private readonly IEvaluationRepository _repo;
 
-    public DeleteEvaluationHandler(IEvaluationRepository repo)
-    {
-        _repo = repo;
-    }
+    public DeleteEvaluationHandler(IEvaluationRepository repo) => _repo = repo;
 
-    public async Task<bool> Handle(DeleteEvaluationCommand request, CancellationToken cancellationToken)
+    public async Task<bool> Handle(DeleteEvaluationCommand cmd, CancellationToken ct)
     {
-        var entity = await _repo.GetByIdAsync(request.EvaluationId);
-        if (entity == null)
-        {
-            return false;
-        }
+        var existing = await _repo.GetByIdAsync(cmd.Id);
+        if (existing == null) return false;
 
-        await _repo.DeleteAsync(request.EvaluationId);
+        await _repo.DeleteAsync(cmd.Id);
         await _repo.SaveChangesAsync();
         return true;
     }

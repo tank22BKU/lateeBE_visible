@@ -297,8 +297,28 @@ CREATE TABLE evaluation
     created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     feedback_detail     TEXT,
     entrustment_level   INT,
+    rubric_version VARCHAR(20),
     CONSTRAINT fk_eval_practice FOREIGN KEY (practice_session_id) REFERENCES practice_sessions (id) ON DELETE CASCADE
 );
+
+
+CREATE TABLE evaluation_epa_score (
+    id                VARCHAR(50)   PRIMARY KEY,
+    evaluation_id     VARCHAR(50)   NOT NULL,           
+    epa_id            VARCHAR(20)   NOT NULL,           -- EPA_1 => EPA_5
+    numerical_score   TINYINT       NOT NULL,           -- 0–20
+    entrustment_level TINYINT       NOT NULL,           -- 1–5
+    feedback_detail   TEXT,                             
+    evidence_cited    JSON,                             
+    failure_patterns  JSON,                             
+    safety_flags      JSON,                             
+    created_at        DATETIME      DEFAULT CURRENT_TIMESTAMP,
+
+    INDEX idx_evaluation_id (evaluation_id),
+    INDEX idx_epa_id (epa_id),
+    INDEX idx_score (numerical_score)
+);
+
 
 CREATE TABLE roadmaps
 (
@@ -442,3 +462,4 @@ CREATE TABLE resolved_issue
     CONSTRAINT fk_issue_resolved FOREIGN KEY (issue_id) REFERENCES issue (id) ON DELETE CASCADE,
     CONSTRAINT fk_issue_expert FOREIGN KEY (expert_id) REFERENCES expert (eid ) ON DELETE CASCADE
 );
+
