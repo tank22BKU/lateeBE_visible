@@ -92,4 +92,12 @@ public class AssessmentRepository : IAssessmentRepository
             .Include(a => a.Answers) 
             .FirstOrDefaultAsync(a => a.SessionId == sessionId);
     }
+
+    public async Task<List<AssessmentSession>> GetSessionsForLearnerAndAssessmentAsync(string learnerId, string assessmentId)
+    {
+        return await _db.AssessmentSessions
+            .Where(s => s.LearnerId == learnerId && s.AssessmentId == assessmentId)
+            .OrderByDescending(s => s.AttemptNo)
+            .ToListAsync();
+    }
 }

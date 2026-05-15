@@ -7,7 +7,7 @@ public record SubmitAssessmentCommand(
     string UserId,
     int DurationSeconds,
     List<UserAnswerDto> Answers
-) : IRequest<SubmitResultDto>;
+) : IRequest<SubmitResultDto>;  
 
 public record UserAnswerDto(string QuestionId, string SelectedOptionId);
 

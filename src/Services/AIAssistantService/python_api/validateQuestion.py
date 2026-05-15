@@ -10,7 +10,7 @@ from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from openai import OpenAI
 from typing import AsyncGenerator
 
-from config import VALIDATION_PROMPT, VALIDATION_PROMPT_VER2, VALIDATION_PROMPT_V3, VALIDATION_PROMPT_V4, logger
+from config import VALIDATION_PROMPT, VALIDATION_PROMPT_VER2, VALIDATION_PROMPT_V3, VALIDATION_PROMPT_V4, VALIDATION_PROMPT_V5, logger
 from dtos import QuestionValidationRequest, QuestionValidationResponse
 
 async def validate_question_stream_hf(req: QuestionValidationRequest):

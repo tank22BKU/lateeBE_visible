@@ -40,7 +40,7 @@ public sealed class AuthService
                 cancellationToken
             );
 
-            if (user is null || !string.Equals(user.IsActive, "active", StringComparison.OrdinalIgnoreCase))
+            if (user is null || !string.Equals(user.IsActive, "active", StringComparison.OrdinalIgnoreCase) || user.IsDeleted)
             {
                 return null;
             }
@@ -106,6 +106,7 @@ public sealed class AuthService
                 || tokenRecord.IsRevoked
                 || tokenRecord.ExpiresAt <= DateTime.UtcNow
                 || !string.Equals(tokenRecord.IsActive, "active", StringComparison.OrdinalIgnoreCase)
+                || tokenRecord.IsDeleted
             )
             {
                 return null;
@@ -124,7 +125,9 @@ public sealed class AuthService
                 tokenRecord.Email,
                 tokenRecord.PasswordHash,
                 tokenRecord.Role,
-                tokenRecord.IsActive
+                tokenRecord.IsActive,
+                tokenRecord.AvatarUrl,
+                tokenRecord.IsDeleted
             );
 
             return await IssueTokensAsync(
@@ -270,7 +273,9 @@ public sealed class AuthService
                                email AS Email,
                                password AS PasswordHash,
                                role AS Role,
-                               status AS IsActive
+                               status AS IsActive,
+                               avatar_url AS AvatarUrl,
+                               is_deleted AS IsDeleted
                            FROM users
                            WHERE email = @Email
                            LIMIT 1;
@@ -304,7 +309,9 @@ public sealed class AuthService
                                u.password AS PasswordHash,
                                u.role AS Role,
 
-                               u.status AS IsActive
+                               u.status AS IsActive,
+                               u.avatar_url AS AvatarUrl,
+                               u.is_deleted AS IsDeleted
 
                            FROM user_refresh_tokens rt
 
@@ -394,7 +401,7 @@ public sealed class AuthService
 
         var accessTokenMinutes =
             _configuration.GetValue<int?>("Jwt:AccessTokenMinutes")
-            ?? 30;
+            ?? 1440;
 
         var refreshTokenDays =
             _configuration.GetValue<int?>("Jwt:RefreshTokenDays")
@@ -430,8 +437,10 @@ public sealed class AuthService
             refreshToken,
             refreshExpiresAt,
             "Bearer",
+            user.UserId,
             user.Username,
-            user.Role
+            user.Role,
+            user.AvatarUrl
         );
     }
 
@@ -594,7 +603,9 @@ public sealed class AuthService
         string Email,
         string PasswordHash,
         string Role,
-        string IsActive
+        string IsActive,
+        string? AvatarUrl,
+        bool IsDeleted
     );
 
     private sealed record RefreshTokenUserRecord(
@@ -606,6 +617,8 @@ public sealed class AuthService
         string Email,
         string PasswordHash,
         string Role,
-        string IsActive
+        string IsActive,
+        string? AvatarUrl,
+        bool IsDeleted
     );
 }

@@ -76,23 +76,24 @@
             "SwaggerKey": "user"
         },
         {
-            "DownstreamPathTemplate": "/swagger/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                { "Host": "user", "Port": 8080 }
-            ],
-            "UpstreamPathTemplate": "/user/swagger/{everything}",
-            "UpstreamHttpMethod": [ "GET" ]
+          "DownstreamPathTemplate": "/swagger/{everything}",
+          "DownstreamScheme": "http",
+          "DownstreamHostAndPorts": [
+            { "Host": "user", "Port": 8080 }
+          ],
+          "UpstreamPathTemplate": "/user/swagger/{everything}",
+          "UpstreamHttpMethod": [ "GET" ]
         },
         {
-            "DownstreamPathTemplate": "/swagger/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                { "Host": "knowledgeresource", "Port": 8080 }
-            ],
-            "UpstreamPathTemplate": "/knowledge/swagger/{everything}",
-            "UpstreamHttpMethod": [ "GET" ]
+          "DownstreamPathTemplate": "/swagger/{everything}",
+          "DownstreamScheme": "http",
+          "DownstreamHostAndPorts": [
+            { "Host": "knowledgeresource", "Port": 8080 }
+          ],
+          "UpstreamPathTemplate": "/knowledge/swagger/{everything}",
+          "UpstreamHttpMethod": [ "GET" ]
         },
+      
         {
             "DownstreamPathTemplate": "/api/{everything}",
             "DownstreamScheme": "http",

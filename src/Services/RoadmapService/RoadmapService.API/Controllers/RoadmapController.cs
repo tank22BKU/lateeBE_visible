@@ -1,7 +1,11 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using RoadmapService.Application.Dtos.Request;
 using RoadmapService.Application.Queries.GenerateRoadmap;
-using RoadmapService.Application.Queries.GetClinicalCases;
+using RoadmapService.Application.Queries.Roadmaps.CreateRoadmap;
+using RoadmapService.Application.Queries.Roadmaps.GetLatestRoadmap;
+using RoadmapService.Application.Queries.Roadmaps.GetRoadmapById;
+using RoadmapService.Application.Queries.Roadmaps.UpdateRoadmapContent;
 
 namespace RoadmapService.API.Controllers;
 
@@ -16,17 +20,42 @@ public class RoadmapController : ControllerBase
         _mediator = mediator;
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetPaged(
-        [FromQuery] string? status,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20)
+    [HttpPost]
+    public async Task<IActionResult> CreateRoadmap([FromBody] CreateRoadmapRequest request)
     {
-        var result = await _mediator.Send(
-            new GetClinicalCasesQuery(status, page, pageSize)
-        );
+        var result = await _mediator.Send(request);
+        return CreatedAtAction(nameof(GetRoadmapById), new { roadmapId = result.RoadmapId }, result);
+    }
 
-        return Ok(result);
+    [HttpGet("{roadmapId}")]
+    public async Task<IActionResult> GetRoadmapById([FromRoute] string roadmapId)
+    {
+        var result = await _mediator.Send(new GetRoadmapByIdQuery(roadmapId));
+
+        return result is null ? NotFound() : Ok(result);
+    }
+
+    [HttpPut("{roadmapId}/content")]
+    public async Task<IActionResult> UpdateRoadmapContent(
+        [FromRoute] string roadmapId,
+        [FromBody] UpdateRoadmapContentRequest request)
+    {
+        request.RoadmapId = roadmapId;
+
+        var result = await _mediator.Send(request);
+
+        return result is null ? NotFound() : Ok(result);
+    }
+
+    [HttpGet("latest/{learnerId}")]
+    public async Task<IActionResult> GetLatestRoadmap([FromRoute] string learnerId)
+    {
+        var result = await _mediator.Send(new GetLatestRoadmapQuery
+        {
+            LearnerId = learnerId
+        });
+
+        return result is null ? NotFound() : Ok(result);
     }
 
     [HttpPost("generate-roadmap")]

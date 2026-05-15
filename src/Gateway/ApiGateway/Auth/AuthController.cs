@@ -49,7 +49,7 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("logout")]
-    [AllowAnonymous]
+    [Authorize]
     public async Task<IActionResult> Logout([FromBody] LogoutRequest request, CancellationToken cancellationToken)
     {
         var jti = User.FindFirstValue(JwtRegisteredClaimNames.Jti);
