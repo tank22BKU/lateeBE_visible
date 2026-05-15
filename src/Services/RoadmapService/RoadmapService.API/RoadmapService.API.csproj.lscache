@@ -65,7 +65,7 @@ Program.cs
  RoadmapService.Application/obj/Debug/net9.0/ref/RoadmapService.Application.dll
  RoadmapService.Domain/obj/Debug/net9.0/ref/RoadmapService.Domain.dll
  RoadmapService.Infrastructure/obj/Debug/net9.0/ref/RoadmapService.Infrastructure.dll
-<DOTNET>/packs/Microsoft.AspNetCore.App.Ref/9.0.15/ref/net9.0/
+<DOTNET>/packs/Microsoft.AspNetCore.App.Ref/9.0.16/ref/net9.0/
  Microsoft.AspNetCore.Antiforgery.dll
  Microsoft.AspNetCore.Authentication.Abstractions.dll
  Microsoft.AspNetCore.Authentication.BearerToken.dll
@@ -166,6 +166,7 @@ Program.cs
  Microsoft.Extensions.Configuration.KeyPerFile.dll
  Microsoft.Extensions.Configuration.UserSecrets.dll
  Microsoft.Extensions.Configuration.Xml.dll
+ Microsoft.Extensions.DependencyInjection.Abstractions.dll
  Microsoft.Extensions.DependencyInjection.dll
  Microsoft.Extensions.Diagnostics.Abstractions.dll
  Microsoft.Extensions.Diagnostics.dll
@@ -184,6 +185,7 @@ Program.cs
  Microsoft.Extensions.Identity.Stores.dll
  Microsoft.Extensions.Localization.Abstractions.dll
  Microsoft.Extensions.Localization.dll
+ Microsoft.Extensions.Logging.Abstractions.dll
  Microsoft.Extensions.Logging.Configuration.dll
  Microsoft.Extensions.Logging.Console.dll
  Microsoft.Extensions.Logging.Debug.dll
@@ -194,13 +196,15 @@ Program.cs
  Microsoft.Extensions.ObjectPool.dll
  Microsoft.Extensions.Options.ConfigurationExtensions.dll
  Microsoft.Extensions.Options.DataAnnotations.dll
+ Microsoft.Extensions.Options.dll
+ Microsoft.Extensions.Primitives.dll
  Microsoft.Extensions.WebEncoders.dll
  Microsoft.JSInterop.dll
  Microsoft.Net.Http.Headers.dll
  System.Diagnostics.EventLog.dll
  System.Security.Cryptography.Xml.dll
  System.Threading.RateLimiting.dll
-<DOTNET>/packs/Microsoft.NETCore.App.Ref/9.0.15/ref/net9.0/
+<DOTNET>/packs/Microsoft.NETCore.App.Ref/9.0.16/ref/net9.0/
  Microsoft.CSharp.dll
  Microsoft.VisualBasic.Core.dll
  Microsoft.VisualBasic.dll
@@ -229,6 +233,7 @@ Program.cs
  System.Data.dll
  System.Diagnostics.Contracts.dll
  System.Diagnostics.Debug.dll
+ System.Diagnostics.DiagnosticSource.dll
  System.Diagnostics.FileVersionInfo.dll
  System.Diagnostics.Process.dll
  System.Diagnostics.StackTrace.dll
@@ -363,7 +368,7 @@ Program.cs
  WindowsBase.dll
 <NUGET>/
  automapper.extensions.microsoft.dependencyinjection/12.0.1/lib/netstandard2.1/AutoMapper.Extensions.Microsoft.DependencyInjection.dll
- automapper/16.1.1/lib/net9.0/AutoMapper.dll
+ automapper/12.0.1/lib/netstandard2.1/AutoMapper.dll
  dotnetenv/3.1.1/lib/netstandard1.3/DotNetEnv.dll
  fluentvalidation.dependencyinjectionextensions/12.1.0/lib/net8.0/FluentValidation.DependencyInjectionExtensions.dll
  fluentvalidation/12.1.0/lib/net8.0/FluentValidation.dll
@@ -373,17 +378,16 @@ Program.cs
  google.genai/1.6.1/lib/net8.0/Google.GenAI.dll
  mediatr.contracts/2.0.1/lib/netstandard2.0/MediatR.Contracts.dll
  mediatr/13.1.0/lib/net9.0/MediatR.dll
+ microsoft.aspnetcore.authentication.jwtbearer/9.0.4/lib/net9.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll
  microsoft.entityframeworkcore.abstractions/9.0.0/lib/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll
  microsoft.entityframeworkcore.relational/9.0.0/lib/net8.0/Microsoft.EntityFrameworkCore.Relational.dll
  microsoft.entityframeworkcore/9.0.0/lib/net8.0/Microsoft.EntityFrameworkCore.dll
  microsoft.extensions.ai.abstractions/10.4.0/lib/net9.0/Microsoft.Extensions.AI.Abstractions.dll
- microsoft.extensions.dependencyinjection.abstractions/10.0.0/lib/net9.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll
- microsoft.extensions.logging.abstractions/10.0.0/lib/net9.0/Microsoft.Extensions.Logging.Abstractions.dll
- microsoft.extensions.options/10.0.0/lib/net9.0/Microsoft.Extensions.Options.dll
- microsoft.extensions.primitives/10.0.0/lib/net9.0/Microsoft.Extensions.Primitives.dll
  microsoft.identitymodel.abstractions/8.14.0/lib/net9.0/Microsoft.IdentityModel.Abstractions.dll
  microsoft.identitymodel.jsonwebtokens/8.14.0/lib/net9.0/Microsoft.IdentityModel.JsonWebTokens.dll
  microsoft.identitymodel.logging/8.14.0/lib/net9.0/Microsoft.IdentityModel.Logging.dll
+ microsoft.identitymodel.protocols.openidconnect/8.0.1/lib/net9.0/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+ microsoft.identitymodel.protocols/8.0.1/lib/net9.0/Microsoft.IdentityModel.Protocols.dll
  microsoft.identitymodel.tokens/8.14.0/lib/net9.0/Microsoft.IdentityModel.Tokens.dll
  microsoft.openapi/1.6.14/lib/netstandard2.0/Microsoft.OpenApi.dll
  mysqlconnector/2.4.0/lib/net9.0/MySqlConnector.dll
@@ -394,40 +398,41 @@ Program.cs
  swashbuckle.aspnetcore.swaggergen/6.7.3/lib/net8.0/Swashbuckle.AspNetCore.SwaggerGen.dll
  swashbuckle.aspnetcore.swaggerui/6.7.3/lib/net8.0/Swashbuckle.AspNetCore.SwaggerUI.dll
  system.codedom/7.0.0/lib/net7.0/System.CodeDom.dll
- system.diagnostics.diagnosticsource/10.0.0/lib/net9.0/System.Diagnostics.DiagnosticSource.dll
+ system.identitymodel.tokens.jwt/8.0.1/lib/net9.0/System.IdentityModel.Tokens.Jwt.dll
  system.io.pipelines/10.0.4/lib/net9.0/System.IO.Pipelines.dll
  system.management/7.0.2/lib/net7.0/System.Management.dll
  system.text.encodings.web/10.0.4/lib/net9.0/System.Text.Encodings.Web.dll
  system.text.json/10.0.4/lib/net9.0/System.Text.Json.dll
 
 [analyzerReferences]
-<DOTNET>/packs/Microsoft.AspNetCore.App.Ref/9.0.15/analyzers/dotnet/cs/
+<DOTNET>/packs/Microsoft.AspNetCore.App.Ref/9.0.16/analyzers/dotnet/cs/
  Microsoft.AspNetCore.App.Analyzers.dll
  Microsoft.AspNetCore.App.CodeFixes.dll
  Microsoft.AspNetCore.Components.Analyzers.dll
-<DOTNET>/packs/Microsoft.NETCore.App.Ref/9.0.15/analyzers/dotnet/cs/
+<DOTNET>/packs/Microsoft.AspNetCore.App.Ref/9.0.16/analyzers/dotnet/roslyn4.4/cs/
+ Microsoft.Extensions.Logging.Generators.dll
+ Microsoft.Extensions.Options.SourceGeneration.dll
+<DOTNET>/packs/Microsoft.NETCore.App.Ref/9.0.16/analyzers/dotnet/cs/
  Microsoft.Interop.ComInterfaceGenerator.dll
  Microsoft.Interop.JavaScript.JSImportGenerator.dll
  Microsoft.Interop.LibraryImportGenerator.dll
  Microsoft.Interop.SourceGeneration.dll
  System.Text.RegularExpressions.Generator.dll
-<DOTNET>/sdk/9.0.313/Sdks/Microsoft.NET.Sdk.Razor/source-generators/
+<DOTNET>/sdk/9.0.314/Sdks/Microsoft.NET.Sdk.Razor/source-generators/
  Microsoft.AspNetCore.Razor.Utilities.Shared.dll
  Microsoft.CodeAnalysis.Razor.Compiler.dll
  Microsoft.Extensions.ObjectPool.dll
  System.Collections.Immutable.dll
-<DOTNET>/sdk/9.0.313/Sdks/Microsoft.NET.Sdk.Web/analyzers/cs/
+<DOTNET>/sdk/9.0.314/Sdks/Microsoft.NET.Sdk.Web/analyzers/cs/
  Microsoft.AspNetCore.Analyzers.dll
  Microsoft.AspNetCore.Mvc.Analyzers.dll
-<DOTNET>/sdk/9.0.313/Sdks/Microsoft.NET.Sdk/analyzers/
+<DOTNET>/sdk/9.0.314/Sdks/Microsoft.NET.Sdk/analyzers/
  Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
  Microsoft.CodeAnalysis.NetAnalyzers.dll
 <NUGET>/
  microsoft.entityframeworkcore.analyzers/9.0.0/analyzers/dotnet/cs/Microsoft.EntityFrameworkCore.Analyzers.dll
- microsoft.extensions.logging.abstractions/10.0.0/analyzers/dotnet/roslyn4.4/cs/Microsoft.Extensions.Logging.Generators.dll
- microsoft.extensions.options/10.0.0/analyzers/dotnet/roslyn4.4/cs/Microsoft.Extensions.Options.SourceGeneration.dll
  system.text.json/10.0.4/analyzers/dotnet/roslyn4.4/cs/System.Text.Json.SourceGeneration.dll
 
 [analyzerConfigFiles]
-<DOTNET>/sdk/9.0.313/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_9_default.globalconfig
+<DOTNET>/sdk/9.0.314/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_9_default.globalconfig
 obj/Debug/net9.0/RoadmapService.API.GeneratedMSBuildEditorConfig.editorconfig
