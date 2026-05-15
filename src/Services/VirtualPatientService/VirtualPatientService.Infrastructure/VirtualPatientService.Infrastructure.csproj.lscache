@@ -53,18 +53,19 @@ TemporaryDependencyNodeTargetIdentifier=net9.0
 /warnaserror+:NU1605,SYSLIB0011
 
 [sourceFiles]
-Class1.cs
 DependencyInjection.cs
 obj/Debug/net9.0/
  .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
  VirtualPatientService.Infrastructure.AssemblyInfo.cs
  VirtualPatientService.Infrastructure.GlobalUsings.g.cs
 Persistance/VirtualPatientDbContext.cs
-Repositories/VirtualPatientRepository.cs
+Repositories/
+ ClinicalCaseRepository.cs
+ VirtualPatientRepository.cs
 
 [metadataReferences]
 ../VirtualPatientService.Domain/obj/Debug/net9.0/ref/VirtualPatientService.Domain.dll
-<DOTNET>/packs/Microsoft.NETCore.App.Ref/9.0.15/ref/net9.0/
+<DOTNET>/packs/Microsoft.NETCore.App.Ref/9.0.16/ref/net9.0/
  Microsoft.CSharp.dll
  Microsoft.VisualBasic.Core.dll
  Microsoft.VisualBasic.dll
@@ -246,14 +247,14 @@ Repositories/VirtualPatientRepository.cs
  pomelo.entityframeworkcore.mysql/9.0.0/lib/net8.0/Pomelo.EntityFrameworkCore.MySql.dll
 
 [analyzerReferences]
-<DOTNET>/packs/Microsoft.NETCore.App.Ref/9.0.15/analyzers/dotnet/cs/
+<DOTNET>/packs/Microsoft.NETCore.App.Ref/9.0.16/analyzers/dotnet/cs/
  Microsoft.Interop.ComInterfaceGenerator.dll
  Microsoft.Interop.JavaScript.JSImportGenerator.dll
  Microsoft.Interop.LibraryImportGenerator.dll
  Microsoft.Interop.SourceGeneration.dll
  System.Text.Json.SourceGeneration.dll
  System.Text.RegularExpressions.Generator.dll
-<DOTNET>/sdk/9.0.313/Sdks/Microsoft.NET.Sdk/analyzers/
+<DOTNET>/sdk/9.0.314/Sdks/Microsoft.NET.Sdk/analyzers/
  Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
  Microsoft.CodeAnalysis.NetAnalyzers.dll
 <NUGET>/
@@ -262,5 +263,5 @@ Repositories/VirtualPatientRepository.cs
  microsoft.extensions.options/9.0.0/analyzers/dotnet/roslyn4.4/cs/Microsoft.Extensions.Options.SourceGeneration.dll
 
 [analyzerConfigFiles]
-<DOTNET>/sdk/9.0.313/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_9_default.globalconfig
+<DOTNET>/sdk/9.0.314/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_9_default.globalconfig
 obj/Debug/net9.0/VirtualPatientService.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig

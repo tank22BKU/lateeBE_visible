@@ -96,6 +96,7 @@ public class AssessmentRepository : IAssessmentRepository
     public async Task<List<AssessmentSession>> GetSessionsForLearnerAndAssessmentAsync(string learnerId, string assessmentId)
     {
         return await _db.AssessmentSessions
+            .Include(s => s.Answers)
             .Where(s => s.LearnerId == learnerId && s.AssessmentId == assessmentId)
             .OrderByDescending(s => s.AttemptNo)
             .ToListAsync();

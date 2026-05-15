@@ -84,7 +84,7 @@ public class HuggingFaceDeepSeekClient
                 new { role = "user",   content = userPrompt   }
             },
             temperature        = 0.0,
-            max_tokens = 2000,
+            max_tokens = 2500,
             response_format    = new { type = "json_object" },
             // ── DeepSeek-specific: giới hạn thinking budget ─────────
             // Nếu HuggingFace endpoint hỗ trợ (kiểm tra docs của provider)

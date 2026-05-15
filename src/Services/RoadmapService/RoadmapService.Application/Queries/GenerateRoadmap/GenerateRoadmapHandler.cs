@@ -1,270 +1,506 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
-using RoadmapService.Domain.Services;
-using RoadmapService.Application.Queries.GenerateRoadmap;
-using Microsoft.Extensions.Logging;
 using MediatR;
+using Microsoft.Extensions.Logging;
+using RoadmapService.Domain.Services;
 
 namespace RoadmapService.Application.Queries.GenerateRoadmap;
 
-public class GenerateRoadmapHandler : IRequestHandler<GenerateRoadmapRequest, GenerateRoadmapResponse>
+public sealed class GenerateRoadmapHandler
+    : IRequestHandler<GenerateRoadmapRequest, GenerateRoadmapResponse>
 {
     private readonly IRoadmapService _roadmapService;
     private readonly ILogger<GenerateRoadmapHandler> _logger;
 
-    public GenerateRoadmapHandler(IRoadmapService roadmapService, ILogger<GenerateRoadmapHandler> logger)
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        NumberHandling = JsonNumberHandling.AllowReadingFromString,
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        AllowTrailingCommas = true
+    };
+
+    public GenerateRoadmapHandler(
+        IRoadmapService roadmapService,
+        ILogger<GenerateRoadmapHandler> logger)
     {
         _roadmapService = roadmapService;
         _logger = logger;
     }
 
-    public async Task<GenerateRoadmapResponse> Handle(GenerateRoadmapRequest q, CancellationToken cancellationToken)
+    public async Task<GenerateRoadmapResponse> Handle(
+        GenerateRoadmapRequest request,
+        CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(q.HistoryPractice) ||
-            string.IsNullOrWhiteSpace(q.UserTarget) ||
-            q.TotalDaysAvailable <= 0)
-        {
-            throw new ArgumentException("Invalid input");
-        }
-
-        var raw = await _roadmapService.GenerateResponseAsync(
-            q.HistoryPractice, q.UserTarget, q.TotalDaysAvailable);
-
-        _logger.LogInformation("RAW LLM response: {raw}", raw);
+        ValidateRequest(request);
 
         try
         {
-            var options = new JsonSerializerOptions
+            var rawResponse = await _roadmapService.GenerateResponseAsync(
+                request.HistoryPractice,
+                request.UserTarget,
+                request.TotalDaysAvailable);
+
+            _logger.LogInformation(
+                "Received LLM response. Length={Length}",
+                rawResponse.Length);
+
+            var llmContent = ExtractLlmContent(rawResponse);
+
+            if (string.IsNullOrWhiteSpace(llmContent))
             {
-                PropertyNameCaseInsensitive = true,
-                NumberHandling = JsonNumberHandling.AllowReadingFromString
-            };
-
-            // =========================
-            // 1. Parse outer response
-            // =========================
-            var hf = JsonSerializer.Deserialize<HuggingFaceResponse>(raw, options);
-
-            // Try multiple fields because some HF models put text in different places
-            var first = hf?.Choices?.FirstOrDefault();
-            var content = first?.Message?.Content;
-            if (string.IsNullOrWhiteSpace(content))
-                content = first?.Text;
-            if (string.IsNullOrWhiteSpace(content))
-                content = hf?.Text;
-            // Only use reasoning_content as last resort if it contains actual JSON
-            if (string.IsNullOrWhiteSpace(content) && first?.Message?.ReasoningContent?.Contains('{') == true)
-                content = first.Message.ReasoningContent;
-
-            _logger.LogInformation("Selected LLM content source length={Length}", content?.Length ?? 0);
-
-            if (string.IsNullOrWhiteSpace(content))
-            {
-                _logger.LogWarning("All message content fields empty; falling back to raw response for JSON extraction");
-                content = raw;
+                throw new InvalidOperationException(
+                    "LLM content is empty.");
             }
 
-            // =========================
-            // 2. Extract and validate JSON
-            // =========================
-            var cleaned = ExtractValidRoadmapJson(content, _logger);
+            var extractedJson = ExtractFirstJsonObject(llmContent);
 
-            _logger.LogInformation("CLEANED LLM response: {cleaned}", cleaned);
-
-            // =========================
-            // 3. Parse roadmap thật
-            // =========================
-            var dto = JsonSerializer.Deserialize<GenerateRoadmapResponse>(cleaned, options);
-
-            if (dto?.Roadmap == null || dto.Roadmap.Count == 0)
-                throw new Exception("Invalid roadmap");
-
-            // =========================
-            // 4. Normalize
-            // =========================
-            var normalized = dto.Roadmap
-                .Where(x => !string.IsNullOrWhiteSpace(x.RecommendedContent))
-                .Select((x, index) => new RoadmapItem
-                {
-                    OrderId = index + 1,
-                    RecommendedContent = x.RecommendedContent.Trim(),
-                    DetailedExplain = x.DetailedExplain?.Trim() ?? "",
-                    AmountOfTimeDays = x.AmountOfTimeDays > 0 ? x.AmountOfTimeDays : 1
-                })
-                .ToList();
-
-            if (normalized.Count == 0)
-                throw new Exception("Invalid roadmap");
-
-            if (q.TotalDaysAvailable < normalized.Count)
+            if (string.IsNullOrWhiteSpace(extractedJson))
             {
-                normalized = normalized
-                    .Take(q.TotalDaysAvailable)
-                    .Select((x, index) => new RoadmapItem
-                    {
-                        OrderId = index + 1,
-                        RecommendedContent = x.RecommendedContent,
-                        DetailedExplain = x.DetailedExplain,
-                        AmountOfTimeDays = 1
-                    })
-                    .ToList();
+                throw new InvalidOperationException(
+                    "No JSON object found.");
             }
 
-            var totalAssignedDays = normalized.Sum(x => x.AmountOfTimeDays);
-            var dayDelta = q.TotalDaysAvailable - totalAssignedDays;
+            var repairedJson = RepairJson(extractedJson);
 
-            if (dayDelta != 0)
-            {
-                // Adjust the last item so the sum always matches total_days requested by user.
-                var last = normalized[^1];
-                last.AmountOfTimeDays = Math.Max(1, last.AmountOfTimeDays + dayDelta);
+            var parsed = ParseRoadmapSafely(repairedJson);
 
-                var overflow = normalized.Sum(x => x.AmountOfTimeDays) - q.TotalDaysAvailable;
-                if (overflow > 0)
-                {
-                    for (var i = normalized.Count - 2; i >= 0 && overflow > 0; i--)
-                    {
-                        var reducible = normalized[i].AmountOfTimeDays - 1;
-                        if (reducible <= 0)
-                            continue;
+            var normalized = NormalizeRoadmap(
+                parsed,
+                request.TotalDaysAvailable);
 
-                        var reduction = Math.Min(reducible, overflow);
-                        normalized[i].AmountOfTimeDays -= reduction;
-                        overflow -= reduction;
-                    }
-                }
-            }
-
-            return new GenerateRoadmapResponse
-            {
-                TotalDays = q.TotalDaysAvailable,
-                RoadmapTitle = !string.IsNullOrEmpty(dto.RoadmapTitle) ? dto.RoadmapTitle.Trim() : "",
-                Goal = !string.IsNullOrEmpty(dto.Goal) ? dto.Goal.Trim() : "",
-                Roadmap = normalized
-            };
+            return normalized;
         }
         catch (Exception ex)
         {
-            Console.WriteLine("ERROR PARSE: " + ex.Message);
+            _logger.LogError(
+                ex,
+                "Roadmap generation failed.");
 
-            return new GenerateRoadmapResponse
-            {
-                TotalDays = q.TotalDaysAvailable,
-                RoadmapTitle = "Unable to generate roadmap",
-                Goal = "Unable to generate roadmap",
-                Roadmap = new List<RoadmapItem>
-                {
-                    new RoadmapItem
-                    {
-                        OrderId = 1,
-                        RecommendedContent = "Unable to generate roadmap",
-                        DetailedExplain = "LLM parsing failed",
-                        AmountOfTimeDays = q.TotalDaysAvailable
-                    }
-                },
-            };
+            return BuildFallbackResponse(
+                request.TotalDaysAvailable);
         }
     }
 
-    private string ExtractValidRoadmapJson(string input, ILogger<GenerateRoadmapHandler> logger)
+    // =========================================================
+    // VALIDATION
+    // =========================================================
+
+    private static void ValidateRequest(
+        GenerateRoadmapRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.HistoryPractice))
+        {
+            throw new ArgumentException(
+                "HistoryPractice is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.UserTarget))
+        {
+            throw new ArgumentException(
+                "UserTarget is required.");
+        }
+
+        if (request.TotalDaysAvailable <= 0)
+        {
+            throw new ArgumentException(
+                "TotalDaysAvailable must be > 0.");
+        }
+    }
+
+    // =========================================================
+    // EXTRACT CONTENT
+    // =========================================================
+
+    private string ExtractLlmContent(string raw)
+    {
+        try
+        {
+            var response = JsonSerializer.Deserialize<
+                HuggingFaceResponse>(raw, JsonOptions);
+
+            if (response is null)
+            {
+                return raw;
+            }
+
+            var firstChoice = response.Choices.FirstOrDefault();
+
+            if (firstChoice?.FinishReason == "length")
+            {
+                _logger.LogWarning(
+                    "LLM output truncated due to token limit.");
+            }
+
+            var content =
+                firstChoice?.Message?.Content
+                ?? firstChoice?.Text
+                ?? response.Text
+                ?? raw;
+
+            return content.Trim();
+        }
+        catch
+        {
+            return raw;
+        }
+    }
+
+    // =========================================================
+    // JSON EXTRACTION
+    // =========================================================
+
+    private static string ExtractFirstJsonObject(
+        string input)
     {
         if (string.IsNullOrWhiteSpace(input))
-            return "";
-
-        // Find all potential JSON blocks (between { and })
-        var jsonBlocks = ExtractJsonBlocks(input);
-        var options = new JsonSerializerOptions
         {
-            PropertyNameCaseInsensitive = true,
-            NumberHandling = JsonNumberHandling.AllowReadingFromString
-        };
+            return string.Empty;
+        }
 
-        // Try each block to find one that deserializes to valid roadmap structure
-        foreach (var block in jsonBlocks)
+        var start = input.IndexOf('{');
+
+        if (start < 0)
         {
-            try
+            return string.Empty;
+        }
+
+        var depth = 0;
+        var inString = false;
+        var escape = false;
+
+        for (var i = start; i < input.Length; i++)
+        {
+            var ch = input[i];
+
+            if (inString)
             {
-                var test = JsonSerializer.Deserialize<GenerateRoadmapResponse>(block, options);
-                if (test?.Roadmap != null && test.Roadmap.Count > 0)
+                if (escape)
                 {
-                    logger.LogInformation("Found valid roadmap JSON with {ItemCount} items", test.Roadmap.Count);
-                    return block;
+                    escape = false;
+                    continue;
                 }
-            }
-            catch (JsonException ex)
-            {
-                logger.LogDebug("JSON block not valid roadmap: {Error}", ex.Message);
+
+                if (ch == '\\')
+                {
+                    escape = true;
+                    continue;
+                }
+
+                if (ch == '"')
+                {
+                    inString = false;
+                }
+
                 continue;
             }
-        }
 
-        logger.LogWarning("No valid roadmap JSON blocks found; returning raw input for last-chance parsing");
-        return input;
-    }
-
-    private static List<string> ExtractJsonBlocks(string input)
-    {
-        var blocks = new List<string>();
-        int start = input.IndexOf('{');
-
-        while (start >= 0)
-        {
-            // Find matching closing brace using brace counting
-            int braceCount = 1;
-            int pos = start + 1;
-            int end = -1;
-
-            while (pos < input.Length && braceCount > 0)
+            if (ch == '"')
             {
-                if (input[pos] == '{')
-                    braceCount++;
-                else if (input[pos] == '}')
-                    braceCount--;
+                inString = true;
+                continue;
+            }
 
-                if (braceCount == 0)
+            if (ch == '{')
+            {
+                depth++;
+            }
+            else if (ch == '}')
+            {
+                depth--;
+
+                if (depth == 0)
                 {
-                    end = pos;
-                    break;
+                    return input[start..(i + 1)];
                 }
-                pos++;
             }
-
-            if (end > start)
-            {
-                blocks.Add(input.Substring(start, end - start + 1));
-            }
-
-            // Look for next opening brace
-            start = input.IndexOf('{', start + 1);
         }
 
-        return blocks;
+        return input[start..];
+    }
+
+    // =========================================================
+    // JSON REPAIR
+    // =========================================================
+
+    private static string RepairJson(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return "{}";
+        }
+
+        var sb = new StringBuilder();
+
+        var inString = false;
+        var escape = false;
+
+        foreach (var ch in json)
+        {
+            sb.Append(ch);
+
+            if (escape)
+            {
+                escape = false;
+                continue;
+            }
+
+            if (ch == '\\')
+            {
+                escape = true;
+                continue;
+            }
+
+            if (ch == '"')
+            {
+                inString = !inString;
+            }
+        }
+
+        if (inString)
+        {
+            sb.Append('"');
+        }
+
+        var repaired = sb.ToString();
+
+        var openBraces = repaired.Count(c => c == '{');
+        var closeBraces = repaired.Count(c => c == '}');
+
+        if (openBraces > closeBraces)
+        {
+            repaired += new string(
+                '}',
+                openBraces - closeBraces);
+        }
+
+        var openBrackets = repaired.Count(c => c == '[');
+        var closeBrackets = repaired.Count(c => c == ']');
+
+        if (openBrackets > closeBrackets)
+        {
+            repaired += new string(
+                ']',
+                openBrackets - closeBrackets);
+        }
+
+        return repaired;
+    }
+
+    // =========================================================
+    // SAFE PARSE
+    // =========================================================
+
+    private GenerateRoadmapResponse ParseRoadmapSafely(
+        string json)
+    {
+        using var doc = JsonDocument.Parse(json);
+
+        var root = doc.RootElement;
+
+        var roadmap = new List<RoadmapItem>();
+
+        if (root.TryGetProperty("roadmap", out var roadmapElement))
+        {
+            foreach (var item in roadmapElement.EnumerateArray())
+            {
+                try
+                {
+                    var roadmapItem =
+                        JsonSerializer.Deserialize<RoadmapItem>(
+                            item.GetRawText(),
+                            JsonOptions);
+
+                    if (roadmapItem is null)
+                    {
+                        continue;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(
+                            roadmapItem.RecommendedContent))
+                    {
+                        continue;
+                    }
+
+                    roadmap.Add(roadmapItem);
+                }
+                catch
+                {
+                    // Skip broken item only
+                }
+            }
+        }
+
+        return new GenerateRoadmapResponse
+        {
+            RoadmapTitle =
+                GetString(root, "roadmap_title"),
+
+            Goal =
+                GetString(root, "goal"),
+
+            TotalDays =
+                GetInt(root, "total_days"),
+
+            Roadmap = roadmap
+        };
+    }
+
+    // =========================================================
+    // NORMALIZATION
+    // =========================================================
+
+    private GenerateRoadmapResponse NormalizeRoadmap(
+        GenerateRoadmapResponse response,
+        int requestedDays)
+    {
+        var normalized = response.Roadmap
+            .Where(x =>
+                !string.IsNullOrWhiteSpace(
+                    x.RecommendedContent))
+            .Select((x, index) => new RoadmapItem
+            {
+                OrderId = index + 1,
+
+                RecommendedContent =
+                    x.RecommendedContent.Trim(),
+
+                DetailedExplain =
+                    x.DetailedExplain?.Trim() ?? "",
+
+                AmountOfTimeDays =
+                    x.AmountOfTimeDays > 0
+                        ? x.AmountOfTimeDays
+                        : 1
+            })
+            .ToList();
+
+        if (normalized.Count == 0)
+        {
+            throw new InvalidOperationException(
+                "No valid roadmap items.");
+        }
+
+        var currentDays =
+            normalized.Sum(x => x.AmountOfTimeDays);
+
+        var delta = requestedDays - currentDays;
+
+        normalized[^1].AmountOfTimeDays =
+            Math.Max(
+                1,
+                normalized[^1].AmountOfTimeDays + delta);
+
+        return new GenerateRoadmapResponse
+        {
+            TotalDays = requestedDays,
+
+            Goal = response.Goal,
+
+            RoadmapTitle = response.RoadmapTitle,
+
+            Roadmap = normalized
+        };
+    }
+
+    // =========================================================
+    // HELPERS
+    // =========================================================
+
+    private static string GetString(
+        JsonElement root,
+        string property)
+    {
+        if (root.TryGetProperty(property, out var value))
+        {
+            return value.GetString() ?? "";
+        }
+
+        return "";
+    }
+
+    private static int GetInt(
+        JsonElement root,
+        string property)
+    {
+        if (!root.TryGetProperty(property, out var value))
+        {
+            return 0;
+        }
+
+        return value.ValueKind switch
+        {
+            JsonValueKind.Number => value.GetInt32(),
+
+            JsonValueKind.String =>
+                int.TryParse(
+                    value.GetString(),
+                    out var parsed)
+                    ? parsed
+                    : 0,
+
+            _ => 0
+        };
+    }
+
+    private static GenerateRoadmapResponse BuildFallbackResponse(
+        int totalDays)
+    {
+        return new GenerateRoadmapResponse
+        {
+            TotalDays = totalDays,
+
+            RoadmapTitle =
+                "Unable to generate roadmap",
+
+            Goal =
+                "Unable to generate roadmap",
+
+            Roadmap =
+            [
+                new RoadmapItem
+                {
+                    OrderId = 1,
+
+                    RecommendedContent =
+                        "Unable to generate roadmap",
+
+                    DetailedExplain =
+                        "LLM parsing failed",
+
+                    AmountOfTimeDays =
+                        totalDays
+                }
+            ]
+        };
     }
 }
 
-public class HuggingFaceResponse
-{
-    [JsonPropertyName("choices")]
-    public List<Choice> Choices { get; set; } = new();
+// =========================================================
+// DTOs
+// =========================================================
 
-    [JsonPropertyName("text")]
-    public string? Text { get; set; }
+public sealed class HuggingFaceResponse
+{
+    [JsonPropertyName("choices")] public List<Choice> Choices { get; set; } = [];
+
+    [JsonPropertyName("text")] public string? Text { get; set; }
 }
 
-public class Choice
+public sealed class Choice
 {
-    [JsonPropertyName("message")]
-    public Message Message { get; set; } = new();
+    [JsonPropertyName("message")] public Message? Message { get; set; }
 
-    [JsonPropertyName("text")]
-    public string? Text { get; set; }
+    [JsonPropertyName("text")] public string? Text { get; set; }
+
+    [JsonPropertyName("finish_reason")] public string? FinishReason { get; set; }
 }
 
-public class Message
+public sealed class Message
 {
-    [JsonPropertyName("content")]
-    public string Content { get; set; } = "";
+    [JsonPropertyName("content")] public string? Content { get; set; }
 
     [JsonPropertyName("reasoning_content")]
-    public string ReasoningContent { get; set; } = "";
+    public string? ReasoningContent { get; set; }
 }

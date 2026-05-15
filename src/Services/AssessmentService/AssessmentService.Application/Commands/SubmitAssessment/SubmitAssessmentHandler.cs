@@ -54,12 +54,15 @@ public class SubmitAssessmentHandler : IRequestHandler<SubmitAssessmentCommand, 
             var question = assessment.Questions.FirstOrDefault(q => q.Id == userAnswer.QuestionId);
             if (question == null) continue;
 
-            var options = JsonSerializer.Deserialize<List<OptionElement>>(question.QuestionOption ?? "[]", jsonOptions);
+            var options = JsonSerializer.Deserialize<List<OptionElement>>(question.QuestionOption ?? "[]", jsonOptions)
+                          ?? new List<OptionElement>();
 
             var correctOption = options?.FirstOrDefault(o => o.IsCorrect);
+            var selectedOptionId = NormalizeSelectedOptionId(userAnswer.SelectedOptionId);
 
             bool isCorrect = correctOption != null &&
-                            string.Equals(correctOption.Id?.Trim(), userAnswer.SelectedOptionId?.Trim(), StringComparison.OrdinalIgnoreCase);
+                            !string.IsNullOrWhiteSpace(selectedOptionId) &&
+                            string.Equals(correctOption.Id?.Trim(), selectedOptionId, StringComparison.OrdinalIgnoreCase);
 
             if (isCorrect)
             {
@@ -72,20 +75,49 @@ public class SubmitAssessmentHandler : IRequestHandler<SubmitAssessmentCommand, 
                 Id = Guid.NewGuid().ToString("N"),
                 SessionId = session.SessionId,
                 QuestionId = question.Id,
-                //UserChoice = userAnswer.SelectedOptionId ?? string.Empty,
-                UserChoice = JsonSerializer.Serialize(userAnswer.SelectedOptionId),
+                UserChoice = JsonSerializer.Serialize(selectedOptionId),
                 IsCorrect = isCorrect,
                 PointsEarned = isCorrect ? question.Points : 0
             });
         }
 
         decimal maxPoints = assessment.Questions.Sum(q => q.Points);
-        session.OverallScore = maxPoints > 0 ? (totalPointsEarned / maxPoints) * 100 : 0;
-        session.IsPassed = session.OverallScore >= assessment.PassingScorePercentage;
+        session.OverallScore = totalPointsEarned > 0 ? (totalPointsEarned) : 0;
+        session.IsPassed = (session.OverallScore / maxPoints) >= (assessment.PassingScorePercentage / 100);
 
         await _repo.AddSessionAsync(session);
 
         return new SubmitResultDto(session.SessionId, session.OverallScore, session.IsPassed ?? false, correctCount);
+    }
+
+    private static string? NormalizeSelectedOptionId(string? selectedOptionId)
+    {
+        if (string.IsNullOrWhiteSpace(selectedOptionId)) return null;
+
+        var trimmedValue = selectedOptionId.Trim();
+
+        if ((trimmedValue.StartsWith("{") && trimmedValue.EndsWith("}")) ||
+            (trimmedValue.StartsWith("[") && trimmedValue.EndsWith("]")) ||
+            (trimmedValue.StartsWith("\"") && trimmedValue.EndsWith("\"")))
+        {
+            try
+            {
+                using var document = JsonDocument.Parse(trimmedValue);
+                return document.RootElement.ValueKind switch
+                {
+                    JsonValueKind.String => document.RootElement.GetString()?.Trim(),
+                    JsonValueKind.Object when document.RootElement.TryGetProperty("id", out var idProperty) => idProperty.GetString()?.Trim(),
+                    JsonValueKind.Object when document.RootElement.TryGetProperty("selectedOptionId", out var optionProperty) => optionProperty.GetString()?.Trim(),
+                    _ => trimmedValue
+                };
+            }
+            catch (JsonException)
+            {
+                return trimmedValue;
+            }
+        }
+
+        return trimmedValue;
     }
 }
 

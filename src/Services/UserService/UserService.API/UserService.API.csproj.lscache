@@ -13,18 +13,18 @@ primary
 lastDtbSucceeded
 
 [properties]
-AssemblyName=PracticeSessionService.API
+AssemblyName=UserService.API
 CommandLineArgsForDesignTimeEvaluation=-langversion:13.0 -define:TRACE
 CompilerGeneratedFilesOutputPath=
 MaxSupportedLangVersion=13.0
 ProjectAssetsFile=<PATH>obj/project.assets.json
-RootNamespace=PracticeSessionService.API
+RootNamespace=UserService.API
 RunAnalyzers=
 RunAnalyzersDuringLiveAnalysis=
 SolutionPath=<PATH>../../../../lateeBE.sln
 TargetFrameworkIdentifier=.NETCoreApp
-TargetPath=<PATH>bin/Debug/net9.0/PracticeSessionService.API.dll
-TargetRefPath=<PATH>obj/Debug/net9.0/ref/PracticeSessionService.API.dll
+TargetPath=<PATH>bin/Debug/net9.0/UserService.API.dll
+TargetRefPath=<PATH>obj/Debug/net9.0/ref/UserService.API.dll
 TemporaryDependencyNodeTargetIdentifier=net9.0
 
 [commandLineArguments]
@@ -43,8 +43,8 @@ TemporaryDependencyNodeTargetIdentifier=net9.0
 /debug:portable
 /filealign:512
 /optimize-
-/out:obj\Debug\net9.0\PracticeSessionService.API.dll
-/refout:obj\Debug\net9.0\refint\PracticeSessionService.API.dll
+/out:obj\Debug\net9.0\UserService.API.dll
+/refout:obj\Debug\net9.0\refint\UserService.API.dll
 /target:exe
 /warnaserror-
 /utf8output
@@ -53,18 +53,17 @@ TemporaryDependencyNodeTargetIdentifier=net9.0
 /warnaserror+:NU1605,SYSLIB0011
 
 [sourceFiles]
-Controllers/PracticeSessionController.cs
+Controllers/UsersController.cs
 obj/Debug/net9.0/
  .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
- PracticeSessionService.API.AssemblyInfo.cs
- PracticeSessionService.API.GlobalUsings.g.cs
+ UserService.API.AssemblyInfo.cs
+ UserService.API.GlobalUsings.g.cs
 Program.cs
 
 [metadataReferences]
 ../
- PracticeSessionService.Application/obj/Debug/net9.0/ref/PracticeSessionService.Application.dll
- PracticeSessionService.Domain/obj/Debug/net9.0/ref/PracticeSessionService.Domain.dll
- PracticeSessionService.Infrastructure/obj/Debug/net9.0/ref/PracticeSessionService.Infrastructure.dll
+ UserService.Application/obj/Debug/net9.0/ref/UserService.Application.dll
+ UserService.Infrastructure/obj/Debug/net9.0/ref/UserService.Infrastructure.dll
 <DOTNET>/packs/Microsoft.AspNetCore.App.Ref/9.0.16/ref/net9.0/
  Microsoft.AspNetCore.Antiforgery.dll
  Microsoft.AspNetCore.Authentication.Abstractions.dll
@@ -166,6 +165,7 @@ Program.cs
  Microsoft.Extensions.Configuration.KeyPerFile.dll
  Microsoft.Extensions.Configuration.UserSecrets.dll
  Microsoft.Extensions.Configuration.Xml.dll
+ Microsoft.Extensions.DependencyInjection.Abstractions.dll
  Microsoft.Extensions.DependencyInjection.dll
  Microsoft.Extensions.Diagnostics.Abstractions.dll
  Microsoft.Extensions.Diagnostics.dll
@@ -368,32 +368,6 @@ Program.cs
  System.Xml.XPath.dll
  System.Xml.XPath.XDocument.dll
  WindowsBase.dll
-<NUGET>/
- automapper.extensions.microsoft.dependencyinjection/12.0.1/lib/netstandard2.1/AutoMapper.Extensions.Microsoft.DependencyInjection.dll
- automapper/12.0.1/lib/netstandard2.1/AutoMapper.dll
- fluentvalidation.dependencyinjectionextensions/12.1.0/lib/net8.0/FluentValidation.DependencyInjectionExtensions.dll
- fluentvalidation/12.1.0/lib/net8.0/FluentValidation.dll
- mediatr.contracts/2.0.1/lib/netstandard2.0/MediatR.Contracts.dll
- mediatr/13.1.0/lib/net9.0/MediatR.dll
- microsoft.aspnetcore.authentication.jwtbearer/9.0.4/lib/net9.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll
- microsoft.aspnetcore.openapi/9.0.15/lib/net9.0/Microsoft.AspNetCore.OpenApi.dll
- microsoft.entityframeworkcore.abstractions/9.0.0/lib/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll
- microsoft.entityframeworkcore.relational/9.0.0/lib/net8.0/Microsoft.EntityFrameworkCore.Relational.dll
- microsoft.entityframeworkcore/9.0.0/lib/net8.0/Microsoft.EntityFrameworkCore.dll
- microsoft.extensions.dependencyinjection.abstractions/10.0.0/lib/net9.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll
- microsoft.identitymodel.abstractions/8.14.0/lib/net9.0/Microsoft.IdentityModel.Abstractions.dll
- microsoft.identitymodel.jsonwebtokens/8.14.0/lib/net9.0/Microsoft.IdentityModel.JsonWebTokens.dll
- microsoft.identitymodel.logging/8.14.0/lib/net9.0/Microsoft.IdentityModel.Logging.dll
- microsoft.identitymodel.protocols.openidconnect/8.0.1/lib/net9.0/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
- microsoft.identitymodel.protocols/8.0.1/lib/net9.0/Microsoft.IdentityModel.Protocols.dll
- microsoft.identitymodel.tokens/8.14.0/lib/net9.0/Microsoft.IdentityModel.Tokens.dll
- microsoft.openapi/1.6.17/lib/netstandard2.0/Microsoft.OpenApi.dll
- mysqlconnector/2.4.0/lib/net9.0/MySqlConnector.dll
- pomelo.entityframeworkcore.mysql/9.0.0/lib/net8.0/Pomelo.EntityFrameworkCore.MySql.dll
- swashbuckle.aspnetcore.swagger/6.6.2/lib/net8.0/Swashbuckle.AspNetCore.Swagger.dll
- swashbuckle.aspnetcore.swaggergen/6.6.2/lib/net8.0/Swashbuckle.AspNetCore.SwaggerGen.dll
- swashbuckle.aspnetcore.swaggerui/6.6.2/lib/net8.0/Swashbuckle.AspNetCore.SwaggerUI.dll
- system.identitymodel.tokens.jwt/8.0.1/lib/net9.0/System.IdentityModel.Tokens.Jwt.dll
 
 [analyzerReferences]
 <DOTNET>/packs/Microsoft.AspNetCore.App.Ref/9.0.16/analyzers/dotnet/cs/
@@ -421,8 +395,7 @@ Program.cs
 <DOTNET>/sdk/9.0.314/Sdks/Microsoft.NET.Sdk/analyzers/
  Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
  Microsoft.CodeAnalysis.NetAnalyzers.dll
-<NUGET>/microsoft.entityframeworkcore.analyzers/9.0.0/analyzers/dotnet/cs/Microsoft.EntityFrameworkCore.Analyzers.dll
 
 [analyzerConfigFiles]
 <DOTNET>/sdk/9.0.314/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_9_default.globalconfig
-obj/Debug/net9.0/PracticeSessionService.API.GeneratedMSBuildEditorConfig.editorconfig
+obj/Debug/net9.0/UserService.API.GeneratedMSBuildEditorConfig.editorconfig

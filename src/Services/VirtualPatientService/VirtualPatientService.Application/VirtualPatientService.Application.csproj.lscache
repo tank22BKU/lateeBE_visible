@@ -53,7 +53,6 @@ TemporaryDependencyNodeTargetIdentifier=net9.0
 /warnaserror+:NU1605,SYSLIB0011
 
 [sourceFiles]
-Class1.cs
 DependencyInjection.cs
 Dtos/PageResult.cs
 obj/Debug/net9.0/
@@ -64,13 +63,13 @@ Queries/GetVirtualPatientByID/
  GetVirtualPatientByIdHandler.cs
  GetVirtualPatientByIdQuery.cs
 Queries/GetVirtualPatients/
- GetVirtualPatientHandler.cs
  GetVirtualPatientQuery.cs
+ GetVirtualPatientsHandler.cs
  VirtualPatientDto.cs
 
 [metadataReferences]
 ../VirtualPatientService.Domain/obj/Debug/net9.0/ref/VirtualPatientService.Domain.dll
-<DOTNET>/packs/Microsoft.NETCore.App.Ref/9.0.15/ref/net9.0/
+<DOTNET>/packs/Microsoft.NETCore.App.Ref/9.0.16/ref/net9.0/
  Microsoft.CSharp.dll
  Microsoft.VisualBasic.Core.dll
  Microsoft.VisualBasic.dll
@@ -258,14 +257,14 @@ Queries/GetVirtualPatients/
  microsoft.identitymodel.tokens/8.14.0/lib/net9.0/Microsoft.IdentityModel.Tokens.dll
 
 [analyzerReferences]
-<DOTNET>/packs/Microsoft.NETCore.App.Ref/9.0.15/analyzers/dotnet/cs/
+<DOTNET>/packs/Microsoft.NETCore.App.Ref/9.0.16/analyzers/dotnet/cs/
  Microsoft.Interop.ComInterfaceGenerator.dll
  Microsoft.Interop.JavaScript.JSImportGenerator.dll
  Microsoft.Interop.LibraryImportGenerator.dll
  Microsoft.Interop.SourceGeneration.dll
  System.Text.Json.SourceGeneration.dll
  System.Text.RegularExpressions.Generator.dll
-<DOTNET>/sdk/9.0.313/Sdks/Microsoft.NET.Sdk/analyzers/
+<DOTNET>/sdk/9.0.314/Sdks/Microsoft.NET.Sdk/analyzers/
  Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
  Microsoft.CodeAnalysis.NetAnalyzers.dll
 <NUGET>/
@@ -274,5 +273,5 @@ Queries/GetVirtualPatients/
  microsoft.extensions.options/9.0.0/analyzers/dotnet/roslyn4.4/cs/Microsoft.Extensions.Options.SourceGeneration.dll
 
 [analyzerConfigFiles]
-<DOTNET>/sdk/9.0.313/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_9_default.globalconfig
+<DOTNET>/sdk/9.0.314/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_9_default.globalconfig
 obj/Debug/net9.0/VirtualPatientService.Application.GeneratedMSBuildEditorConfig.editorconfig
