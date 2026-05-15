@@ -126,6 +126,70 @@ public class EvaluationRepository : IEvaluationRepository
             .OrderBy(x => x.EpaId)
             .ToListAsync();
 
+    public async Task<List<IssueListItem>> GetIssuesAsync(string practiceSessionId, string learnerId)
+    {
+        var rows = await _db.Database
+            .SqlQuery<IssueRow>($"""
+                SELECT
+                    i.id AS IssueId,
+                    i.learner_id AS LearnerId,
+                    u.name AS LearnerName,
+                    i.created_at AS CreatedAt,
+                    i.label AS Label,
+                    i.description AS Description,
+                    i.status AS Status,
+                    ri.expert_id AS ExpertId,
+                    eu.name AS ExpertName,
+                    ri.feedback AS Feedback
+                FROM issue i
+                INNER JOIN users u ON u.userid = i.learner_id
+                LEFT JOIN resolved_issue ri ON ri.issue_id = i.id
+                LEFT JOIN users eu ON eu.userid = ri.expert_id
+                WHERE i.is_deleted = false
+                    AND i.practice_session_id = {practiceSessionId}
+                    AND i.learner_id = {learnerId}
+                ORDER BY i.created_at DESC
+                """)
+            .ToListAsync();
+
+        return rows
+            .GroupBy(r => new
+            {
+                r.IssueId,
+                r.LearnerId,
+                r.LearnerName,
+                r.CreatedAt,
+                r.Label,
+                r.Description,
+                r.Status
+            })
+            .Select(g =>
+            {
+                var firstExpert = g.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.ExpertId));
+                IssueExpertFeedback? expertFeedback = null;
+                if (firstExpert != null)
+                {
+                    expertFeedback = new IssueExpertFeedback(
+                        ExpertId: firstExpert.ExpertId ?? string.Empty,
+                        ExpertName: firstExpert.ExpertName ?? string.Empty,
+                        Feedback: firstExpert.Feedback ?? string.Empty
+                    );
+                }
+
+                return new IssueListItem(
+                    IssueId: g.Key.IssueId ?? string.Empty,
+                    LearnerId: g.Key.LearnerId ?? string.Empty,
+                    LearnerName: g.Key.LearnerName ?? string.Empty,
+                    CreatedAt: g.Key.CreatedAt ?? DateTime.UtcNow,
+                    Label: g.Key.Label,
+                    Description: g.Key.Description ?? string.Empty,
+                    Status: g.Key.Status ?? "Open",
+                    ExpertFeedback: expertFeedback
+                );
+            })
+            .ToList();
+    }
+
     public async Task AddEvaluationAsync(Evaluation evaluation)
         => await _db.Evaluations.AddAsync(evaluation);
 
@@ -149,6 +213,9 @@ public class EvaluationRepository : IEvaluationRepository
 
     public async Task AddPracticeFeedbackAsync(PracticeFeedback feedback)
         => await _db.PracticeFeedbacks.AddAsync(feedback);
+
+    public async Task AddIssueAsync(Issue issue)
+        => await _db.Issues.AddAsync(issue);
 
     public Task UpdatePracticeSessionAsync(PracticeSession session)
     {
@@ -187,5 +254,19 @@ public class EvaluationRepository : IEvaluationRepository
         public string? Id          { get; set; }
         public string? Description { get; set; }
         public string? Version     { get; set; }
+    }
+
+    private sealed class IssueRow
+    {
+        public string? IssueId { get; set; }
+        public string? LearnerId { get; set; }
+        public string? LearnerName { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public string? Label { get; set; }
+        public string? Description { get; set; }
+        public string? Status { get; set; }
+        public string? ExpertId { get; set; }
+        public string? ExpertName { get; set; }
+        public string? Feedback { get; set; }
     }
 }

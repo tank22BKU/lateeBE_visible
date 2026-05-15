@@ -14,6 +14,8 @@ public class EvaluationDbContext : DbContext
     public DbSet<Warning>             Warnings          => Set<Warning>();
     public DbSet<PracticeSession>     PracticeSessions  => Set<PracticeSession>();
     public DbSet<PracticeFeedback>    PracticeFeedbacks => Set<PracticeFeedback>();
+    public DbSet<Issue>               Issues            => Set<Issue>();
+    public DbSet<ResolvedIssue>       ResolvedIssues    => Set<ResolvedIssue>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -124,6 +126,33 @@ public class EvaluationDbContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
             e.Property(x => x.EvaluationId).HasColumnName("evaluation_id").HasMaxLength(50).IsRequired();
             e.Property(x => x.PracticeSessionId).HasColumnName("practice_session_id").HasMaxLength(50).IsRequired();
+        });
+
+        b.Entity<Issue>(e =>
+        {
+            e.ToTable("issue");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id").HasMaxLength(50);
+            // e.Property(x => x.AssessmentId).HasColumnName("assessment_id");
+            e.Property(x => x.PracticeSessionId).HasColumnName("practice_session_id");
+            e.Property(x => x.LearnerId).HasColumnName("learner_id").HasMaxLength(50).IsRequired();
+            e.Property(x => x.ItemType).HasColumnName("ItemType").HasMaxLength(20).IsRequired();
+            e.Property(x => x.IsDeleted).HasColumnName("is_deleted");
+            e.Property(x => x.EditDeadline).HasColumnName("editDeadline");
+            e.Property(x => x.Description).HasColumnName("description");
+            e.Property(x => x.Label).HasColumnName("label");
+            e.Property(x => x.Status).HasColumnName("status");
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+            e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
+        });
+
+        b.Entity<ResolvedIssue>(e =>
+        {
+            e.ToTable("resolved_issue");
+            e.HasKey(x => new { x.IssueId, x.ExpertId });
+            e.Property(x => x.IssueId).HasColumnName("issue_id").HasMaxLength(50).IsRequired();
+            e.Property(x => x.ExpertId).HasColumnName("expert_id").HasMaxLength(50).IsRequired();
+            e.Property(x => x.Feedback).HasColumnName("feedback");
         });
     }
 }

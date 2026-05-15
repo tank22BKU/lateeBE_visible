@@ -66,6 +66,54 @@
                 "AllowedScopes": []
             }
         },
+
+        
+        {
+            "DownstreamPathTemplate": "/api/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "knowledgeresource",
+                    "Port": 8080
+                }
+            ],
+            "UpstreamPathTemplate": "/knowledgeresource/api/{everything}",
+            "UpstreamHttpMethod": [
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE"
+            ],
+            "SwaggerKey": "knowledgeresource",
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "user",
+                    "Port": 8080
+                }
+            ],
+            "UpstreamPathTemplate": "/user/api/{everything}",
+            "UpstreamHttpMethod": [
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE"
+            ],
+            "SwaggerKey": "user",
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            }
+        },
+
+
         {
             "DownstreamPathTemplate": "/api/{everything}",
             "DownstreamScheme": "http",
@@ -130,6 +178,38 @@
                 "GET"
             ]
         },
+
+
+        {
+            "DownstreamPathTemplate": "/swagger/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "knowledgeresource",
+                    "Port": 8080
+                }
+            ],
+            "UpstreamPathTemplate": "/knowledgeresource/swagger/{everything}",
+            "UpstreamHttpMethod": [
+                "GET"
+            ]
+        },{
+            "DownstreamPathTemplate": "/swagger/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "user",
+                    "Port": 8080
+                }
+            ],
+            "UpstreamPathTemplate": "/user/swagger/{everything}",
+            "UpstreamHttpMethod": [
+                "GET"
+            ]
+        },
+
+
+
         {
             "DownstreamPathTemplate": "/{everything}",
             "DownstreamScheme": "http",
@@ -359,6 +439,27 @@
                 }
             ]
         },
+
+        {
+            "Key": "knowledgeresource",
+            "Config": [
+                {
+                    "Name": "Knowledge Resource API",
+                    "Version": "v1",
+                    "Url": "http://knowledgeresource:8080/swagger/v1/swagger.json"
+                }
+            ]
+        },{
+            "Key": "user",
+            "Config": [
+                {
+                    "Name": "User API",
+                    "Version": "v1",
+                    "Url": "http://user:8080/swagger/v1/swagger.json"
+                }
+            ]
+        },
+
         {
             "Key": "vppython",
             "Config": [
@@ -376,6 +477,16 @@
                     "Name": "AI Assistant API",
                     "Version": "v1",
                     "Url": "http://ai-assistant:8000/openapi.json"
+                }
+            ]
+        },
+        {
+            "Key": "evaluation",
+            "Config": [
+                {
+                "Name": "Evaluation API",
+                "Version": "v1",
+                "Url": "http://evaluation:8080/swagger/v1/swagger.json"
                 }
             ]
         },

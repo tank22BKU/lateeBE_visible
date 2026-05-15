@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using EvaluationService.Application.Commands.DeleteEvaluation;
 using EvaluationService.Application.Commands.GeneratePracticeFeedback;
+using EvaluationService.Application.Commands.CreateIssue;
 using EvaluationService.Application.Queries.GetReport;
 using EvaluationService.Application.Queries.GetHistory;
+using EvaluationService.Application.Queries.GetIssues;
 using EvaluationService.Application.Commands.SubmitEvaluation;
 
 namespace EvaluationService.API.Controllers;
@@ -54,5 +56,21 @@ public class EvaluationController : ControllerBase
         return deleted
             ? NoContent()
             : NotFound(new { message = $"Evaluation '{id}' not found." });
+    }
+
+    [HttpGet("issues")]
+    public async Task<IActionResult> GetIssues(
+        [FromQuery] string practiceSessionId,
+        [FromQuery] string learnerId)
+    {
+        var result = await _mediator.Send(new GetIssuesQuery(practiceSessionId, learnerId));
+        return Ok(result);
+    }
+
+    [HttpPost("issues")]
+    public async Task<IActionResult> CreateIssue([FromBody] CreateIssueCommand cmd)
+    {
+        var result = await _mediator.Send(cmd);
+        return Ok(new { message = "Issue created successfully.", data = result });
     }
 }

@@ -23,6 +23,7 @@ public class GetVirtualPatientByIdHandler : IRequestHandler<GetVirtualPatientByI
         if (x == null) return null;
 
         var clinicalCase = await _caseRepo.GetByIdAsync(x.CaseId);
+        var experts = await _repo.GetExpertsByPatientIdAsync(x.PatientId);
 
         return new VirtualPatientDto
         {
@@ -49,7 +50,20 @@ public class GetVirtualPatientByIdHandler : IRequestHandler<GetVirtualPatientByI
             CaseRule = ParseJsonOrString(x.CaseRule),
             Status = x.Status,
             CreatedAt = x.CreatedAt,
-            UpdatedAt = x.UpdatedAt
+            UpdatedAt = x.UpdatedAt,
+            Experts = experts.Select(e => new ExpertDto
+            {
+                ExpertId = e.ExpertId,
+                Name = e.Name,
+                Role = e.Role,
+                AvatarUrl = e.AvatarUrl,
+                BioQuote = e.BioQuote,
+                EducationDetail = e.EducationDetail,
+                ExpertiseSkill = e.ExpertiseSkill,
+                Phone = e.Phone,
+                Email = e.Email,
+                Location = e.Location
+            }).ToList()
         };
     }
 

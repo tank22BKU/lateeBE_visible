@@ -16,6 +16,9 @@ public interface IEvaluationRepository
 
     Task<List<EvaluationEpaScore>>  GetEpaScoresByEvaluationIdAsync(string evaluationId);
 
+    Task<List<IssueListItem>>       GetIssuesAsync(string practiceSessionId, string learnerId);
+    Task AddIssueAsync(Issue issue);
+
     Task AddEvaluationAsync(Evaluation evaluation);
     Task AddEpaScoresAsync(IEnumerable<EvaluationEpaScore> scores);
     Task AddWarningsAsync(IEnumerable<Warning> warnings);
@@ -38,4 +41,21 @@ public record RubricDto(
     string Id,
     string Description,
     string Version
+);
+
+public record IssueListItem(
+    string IssueId,
+    string LearnerId,
+    string LearnerName,
+    DateTime CreatedAt,
+    string? Label,
+    string Description,
+    string Status,
+    IssueExpertFeedback? ExpertFeedback
+);
+
+public record IssueExpertFeedback(
+    string ExpertId,
+    string ExpertName,
+    string Feedback
 );

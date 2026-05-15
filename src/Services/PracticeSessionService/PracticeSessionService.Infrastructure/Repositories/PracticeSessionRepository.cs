@@ -20,6 +20,39 @@ public class PracticeSessionRepository : IPracticeSessionRepository
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    public async Task<PracticeSession?> GetLatestSessionAsync(
+        string learnerId,
+        string patientId,
+        IEnumerable<string> statuses)
+    {
+        var statusList = statuses.Distinct().ToList();
+        if (statusList.Count == 0) return null;
+
+        return await _db.PracticeSessions
+            .AsNoTracking()
+            .Where(x => x.LearnerId == learnerId
+                        && x.PatientId == patientId
+                        && statusList.Contains(x.Status))
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<int> CountSessionsAsync(
+        string learnerId,
+        string patientId,
+        IEnumerable<string> statuses)
+    {
+        var statusList = statuses.Distinct().ToList();
+        if (statusList.Count == 0) return 0;
+
+        return await _db.PracticeSessions
+            .AsNoTracking()
+            .Where(x => x.LearnerId == learnerId
+                        && x.PatientId == patientId
+                        && statusList.Contains(x.Status))
+            .CountAsync();
+    }
+
     public async Task<string> AddSessionAsync(PracticeSession entity)
     {
         _db.PracticeSessions.Add(entity);
