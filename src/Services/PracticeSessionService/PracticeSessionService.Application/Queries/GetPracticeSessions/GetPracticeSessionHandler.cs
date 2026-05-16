@@ -45,8 +45,11 @@ public class GetPracticeSessionHandler
             Warnings = warnings.Select(w => new WarningDto
             {
                 WarningId = w.Id,
+                PracticeSessionId = w.PracticeSessionId,
+                LearnerId = w.LearnerId,
                 Label = w.Label ?? "",
-                Description = w.Description ?? ""
+                Description = w.Description ?? "",
+                CreatedAt = w.CreatedAt
             }).ToList()
         };
     }

@@ -5,6 +5,7 @@ public static class PracticeSessionStatuses
 	public const string Practicing = "Practicing";
 	public const string VpCompleted = "VpCompleted";
 	public const string ReasoningStarted = "ReasoningStarted";
+	public const string Submitted = "Submitted";
 	public const string Completed = "Completed";
 	public const string Abandoned = "Abandoned";
 
@@ -26,6 +27,7 @@ public static class PracticeSessionStatuses
 		Practicing,
 		VpCompleted,
 		ReasoningStarted,
+		Submitted,
 		Completed,
 		Abandoned
 	];

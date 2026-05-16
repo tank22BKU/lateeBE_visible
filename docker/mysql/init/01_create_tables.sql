@@ -280,7 +280,7 @@ CREATE TABLE practice_sessions
     guidelines_id       VARCHAR(50),
     start_time          TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
     end_time            TIMESTAMP NULL,
-    status              ENUM('Practicing', 'VpCompleted', 'ReasoningStarted', 'Completed', 'Abandoned') DEFAULT 'Practicing',
+    status              ENUM('Practicing', 'VpCompleted', 'ReasoningStarted', 'Submitted', 'Completed', 'Abandoned') DEFAULT 'Practicing',
     created_at          TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_practice_learner FOREIGN KEY (learner_id) REFERENCES users (userid),
     CONSTRAINT fk_practice_to_patient FOREIGN KEY (patient_id) REFERENCES virtual_patient (patient_id) ON DELETE CASCADE,

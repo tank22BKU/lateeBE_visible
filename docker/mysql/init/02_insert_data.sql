@@ -21,14 +21,14 @@ VALUES ('USR-LRN-01', '052204022949');
 
 -- Expert
 INSERT INTO expert (eid, ssn, bio_quote, education_detail, title_position, expertise_skill, social_link)
-VALUES ('USR-EXP-001',
+VALUES  ('USR-EXP-001',
         '052204022948',
         'Dr. Tachibana Hana focuses on hands-on clinical practice guidance for students. She is well known for her patient-centered teaching approach and her refined ability to convey healthcare communication skills effectively.',
         'Masters Degree in Clinical Nursing from Kyoto University. Internationally certified Clinical Simulation Training Specialist.',
         'Clinical Instructor',
         'Patient Interaction, Clinical Supervision, Medical Simulation Training',
         'https://linkedin.com/in/hanatachibana'),
-       ('USR-EXP-002',
+        ('USR-EXP-002',
         '052204022949',
         'Dr. Andrew is a leading expert in analyzing complex clinical cases. With over 15 years of experience, he has developed modern diagnostic consulting models that help medical students shorten their learning curve when approaching real-world diseases.',
         'Doctor of Medicine (MD) in Internal Medicine from Johns Hopkins University. Advanced Medical Education Teaching Certification from Harvard Medical School.',
@@ -38,16 +38,32 @@ VALUES ('USR-EXP-001',
 
 -- Evaluation Clinical Criteria
 INSERT INTO evaluation_clinical_criteria (id, description, version)
-VALUES ('CRIT-001', 'Patient Communication Excellence', 'V1.0'),
-       ('CRIT-002', 'Diagnostic Accuracy and Reasoning', 'V1.0'),
-       ('CRIT-003', 'Clinical Simulation Performance', 'V2.1');
+VALUES  ('CRIT-001', 'Patient Communication Excellence', 'V1.0'),
+        ('CRIT-002', 'Diagnostic Accuracy and Reasoning', 'V1.0'),
+        ('CRIT-003', 'Clinical Simulation Performance', 'V2.1');
 
 -- Expert Criteria Management
 INSERT INTO expert_criteria_management (expert_id, criteria_id)
-VALUES ('USR-EXP-001', 'CRIT-001'),
-       ('USR-EXP-001', 'CRIT-003'),
-       ('USR-EXP-002', 'CRIT-002');
+VALUES  ('USR-EXP-001', 'CRIT-001'),
+        ('USR-EXP-001', 'CRIT-003'),
+        ('USR-EXP-002', 'CRIT-002');
 
+-- Guideline
+INSERT INTO guideline (id, description, version, created_at, updated_at) 
+VALUES (
+    'GL01', 
+    'Standard Clinical Guidance for Patient Communication and Reasoning.', 
+    'v1.0', 
+    CURRENT_TIMESTAMP, 
+    CURRENT_TIMESTAMP
+);
+
+-- Expert Guideline Management
+INSERT INTO expert_guideline_management (expert_id, guideline_id)
+VALUES (
+    'USR-EXP-001', 
+    'GL01'
+);
 
 -- User Refresh Tokens
 INSERT INTO user_refresh_tokens (token_id, user_id, token_hash, expires_at, created_by_ip, user_agent)

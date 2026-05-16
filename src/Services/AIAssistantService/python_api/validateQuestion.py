@@ -11,6 +11,7 @@ from openai import OpenAI
 from typing import AsyncGenerator
 
 from config import VALIDATION_PROMPT, VALIDATION_PROMPT_VER2, VALIDATION_PROMPT_V3, VALIDATION_PROMPT_V4, VALIDATION_PROMPT_V5, logger
+from config2 import EVALUATION_VALIDATION_PROMPT
 from dtos import QuestionValidationRequest, QuestionValidationResponse
 
 async def validate_question_stream_hf(req: QuestionValidationRequest):
@@ -37,25 +38,38 @@ async def validate_question_stream_hf(req: QuestionValidationRequest):
             process_docs = "\n\n".join(d.page_content for d in docs[:2])
         except Exception:
             logger.exception("Failed to retrieve documents"
-                             f"[WARN][VALIDATION]"
-                             f" Retriever failed: {retrieval_error}"
-                             )
+                            f"[WARN][VALIDATION]"
+                            f" Retriever failed: {retrieval_error}"
+                            )
 
-    evaluation_prompt = f"""
-TÀI LIỆU QUY TRÌNH:
-{process_docs}
+#     evaluation_prompt = f"""
+# TÀI LIỆU QUY TRÌNH:
+# {process_docs}
 
-LỊCH SỬ HỘI THOẠI:
-{context_text}
+# LỊCH SỬ HỘI THOẠI:
+# {context_text}
 
-CÂU HỎI CẦN ĐÁNH GIÁ:
-"{req.learner_question}"
+# CÂU HỎI CẦN ĐÁNH GIÁ:
+# "{req.learner_question}"
 
-BẮT BUỘC: Hãy đánh giá câu hỏi theo đúng hướng dẫn hệ thống.
-"""
+# BẮT BUỘC: Hãy đánh giá câu hỏi theo đúng hướng dẫn hệ thống.
+# """
+        evaluation_prompt = f"""
+        PROCEDURE DOCUMENTATION:
+        {process_docs}
+
+        HISTORY OF CONVERSATION:
+        {context_text}
+
+        LEARNER QUESTION:
+        "{req.learner_question}"
+
+        REQUIRED: Please evaluate the question according to the system guidelines.
+        """
+    system_prompt = EVALUATION_VALIDATION_PROMPT
 
     messages = [
-        {"role": "system", "content": VALIDATION_PROMPT},
+        {"role": "system", "content": system_prompt},
         {"role": "user", "content": evaluation_prompt},
     ]
 
@@ -256,8 +270,10 @@ async def validate_question_hf(req: QuestionValidationRequest) -> QuestionValida
         Return ONLY valid JSON.
     """
 
+    system_prompt = EVALUATION_VALIDATION_PROMPT
+
     messages = [
-        {"role": "system", "content": VALIDATION_PROMPT_V4},
+        {"role": "system", "content": system_prompt},
         {"role": "user", "content": evaluation_prompt},
     ]
 

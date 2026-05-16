@@ -38,7 +38,7 @@ public class EvaluationDbContext : DbContext
             e.Property(x => x.Score).HasColumnName("score").HasPrecision(5, 2);
             e.Property(x => x.Duration).HasColumnName("duration");
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
-            // e.Property(x => x.FeedbackDetail).HasColumnName("feedback_detail");
+            e.Property(x => x.FeedbackDetail).HasColumnName("feedback_detail");
             e.Property(x => x.EntrustmentLevel).HasColumnName("entrustment_level");
             e.Property(x => x.RubricVersion).HasColumnName("rubric_version").HasMaxLength(20);
             e.HasMany(x => x.EpaScores)

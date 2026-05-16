@@ -42,9 +42,10 @@ public sealed class EvaluationPromptBuilder : IEvaluationPromptBuilder
             3. NEVER inflate scores to seem encouraging.
             4. NEVER reward correct outcomes that lack supporting reasoning.
             5. Patient safety takes absolute priority — any unsafe reasoning triggers SAFETY_FLAG.
-            6. Score each EPA as integer 0–20. Final score must be integer 0–110.
-            7. Return ONLY valid JSON. No markdown, no prose, no preamble.
-            8. All evidenceCited items must be direct quotes or clear paraphrases from transcript.
+            6. You MUST return at least 5 EPA assessments, one for each required EPA criterion.
+            7. Score each EPA as integer 0–20. Final score must be integer 0–110.
+            8. Return ONLY valid JSON. No markdown, no prose, no preamble.
+            9. All evidenceCited items must be direct quotes or clear paraphrases from transcript.
 
             ═══════════════════════════════════════════════════════════
             LAYER 1 — CLINICAL RUBRIC
@@ -112,12 +113,52 @@ public sealed class EvaluationPromptBuilder : IEvaluationPromptBuilder
 
             ENTRUSTMENT LEVEL:  0–39→1 | 40–59→2 | 60–74→3 | 75–89→4 | 90–110→5
 
-            Return ONLY this JSON — no markdown, no extra text:
+            Return ONLY this JSON — no markdown, no extra text. Include exactly 5 items in epaAssessments:
             {
                 "epaAssessments": [
                     {
                         "epaId": "EPA_1",
                         "title": "Information Gathering",
+                        "score": 0,
+                        "entrustmentLevel": 1,
+                        "feedback": "",
+                        "evidenceCited": [],
+                        "failurePatterns": [],
+                        "safetyFlags": []
+                    },
+                    {
+                        "epaId": "EPA_2",
+                        "title": "",
+                        "score": 0,
+                        "entrustmentLevel": 1,
+                        "feedback": "",
+                        "evidenceCited": [],
+                        "failurePatterns": [],
+                        "safetyFlags": []
+                    },
+                    {
+                        "epaId": "EPA_3",
+                        "title": "",
+                        "score": 0,
+                        "entrustmentLevel": 1,
+                        "feedback": "",
+                        "evidenceCited": [],
+                        "failurePatterns": [],
+                        "safetyFlags": []
+                    },
+                    {
+                        "epaId": "EPA_4",
+                        "title": "",
+                        "score": 0,
+                        "entrustmentLevel": 1,
+                        "feedback": "",
+                        "evidenceCited": [],
+                        "failurePatterns": [],
+                        "safetyFlags": []
+                    },
+                    {
+                        "epaId": "EPA_5",
+                        "title": "",
                         "score": 0,
                         "entrustmentLevel": 1,
                         "feedback": "",

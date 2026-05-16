@@ -3,6 +3,7 @@ ALTER TABLE practice_sessions
         'Practicing',
         'VpCompleted',
         'ReasoningStarted',
+        'Submitted',
         'Completed',
         'Abandoned'
     ) DEFAULT 'Practicing';

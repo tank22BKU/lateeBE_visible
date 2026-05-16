@@ -6,6 +6,14 @@ Tài liệu này cung cấp ví dụ request/response fake data cho các API đa
 
 ### POST /api/practice-sessions
 Request:
+Request fields (types):
+- id: string
+- learnerId: string
+- patientId: string
+- moduleId: string
+- discussionType: string
+- guidelinesId: string
+- status: string
 ```json
 {
   "id": "SESS_20260515090000",
@@ -26,6 +34,16 @@ Response:
 
 ### POST /api/practice-sessions/submit
 Request:
+Request fields (types):
+- sessionId: string
+- learnerId: string
+- finalDiagnosis: string|null
+- vpConversationLog: object|null
+- aiReasoningLog: object|null
+- moduleId: string|null
+- discussionType: string|null
+- guidelinesId: string|null
+- warnings: array of { warningId: string, label: string, description: string }
 ```json
 {
   "sessionId": "SESS_20260515090000",
@@ -131,17 +149,20 @@ Response:
 ```
 
 ### PATCH /api/practice-sessions/{id}/status
+Supported values: Practicing, VpCompleted, ReasoningStarted, Submitted, Completed, Abandoned
 Request:
+Request fields (types):
+- status: string
 ```json
 {
-  "status": "VpCompleted"
+  "status": "Submitted"
 }
 ```
 Response:
 ```json
 {
   "sessionId": "SESS_20260515090000",
-  "status": "VpCompleted"
+  "status": "Submitted"
 }
 ```
 
@@ -149,15 +170,19 @@ Response:
 
 ### POST /api/evaluation/submit
 Request:
+Request fields (types):
+- practiceSessionId: string
+- learnerId: string
+- finalDiagnosis: string|null
+- vpConversationLog: string|null (JSON string)
+- aiReasoningLog: string|null (JSON string)
+- discussionType: string|null
+- moduleId: string|null
+- warnings: array of { warningId: string, practiceSessionId: string, learnerId: string, label: string, description: string, createdAt: string (date-time) }
 ```json
 {
   "practiceSessionId": "SESS_20260515090000",
   "learnerId": "USR-LRN-08",
-  "epaId": "EPA-001",
-  "score": 88.5,
-  "duration": 27,
-  "feedbackDetail": "Good clinical reasoning and appropriate follow-up questions.",
-  "entrustmentLevel": 4,
   "finalDiagnosis": "Acute appendicitis",
   "vpConversationLog": {
     "messages": [
@@ -189,8 +214,17 @@ Response:
     "entrustmentLevel": 4,
     "feedbackDetail": "Good clinical reasoning and appropriate follow-up questions.",
     "finalDiagnosis": "Acute appendicitis",
+    "diagnosisMatchType": "MATCH",
+    "diagnosisModifier": 0,
+    "timeModifier": 0,
+    "warningPenalty": 0,
+    "warningCount": 1,
+    "safetyEscalationRequired": false,
+    "cognitiveAlerts": [],
+    "epaScores": [],
     "discussionType": "Message Type",
-    "duration": 27
+    "duration": 27,
+    "practiceFeedbackAvailable": false
   }
 }
 ```
@@ -251,6 +285,8 @@ Response:
 
 ### POST /api/evaluation/practice-feedback/{practiceSessionId}
 Request:
+Request fields (types):
+- (empty body)
 ```json
 {}
 ```
@@ -259,30 +295,21 @@ Response:
 {
   "message": "Feedback generated successfully.",
   "data": {
-    "practiceSessionId": "SESS_20260515090000",
-    "wasCached": false,
-    "feedbackDetail": "The learner asked focused history questions and reached the correct diagnosis.",
-    "strengths": [
-      "Structured reasoning",
-      "Focused abdominal pain history"
-    ],
-    "improvements": [
-      "Ask onset details earlier",
-      "Confirm associated symptoms more systematically"
-    ]
+    "id": "FB-20260515-001",
+    "overallAttempt": "Good effort",
+    "overallLabel": "Solid reasoning",
+    "strength": "Focused abdominal pain history",
+    "improvement": "Ask onset details earlier",
+    "createdAt": "2026-05-15T09:31:00Z",
+    "wasCached": false
   }
 }
 ```
 
 ### DELETE /api/evaluation/{id}
-Response:
-```json
-{
-  "message": "Evaluation deleted successfully."
-}
-```
+Response: 204 No Content
 
-### GET /evaluation/api/issues?practiceSessionId={sessionId}&learnerId={learnerId}
+### GET /api/evaluation/issues?practiceSessionId={sessionId}&learnerId={learnerId}
 Response:
 ```json
 {
@@ -307,6 +334,12 @@ Response:
 
 ### POST /evaluation/api/issues
 Request:
+Request fields (types):
+- practiceSessionId: string
+- learnerId: string
+- label: string
+- description: string
+- itemType: string (Practice|Assessment)
 ```json
 {
   "practiceSessionId": "SESS_20260515090000",
@@ -319,8 +352,12 @@ Request:
 Response:
 ```json
 {
-  "message": "Issue submitted successfully.",
-  "issueId": "ISS-002"
+  "message": "Issue created successfully.",
+  "data": {
+    "issueId": "ISS-002",
+    "createdAt": "2026-05-15T09:45:00Z",
+    "status": "Open"
+  }
 }
 ```
 
@@ -468,6 +505,51 @@ Response:
     }
   ]
 }
+```
+
+## VirtualPatientService (VP AI)
+
+### POST /chat
+Request:
+```json
+{
+  "doctor_id": "DR-001",
+  "patient_id": "10070247",
+  "question": "When did the pain start?",
+  "chat_history": [
+    { "role": "doctor", "content": "Hello, how are you feeling?" },
+    { "role": "patient", "content": "I feel pain in my lower right abdomen." }
+  ]
+}
+```
+Response:
+```json
+{
+  "answer": "About 12 hours ago."
+}
+```
+
+### POST /stream
+Request:
+```json
+{
+  "doctor_id": "DR-001",
+  "patient_id": "10070247",
+  "question": "Do you have nausea?",
+  "chat_history": [
+    { "role": "doctor", "content": "Tell me about the pain." },
+    { "role": "patient", "content": "It is sharp on the right side." }
+  ]
+}
+```
+Response (text/event-stream):
+```text
+data: {"type":"token","content":"Yes"}
+
+data: {"type":"token","content":", since this morning."}
+
+data: {"type":"done"}
+
 ```
 
 ## AIAssistantService
