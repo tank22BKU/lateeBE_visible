@@ -22,4 +22,5 @@ public interface IAssessmentRepository
     Task AddSessionAsync(AssessmentSession session);
     Task<AssessmentSession?> GetSessionWithAnswersAsync(string sessionId);
     Task<List<AssessmentSession>> GetSessionsForLearnerAndAssessmentAsync(string learnerId, string assessmentId);
+    Task<List<AssessmentSession>> GetAllAttemptsOverviewOfLearner(string learnerId);
 }

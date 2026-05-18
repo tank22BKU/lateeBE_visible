@@ -33,7 +33,7 @@ public class AssessmentRepository : IAssessmentRepository
     }
 
     public async Task<List<Assessment>> GetAllAsync() => 
-        await _db.Assessments.AsNoTracking().OrderByDescending(x => x.CreatedAt).ToListAsync();
+        await _db.Assessments.AsNoTracking().Include(x => x.Questions).OrderByDescending(x => x.CreatedAt).ToListAsync();
 
     public async Task AddAsync(Assessment assessment)
     {
@@ -99,6 +99,14 @@ public class AssessmentRepository : IAssessmentRepository
             .Include(s => s.Answers)
             .Where(s => s.LearnerId == learnerId && s.AssessmentId == assessmentId)
             .OrderByDescending(s => s.AttemptNo)
+            .ToListAsync();
+    }
+
+    public async Task<List<AssessmentSession>> GetAllAttemptsOverviewOfLearner(string learnerId)
+    {
+        return await _db.AssessmentSessions
+            .Include(s => s.Answers)
+            .Where(s => s.LearnerId == learnerId)
             .ToListAsync();
     }
 }

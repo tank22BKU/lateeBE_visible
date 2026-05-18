@@ -1,9 +1,9 @@
 ﻿x-auth-env: &auth-env
-  Security__AuthorizationEnabled: ${AUTHORIZATION_ENABLED:-false}
+  Security__AuthorizationEnabled: ${AUTHORIZATION_ENABLED:-true}
   Jwt__Issuer: ${JWT_ISSUER:-latee-auth}
   Jwt__Audience: ${JWT_AUDIENCE:-latee-clients}
   Jwt__SigningKey: ${JWT_SIGNING_KEY:-latee_super_secret_signing_key_2026_change_me}
-  Jwt__AccessTokenMinutes: ${JWT_ACCESS_TOKEN_MINUTES:-30}
+  Jwt__AccessTokenMinutes: ${JWT_ACCESS_TOKEN_MINUTES:-1440}
   Jwt__RefreshTokenDays: ${JWT_REFRESH_TOKEN_DAYS:-7}
 
 services:
@@ -391,6 +391,8 @@ services:
       - roadmap
       - evaluation
       - practice-session
+      - user
+      - knowledgeresource
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__AuthDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"

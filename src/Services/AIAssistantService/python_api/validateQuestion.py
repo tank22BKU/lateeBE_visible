@@ -270,7 +270,7 @@ async def validate_question_hf(req: QuestionValidationRequest) -> QuestionValida
         Return ONLY valid JSON.
     """
 
-    system_prompt = EVALUATION_VALIDATION_PROMPT
+    system_prompt = VALIDATION_PROMPT_V4
 
     messages = [
         {"role": "system", "content": system_prompt},

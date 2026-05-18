@@ -276,6 +276,24 @@
                 "DELETE"
             ],
             "SwaggerKey": "practice-session"
+        },
+        {
+            "DownstreamPathTemplate": "/api/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "user",
+                    "Port": 8080
+                }
+            ],
+            "UpstreamPathTemplate": "/user/api/{everything}",
+            "UpstreamHttpMethod": [
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE"
+            ],
+            "SwaggerKey": "user"
         }
     ],
     "SwaggerEndPoints": [
