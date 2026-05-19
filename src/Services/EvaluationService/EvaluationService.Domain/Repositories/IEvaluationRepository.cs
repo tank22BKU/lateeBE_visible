@@ -4,19 +4,19 @@ namespace EvaluationService.Domain.Repositories;
 
 public interface IEvaluationRepository
 {
-    Task<Evaluation?>      GetByIdAsync(string id);
+    Task<Evaluation?> GetByIdAsync(string id);
     Task<List<Evaluation>> GetByLearnerIdAsync(string learnerId);
 
-    Task<PracticeSession?>          GetPracticeSessionByIdAsync(string id);
-    Task<List<Warning>>             GetWarningsByPracticeSessionIdAsync(string practiceSessionId);
+    Task<PracticeSession?> GetPracticeSessionByIdAsync(string id);
+    Task<List<Warning>> GetWarningsByPracticeSessionIdAsync(string practiceSessionId);
     Task<ClinicalCaseDiagnosisDto?> GetClinicalDiagnosisByPatientIdAsync(string patientId);
-    Task<VirtualPatientRef?>        GetVirtualPatientByIdAsync(string patientId);
-    Task<RubricDto?>                GetRubricByEccIdAsync(string eccId);
-    Task<PracticeFeedback?>         GetPracticeFeedbackBySessionIdAsync(string practiceSessionId);
+    Task<VirtualPatientRef?> GetVirtualPatientByIdAsync(string patientId);
+    Task<RubricDto?> GetRubricByEccIdAsync(string eccId);
+    Task<PracticeFeedback?> GetPracticeFeedbackBySessionIdAsync(string practiceSessionId);
 
-    Task<List<EvaluationEpaScore>>  GetEpaScoresByEvaluationIdAsync(string evaluationId);
+    Task<List<EvaluationEpaScore>> GetEpaScoresByEvaluationIdAsync(string evaluationId);
 
-    Task<List<IssueListItem>>       GetIssuesAsync(string practiceSessionId, string learnerId);
+    Task<List<IssueListItem>> GetIssuesAsync(string practiceSessionId, string learnerId);
     Task AddIssueAsync(Issue issue);
 
     Task AddEvaluationAsync(Evaluation evaluation);
@@ -37,11 +37,7 @@ public record ClinicalCaseDiagnosisDto(
     string MedicalHistory
 );
 
-public record RubricDto(
-    string Id,
-    string Description,
-    string Version
-);
+public record RubricDto(string Id, string Description, string Version);
 
 public record IssueListItem(
     string IssueId,
@@ -54,8 +50,4 @@ public record IssueListItem(
     IssueExpertFeedback? ExpertFeedback
 );
 
-public record IssueExpertFeedback(
-    string ExpertId,
-    string ExpertName,
-    string Feedback
-);
+public record IssueExpertFeedback(string ExpertId, string ExpertName, string Feedback);

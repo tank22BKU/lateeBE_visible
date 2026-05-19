@@ -7,7 +7,8 @@ public interface IAiEvaluationProvider
 {
     Task<GeminiEvaluationOutput> AnalyzePerformanceAsync(
         string prompt,
-        CancellationToken ct = default);
+        CancellationToken ct = default
+    );
 }
 
 public sealed record EvaluationInput(
@@ -17,14 +18,15 @@ public sealed record EvaluationInput(
     string VpConversationLog,
     string AiReasoningLog,
     string LearnerFinalDiagnosis,
-    string CanonicalDiagnosis,        //  clinical_case.type
-    string CaseDescription,           //  clinical_case.description
-    int AllottedVpTimeMinutes,        //  virtual_patient.time_setting
-    int AllottedArgumentTimeMinutes,  //  virtual_patient.argument_time
-    int ActualDurationMinutes,        //  computed from start_time/end_time
-    string RubricContent,             //  evaluation_clinical_criteria.description
+    string CanonicalDiagnosis,
+    string CaseDescription,
+    int AllottedVpTimeMinutes,
+    int AllottedArgumentTimeMinutes,
+    int ActualDurationMinutes,
+    string RubricContent,
     string RubricVersion,
-    List<string> ActiveWarningLabels
+    List<string> ActiveWarningLabels,
+    List<string> ActiveWarningDescriptions
 );
 
 public sealed record GeminiEvaluationOutput(
@@ -37,5 +39,14 @@ public sealed record GeminiEvaluationOutput(
     int OverallEntrustmentLevel,
     List<string> CognitiveAlerts,
     bool SafetyEscalationRequired,
-    string EvaluationTrace
+    string EvaluationTrace,
+    AdjustmentExplanation? AdjustmentExplanations
 );
+
+public sealed record AdjustmentExplanation(
+    string? Diagnosis,
+    string? Time,
+    List<WarningExplanation> Warnings
+);
+
+public sealed record WarningExplanation(string Label, string Reason);

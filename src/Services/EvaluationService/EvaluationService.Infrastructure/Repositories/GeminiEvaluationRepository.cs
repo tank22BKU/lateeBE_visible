@@ -10,25 +10,28 @@ namespace EvaluationService.Infrastructure.Repositories;
 
 public sealed class GeminiEvaluationRepository : IAiEvaluationProvider
 {
-    private readonly HttpClient  _httpClient;
-    private readonly string?     _apiKey;
+    private readonly HttpClient _httpClient;
+    private readonly string? _apiKey;
     private readonly ILogger<GeminiEvaluationRepository> _logger;
 
     private const string ModelEndpoint =
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
     public GeminiEvaluationRepository(
-        HttpClient                           httpClient,
-        IConfiguration                       config,
-        ILogger<GeminiEvaluationRepository>  logger)
+        HttpClient httpClient,
+        IConfiguration config,
+        ILogger<GeminiEvaluationRepository> logger
+    )
     {
         _httpClient = httpClient;
-        _apiKey     = config["GeminiAi:ApiKey"] ?? config["GEMINI_API_KEY"];
-        _logger     = logger;
+        _apiKey = config["GeminiAi:ApiKey"] ?? config["GEMINI_API_KEY"];
+        _logger = logger;
     }
 
     public async Task<GeminiEvaluationOutput> AnalyzePerformanceAsync(
-        string prompt, CancellationToken ct = default)
+        string prompt,
+        CancellationToken ct = default
+    )
     {
         if (string.IsNullOrWhiteSpace(_apiKey))
         {
@@ -36,24 +39,28 @@ public sealed class GeminiEvaluationRepository : IAiEvaluationProvider
             return BuildFallbackOutput();
         }
 
-        var url  = $"{ModelEndpoint}?key={_apiKey}";
+        var url = $"{ModelEndpoint}?key={_apiKey}";
         var body = new
         {
-            contents         = new[] { new { parts = new[] { new { text = prompt } } } },
-            generationConfig = new { temperature = 0.1, responseMimeType = "application/json" }
+            contents = new[] { new { parts = new[] { new { text = prompt } } } },
+            generationConfig = new { temperature = 0.1, responseMimeType = "application/json" },
         };
 
         try
         {
-            var content  = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
+            var content = new StringContent(
+                JsonSerializer.Serialize(body),
+                Encoding.UTF8,
+                "application/json"
+            );
             var response = await _httpClient.PostAsync(url, content, ct);
             response.EnsureSuccessStatusCode();
 
             var raw = await response.Content.ReadAsStringAsync(ct);
             using var doc = JsonDocument.Parse(raw);
 
-            var text = doc.RootElement
-                .GetProperty("candidates")[0]
+            var text = doc
+                .RootElement.GetProperty("candidates")[0]
                 .GetProperty("content")
                 .GetProperty("parts")[0]
                 .GetProperty("text")
@@ -77,63 +84,88 @@ public sealed class GeminiEvaluationRepository : IAiEvaluationProvider
     private static GeminiEvaluationOutput ParseResponse(string raw)
     {
         var clean = ExtractJson(raw);
-        var opts  = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         var parsed = JsonSerializer.Deserialize<GeminiSchema>(clean, opts);
 
         if (parsed?.EpaAssessments == null || parsed.EpaAssessments.Count == 0)
             return BuildFallbackOutput();
 
-        var epaScores = parsed.EpaAssessments
-            .Take(5)
-            .Select((x, i) => new EvaluationEpaScore   
-            {
-                Id               = Guid.NewGuid().ToString("N"),
-                EpaId            = string.IsNullOrWhiteSpace(x.EpaId) ? $"EPA_{i + 1}" : x.EpaId,
-                NumericalScore   = Math.Clamp(x.Score, 0, 20),
-                EntrustmentLevel = Math.Clamp(x.EntrustmentLevel, 1, 5),
-                FeedbackDetail   = x.Feedback?.Trim() ?? "No feedback.",
-                EvidenceCited    = x.EvidenceCited   ?? [],
-                FailurePatterns  = x.FailurePatterns  ?? [],
-                SafetyFlags      = x.SafetyFlags      ?? []
-            })
+        var epaScores = parsed
+            .EpaAssessments.Take(5)
+            .Select(
+                (x, i) =>
+                    new EvaluationEpaScore
+                    {
+                        Id = Guid.NewGuid().ToString("N"),
+                        EpaId = string.IsNullOrWhiteSpace(x.EpaId) ? $"EPA_{i + 1}" : x.EpaId,
+                        NumericalScore = Math.Clamp(x.Score, 0, 20),
+                        EntrustmentLevel = Math.Clamp(x.EntrustmentLevel, 1, 5),
+                        FeedbackDetail = x.Feedback?.Trim() ?? "No explanation provided.",
+                        EvidenceCited = x.EvidenceCited ?? [],
+                        FailurePatterns = x.FailurePatterns ?? [],
+                        SafetyFlags = x.SafetyFlags ?? [],
+                    }
+            )
             .ToList();
 
         return new GeminiEvaluationOutput(
-            EpaScores:               epaScores,
-            DiagnosisModifier:       parsed.DiagnosisModifier,
-            DiagnosisMatchType:      parsed.DiagnosisMatchType ?? "UNKNOWN",
-            TimeModifier:            parsed.TimeModifier,
-            TotalWarningPenalty:     parsed.TotalWarningPenalty,
-            FinalScore:              Math.Clamp(parsed.FinalScore, 0, 110),
+            EpaScores: epaScores,
+            DiagnosisModifier: parsed.DiagnosisModifier,
+            DiagnosisMatchType: parsed.DiagnosisMatchType ?? "UNKNOWN",
+            TimeModifier: parsed.TimeModifier,
+            TotalWarningPenalty: parsed.TotalWarningPenalty,
+            FinalScore: Math.Clamp(parsed.FinalScore, 0, 110),
             OverallEntrustmentLevel: Math.Clamp(parsed.OverallEntrustmentLevel, 1, 5),
-            CognitiveAlerts:         parsed.CognitiveAlerts ?? [],
+            CognitiveAlerts: parsed.CognitiveAlerts ?? [],
             SafetyEscalationRequired: parsed.SafetyEscalationRequired,
-            EvaluationTrace:         parsed.EvaluationTrace ?? string.Empty
+            EvaluationTrace: parsed.EvaluationTrace ?? string.Empty,
+            AdjustmentExplanations: parsed.AdjustmentExplanations == null
+                ? null
+                : new AdjustmentExplanation(
+                    Diagnosis: parsed.AdjustmentExplanations.Diagnosis,
+                    Time: parsed.AdjustmentExplanations.Time,
+                    Warnings: parsed
+                        .AdjustmentExplanations.Warnings?.Where(w =>
+                            !string.IsNullOrWhiteSpace(w.Label)
+                        )
+                        .Select(w => new WarningExplanation(
+                            w.Label.Trim(),
+                            w.Reason?.Trim() ?? string.Empty
+                        ))
+                        .ToList()
+                        ?? []
+                )
         );
     }
 
-    private static GeminiEvaluationOutput BuildFallbackOutput() => new(
-        EpaScores: Enumerable.Range(1, 5).Select(i => new EvaluationEpaScore
-        {
-            Id               = Guid.NewGuid().ToString("N"),
-            EpaId            = $"EPA{i}",
-            NumericalScore   = 10,
-            EntrustmentLevel = 2,
-            FeedbackDetail   = "AI evaluation unavailable — fallback score applied.",
-            EvidenceCited    = [],
-            FailurePatterns  = [],
-            SafetyFlags      = []
-        }).ToList(),
-        DiagnosisModifier:       0,
-        DiagnosisMatchType:      "UNVERIFIED",
-        TimeModifier:            0,
-        TotalWarningPenalty:     0,
-        FinalScore:              50,
-        OverallEntrustmentLevel: 2,
-        CognitiveAlerts:         [],
-        SafetyEscalationRequired: false,
-        EvaluationTrace:         "Fallback evaluation — Gemini API unavailable."
-    );
+    private static GeminiEvaluationOutput BuildFallbackOutput() =>
+        new(
+            EpaScores: Enumerable
+                .Range(1, 5)
+                .Select(i => new EvaluationEpaScore
+                {
+                    Id = Guid.NewGuid().ToString("N"),
+                    EpaId = $"EPA_{i}",
+                    NumericalScore = 10,
+                    EntrustmentLevel = 2,
+                    FeedbackDetail =
+                        "AI evaluation unavailable — fallback score applied. Score reflects median performance.",
+                    EvidenceCited = [],
+                    FailurePatterns = [],
+                    SafetyFlags = [],
+                })
+                .ToList(),
+            DiagnosisModifier: 0,
+            DiagnosisMatchType: "UNVERIFIED",
+            TimeModifier: 0,
+            TotalWarningPenalty: 0,
+            FinalScore: 50,
+            OverallEntrustmentLevel: 2,
+            CognitiveAlerts: [],
+            SafetyEscalationRequired: false,
+            EvaluationTrace: "Fallback evaluation — Gemini API unavailable.",
+            AdjustmentExplanations: null
+        );
 
     private static string ExtractJson(string raw)
     {
@@ -141,37 +173,95 @@ public sealed class GeminiEvaluationRepository : IAiEvaluationProvider
         if (text.StartsWith("```"))
         {
             var first = text.IndexOf('\n');
-            var last  = text.LastIndexOf("```");
+            var last = text.LastIndexOf("```");
             if (first >= 0 && last > first)
                 text = text[(first + 1)..last].Trim();
         }
         var start = text.IndexOf('{');
-        var end   = text.LastIndexOf('}');
+        var end = text.LastIndexOf('}');
         return start >= 0 && end > start ? text[start..(end + 1)] : text;
     }
 
     private sealed class GeminiSchema
     {
-        [JsonPropertyName("epaAssessments")]       public List<GeminiEpaItem>? EpaAssessments  { get; set; }
-        [JsonPropertyName("diagnosisModifier")]    public int    DiagnosisModifier              { get; set; }
-        [JsonPropertyName("diagnosisMatchType")]   public string? DiagnosisMatchType            { get; set; }
-        [JsonPropertyName("timeModifier")]         public int    TimeModifier                   { get; set; }
-        [JsonPropertyName("totalWarningPenalty")]  public int    TotalWarningPenalty            { get; set; }
-        [JsonPropertyName("cognitiveAlerts")]      public List<string>? CognitiveAlerts         { get; set; }
-        [JsonPropertyName("finalScore")]           public int    FinalScore                     { get; set; }
-        [JsonPropertyName("overallEntrustmentLevel")] public int OverallEntrustmentLevel        { get; set; }
-        [JsonPropertyName("safetyEscalationRequired")] public bool SafetyEscalationRequired    { get; set; }
-        [JsonPropertyName("evaluationTrace")]      public string? EvaluationTrace               { get; set; }
+        [JsonPropertyName("epaAssessments")]
+        public List<GeminiEpaItem>? EpaAssessments { get; set; }
+
+        [JsonPropertyName("diagnosisModifier")]
+        public int DiagnosisModifier { get; set; }
+
+        [JsonPropertyName("diagnosisMatchType")]
+        public string? DiagnosisMatchType { get; set; }
+
+        [JsonPropertyName("timeModifier")]
+        public int TimeModifier { get; set; }
+
+        [JsonPropertyName("totalWarningPenalty")]
+        public int TotalWarningPenalty { get; set; }
+
+        [JsonPropertyName("cognitiveAlerts")]
+        public List<string>? CognitiveAlerts { get; set; }
+
+        [JsonPropertyName("finalScore")]
+        public int FinalScore { get; set; }
+
+        [JsonPropertyName("overallEntrustmentLevel")]
+        public int OverallEntrustmentLevel { get; set; }
+
+        [JsonPropertyName("safetyEscalationRequired")]
+        public bool SafetyEscalationRequired { get; set; }
+
+        [JsonPropertyName("evaluationTrace")]
+        public string? EvaluationTrace { get; set; }
+
+        [JsonPropertyName("adjustmentExplanations")]
+        public GeminiAdjustmentExplanations? AdjustmentExplanations { get; set; }
+    }
+
+    private sealed class GeminiAdjustmentExplanations
+    {
+        [JsonPropertyName("diagnosis")]
+        public string? Diagnosis { get; set; }
+
+        [JsonPropertyName("time")]
+        public string? Time { get; set; }
+
+        [JsonPropertyName("warnings")]
+        public List<GeminiWarningExplanation>? Warnings { get; set; }
+    }
+
+    private sealed class GeminiWarningExplanation
+    {
+        [JsonPropertyName("label")]
+        public string? Label { get; set; }
+
+        [JsonPropertyName("reason")]
+        public string? Reason { get; set; }
     }
 
     private sealed class GeminiEpaItem
     {
-        [JsonPropertyName("epaId")]           public string  EpaId            { get; set; } = string.Empty;
-        [JsonPropertyName("score")]           public int     Score            { get; set; }
-        [JsonPropertyName("entrustmentLevel")] public int   EntrustmentLevel  { get; set; }
-        [JsonPropertyName("feedback")]        public string? Feedback          { get; set; }
-        [JsonPropertyName("evidenceCited")]   public List<string>? EvidenceCited  { get; set; }
-        [JsonPropertyName("failurePatterns")] public List<string>? FailurePatterns { get; set; }
-        [JsonPropertyName("safetyFlags")]     public List<string>? SafetyFlags     { get; set; }
+        [JsonPropertyName("epaId")]
+        public string EpaId { get; set; } = string.Empty;
+
+        [JsonPropertyName("score")]
+        public int Score { get; set; }
+
+        [JsonPropertyName("entrustmentLevel")]
+        public int EntrustmentLevel { get; set; }
+
+        [JsonPropertyName("feedback")]
+        public string? Feedback { get; set; }
+
+        [JsonPropertyName("evidenceCited")]
+        public List<string>? EvidenceCited { get; set; }
+
+        // failurePatterns = validation categories: valid, ethics_violation, workflow_violation,
+        //                   unsafe_question, irrelevant_question, clinical_reasoning_issue
+        [JsonPropertyName("failurePatterns")]
+        public List<string>? FailurePatterns { get; set; }
+
+        [JsonPropertyName("safetyFlags")]
+        public List<string>? SafetyFlags { get; set; }
     }
 }

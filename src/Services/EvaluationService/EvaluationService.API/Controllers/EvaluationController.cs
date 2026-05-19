@@ -1,12 +1,12 @@
-using Microsoft.AspNetCore.Mvc;
-using MediatR;
+using EvaluationService.Application.Commands.CreateIssue;
 using EvaluationService.Application.Commands.DeleteEvaluation;
 using EvaluationService.Application.Commands.GeneratePracticeFeedback;
-using EvaluationService.Application.Commands.CreateIssue;
-using EvaluationService.Application.Queries.GetReport;
+using EvaluationService.Application.Commands.SubmitEvaluation;
 using EvaluationService.Application.Queries.GetHistory;
 using EvaluationService.Application.Queries.GetIssues;
-using EvaluationService.Application.Commands.SubmitEvaluation;
+using EvaluationService.Application.Queries.GetReport;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EvaluationService.API.Controllers;
 
@@ -26,8 +26,8 @@ public class EvaluationController : ControllerBase
     }
 
     [HttpGet("{userId}/history")]
-    public async Task<IActionResult> GetHistory(string userId)
-        => Ok(await _mediator.Send(new GetUserHistoryQuery(userId)));
+    public async Task<IActionResult> GetHistory(string userId) =>
+        Ok(await _mediator.Send(new GetUserHistoryQuery(userId)));
 
     [HttpGet("{id}/report")]
     public async Task<IActionResult> GetReport(string id)
@@ -40,28 +40,29 @@ public class EvaluationController : ControllerBase
     public async Task<IActionResult> GeneratePracticeFeedback(string practiceSessionId)
     {
         var result = await _mediator.Send(new GeneratePracticeFeedbackCommand(practiceSessionId));
-        return Ok(new
-        {
-            message = result.WasCached
-                ? "Feedback retrieved from cache."
-                : "Feedback generated successfully.",
-            data = result
-        });
+        return Ok(
+            new
+            {
+                message = result.WasCached
+                    ? "Feedback retrieved from cache."
+                    : "Feedback generated successfully.",
+                data = result,
+            }
+        );
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {
         var deleted = await _mediator.Send(new DeleteEvaluationCommand(id));
-        return deleted
-            ? NoContent()
-            : NotFound(new { message = $"Evaluation '{id}' not found." });
+        return deleted ? NoContent() : NotFound(new { message = $"Evaluation '{id}' not found." });
     }
 
     [HttpGet("issues")]
     public async Task<IActionResult> GetIssues(
         [FromQuery] string practiceSessionId,
-        [FromQuery] string learnerId)
+        [FromQuery] string learnerId
+    )
     {
         var result = await _mediator.Send(new GetIssuesQuery(practiceSessionId, learnerId));
         return Ok(result);

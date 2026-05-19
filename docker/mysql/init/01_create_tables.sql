@@ -298,6 +298,7 @@ CREATE TABLE evaluation
     feedback_detail     TEXT,
     entrustment_level   INT,
     rubric_version VARCHAR(20),
+    pure_epa_score      INT DEFAULT 0,
     CONSTRAINT fk_eval_practice FOREIGN KEY (practice_session_id) REFERENCES practice_sessions (id) ON DELETE CASCADE
 );
 

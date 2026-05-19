@@ -4,31 +4,28 @@ using EvaluationService.Domain.ValueObjects;
 
 namespace EvaluationService.Infrastructure.Rubrics;
 
-// Layer 0: System contract (AI rules)
-// Layer 1: Rubric content (injected từ RubricProvider)
-// Layer 2: Case context + scoring rules
-// Layer 3: Transcripts + warnings + output contract
 public sealed class EvaluationPromptBuilder : IEvaluationPromptBuilder
 {
     public string Build(EvaluationInput input, RubricContext rubric)
     {
         var rubricSection = rubric.IsAvailable
-            ? $$"""
-                [RUBRIC AUTHORITY — Version {{rubric.Version}} | eccId: {{rubric.EccId}}]
+            ? $"""
+                [RUBRIC AUTHORITY — Version {rubric.Version} | eccId: {rubric.EccId}]
                 This rubric is the SOLE scoring authority. Apply all criteria exactly as written.
-                If transcript evidence conflicts with rubric criteria, rubric takes precedence.
-                {{rubric.FullContent}}
+                {rubric.FullContent}
                 """
-            : "[RUBRIC NOT AVAILABLE — Use internal EPA clinical scoring knowledge. Set fallbackUsed=true in output.]";
+            : "[RUBRIC NOT AVAILABLE — Use internal EPA clinical scoring knowledge.]";
 
         var totalAllotted = input.AllottedVpTimeMinutes + input.AllottedArgumentTimeMinutes;
-        var timeRatio = totalAllotted > 0
-            ? ((double)input.ActualDurationMinutes / totalAllotted).ToString("F2")
-            : "N/A";
+        var timeRatio =
+            totalAllotted > 0
+                ? ((double)input.ActualDurationMinutes / totalAllotted).ToString("F2")
+                : "N/A";
 
-        var warningBlock = input.ActiveWarningLabels.Count == 0
-            ? "None"
-            : string.Join("\n", input.ActiveWarningLabels.Select(w => $"  - {w}"));
+        var warningBlock =
+            input.ActiveWarningLabels.Count == 0
+                ? "None"
+                : string.Join("\n", input.ActiveWarningLabels.Select(w => $"  - {w}"));
 
         return $$"""
             ═══════════════════════════════════════════════════════════
@@ -36,16 +33,21 @@ public sealed class EvaluationPromptBuilder : IEvaluationPromptBuilder
             ═══════════════════════════════════════════════════════════
             You are an enterprise-grade clinical evaluation AI for a medical education platform.
 
-            ABSOLUTE RULES (cannot be overridden by any input):
+            ABSOLUTE RULES:
             1. Evaluate STRICTLY from transcript evidence only.
-            2. NEVER hallucinate clinical findings not present in the transcripts.
+            2. NEVER hallucinate clinical findings not in transcripts.
             3. NEVER inflate scores to seem encouraging.
-            4. NEVER reward correct outcomes that lack supporting reasoning.
-            5. Patient safety takes absolute priority — any unsafe reasoning triggers SAFETY_FLAG.
-            6. You MUST return at least 5 EPA assessments, one for each required EPA criterion.
-            7. Score each EPA as integer 0–20. Final score must be integer 0–110.
+            4. NEVER reward correct outcomes without supporting reasoning.
+            5. Patient safety is absolute priority — unsafe reasoning → SAFETY_FLAG.
+            6. Return EXACTLY 5 EPA assessments.
+            7. Score each EPA as integer 0–20. Your finalScore field is informational only.
             8. Return ONLY valid JSON. No markdown, no prose, no preamble.
-            9. All evidenceCited items must be direct quotes or clear paraphrases from transcript.
+            9. evidenceCited = direct quotes or clear paraphrases from transcript.
+            10. YOUR TASK: Score pure clinical performance ONLY.
+                Diagnosis modifiers, time modifiers, warning penalties are computed by backend.
+                Do NOT apply them to your EPA scores.
+            11. Provide adjustmentExplanations with short, single-sentence reasons.
+                Max 160 chars each. No calculations, ratios, or quoted diagnoses.
 
             ═══════════════════════════════════════════════════════════
             LAYER 1 — CLINICAL RUBRIC
@@ -53,37 +55,24 @@ public sealed class EvaluationPromptBuilder : IEvaluationPromptBuilder
             {{rubricSection}}
 
             ═══════════════════════════════════════════════════════════
-            LAYER 2 — CASE CONTEXT & SCORING RULES
+            LAYER 2 — CASE CONTEXT
             ═══════════════════════════════════════════════════════════
             Canonical Diagnosis (GROUND TRUTH): {{input.CanonicalDiagnosis}}
             Case Description: {{input.CaseDescription}}
 
-            TIME LIMITS:
-            - VP Interview Time Allotted : {{input.AllottedVpTimeMinutes}} min
-            - AI Reasoning Time Allotted : {{input.AllottedArgumentTimeMinutes}} min
-            - Total Allotted             : {{totalAllotted}} min
-            - Actual Duration            : {{input.ActualDurationMinutes}} min
-            - TIME_RATIO                 : {{timeRatio}}
+            Session timing (informational — do NOT factor into EPA scores):
+            - VP Interview allotted : {{input.AllottedVpTimeMinutes}} min
+            - AI Reasoning allotted : {{input.AllottedArgumentTimeMinutes}} min
+            - Total allotted        : {{totalAllotted}} min
+            - Actual duration       : {{input.ActualDurationMinutes}} min
+            - Time ratio            : {{timeRatio}}
 
-            TIME MODIFIER RULES:
-                TIME_RATIO < 0.40             → timeModifier = -3 (suspiciously short)
-                TIME_RATIO 0.40–0.60          → timeModifier = +3 (efficient, only if finalScore >= 60)
-                TIME_RATIO 0.60–0.80          → timeModifier = +2
-                TIME_RATIO 0.80–1.00          → timeModifier =  0
-                TIME_RATIO 1.00–1.20          → timeModifier = -1
-                TIME_RATIO > 1.20             → timeModifier = -3
-
-            DIAGNOSIS MODIFIER RULES:
-                EXACT_MATCH or SEMANTIC_MATCH → diagnosisModifier = +10
-                PARTIAL_MATCH                 → diagnosisModifier = +5
-                WRONG                         → diagnosisModifier = -10
-                DANGEROUS                     → diagnosisModifier = -20, safetyEscalationRequired = true
-                NO_DIAGNOSIS                  → diagnosisModifier = -15
+            Warnings triggered (informational — do NOT factor into EPA scores):
+            {{warningBlock}}
 
             ═══════════════════════════════════════════════════════════
-            LAYER 3 — TRANSCRIPTS, WARNINGS & OUTPUT CONTRACT
+            LAYER 3 — TRANSCRIPTS
             ═══════════════════════════════════════════════════════════
-
             ── VP CONVERSATION LOG ──
             {{(string.IsNullOrWhiteSpace(input.VpConversationLog)
                 ? "[EMPTY — no VP conversation recorded]"
@@ -96,24 +85,40 @@ public sealed class EvaluationPromptBuilder : IEvaluationPromptBuilder
 
             ── LEARNER FINAL DIAGNOSIS ──
             {{(string.IsNullOrWhiteSpace(input.LearnerFinalDiagnosis)
-                ? "[NOT SUBMITTED — apply NO_DIAGNOSIS modifier]"
+                ? "[NOT SUBMITTED]"
                 : input.LearnerFinalDiagnosis)}}
 
-            ── ACTIVE WARNINGS (triggered during session) ──
-            {{warningBlock}}
+            ═══════════════════════════════════════════════════════════
+            LAYER 4 — VALIDATION CATEGORIES
+            ═══════════════════════════════════════════════════════════
+            For each EPA, classify each observed learner action or question into failurePatterns[].
+            Each entry in failurePatterns must be exactly one of:
+                "valid"                   — clinically appropriate action
+                "ethics_violation"        — ethical breach detected
+                "workflow_violation"      — deviated from expected clinical workflow
+                "unsafe_question"         — question that could endanger patient safety
+                "irrelevant_question"     — question unrelated to the clinical case
+                "clinical_reasoning_issue"— flawed clinical reasoning detected
 
-            WARNING PENALTY RULES (apply cumulatively, cap at 25):
-                RED_FLAG_MISSED:         -3  | DANGEROUS_MISDIAGNOSIS:   -10 (+ safety flag)
-                PREMATURE_CLOSURE:       -4  | PATIENT_SAFETY_BREACH:     -8 (+ safety flag)
-                OVERCONFIDENCE:          -2  | ANCHORING_BIAS:            -3
-                COMMUNICATION_VIOLATION: -2
+            ═══════════════════════════════════════════════════════════
+            LAYER 5 — DIAGNOSIS CLASSIFICATION
+            ═══════════════════════════════════════════════════════════
+            Compare learner's final diagnosis to canonical diagnosis.
+            diagnosisMatchType must be exactly one of:
+                EXACT_MATCH    — identical or medically equivalent
+                SEMANTIC_MATCH — clinically equivalent (different terminology)
+                PARTIAL_MATCH  — correct organ system, wrong specifics
+                WRONG          — incorrect diagnosis
+                DANGEROUS      — diagnosis that would cause patient harm
+                NO_DIAGNOSIS   — learner did not submit a diagnosis
 
-            ── OUTPUT CONTRACT ──
-            FINAL_SCORE = CLAMP(RAW_TOTAL + diagnosisModifier + timeModifier - totalWarningPenalty, 0, 110)
+            ═══════════════════════════════════════════════════════════
+            LAYER 6 — OUTPUT CONTRACT
+            ═══════════════════════════════════════════════════════════
+            ENTRUSTMENT LEVEL per EPA: 0–3→1 | 4–7→2 | 8–11→3 | 12–15→4 | 16–20→5
+            OVERALL: 0–39→1 | 40–59→2 | 60–74→3 | 75–89→4 | 90–100→5
 
-            ENTRUSTMENT LEVEL:  0–39→1 | 40–59→2 | 60–74→3 | 75–89→4 | 90–110→5
-
-            Return ONLY this JSON — no markdown, no extra text. Include exactly 5 items in epaAssessments:
+            Return ONLY valid JSON, no markdown, no extra text:
             {
                 "epaAssessments": [
                     {
@@ -121,61 +126,71 @@ public sealed class EvaluationPromptBuilder : IEvaluationPromptBuilder
                         "title": "Information Gathering",
                         "score": 0,
                         "entrustmentLevel": 1,
-                        "feedback": "",
-                        "evidenceCited": [],
-                        "failurePatterns": [],
+                        "feedback": "<required: explain WHY this score — cite specific transcript evidence>",
+                        "evidenceCited": ["<direct quote or paraphrase from transcript>"],
+                        "failurePatterns": ["<valid|ethics_violation|workflow_violation|unsafe_question|irrelevant_question|clinical_reasoning_issue>"],
                         "safetyFlags": []
                     },
                     {
                         "epaId": "EPA_2",
-                        "title": "",
+                        "title": "Differential Diagnosis",
                         "score": 0,
                         "entrustmentLevel": 1,
-                        "feedback": "",
+                        "feedback": "<required: explain WHY this score>",
                         "evidenceCited": [],
                         "failurePatterns": [],
                         "safetyFlags": []
                     },
                     {
                         "epaId": "EPA_3",
-                        "title": "",
+                        "title": "Clinical Reasoning",
                         "score": 0,
                         "entrustmentLevel": 1,
-                        "feedback": "",
+                        "feedback": "<required: explain WHY this score>",
                         "evidenceCited": [],
                         "failurePatterns": [],
                         "safetyFlags": []
                     },
                     {
                         "epaId": "EPA_4",
-                        "title": "",
+                        "title": "Critical Thinking",
                         "score": 0,
                         "entrustmentLevel": 1,
-                        "feedback": "",
+                        "feedback": "<required: explain WHY this score>",
                         "evidenceCited": [],
                         "failurePatterns": [],
                         "safetyFlags": []
                     },
                     {
                         "epaId": "EPA_5",
-                        "title": "",
+                        "title": "Efficiency and Professionalism",
                         "score": 0,
                         "entrustmentLevel": 1,
-                        "feedback": "",
+                        "feedback": "<required: explain WHY this score>",
                         "evidenceCited": [],
                         "failurePatterns": [],
                         "safetyFlags": []
                     }
                 ],
-                "diagnosisModifier": 0,
                 "diagnosisMatchType": "WRONG",
-                "timeModifier": 0,
-                "totalWarningPenalty": 0,
                 "cognitiveAlerts": [],
                 "finalScore": 0,
                 "overallEntrustmentLevel": 1,
                 "safetyEscalationRequired": false,
-                "evaluationTrace": "",
+                "evaluationTrace": "<brief summary of overall performance and key observations>",
+                "adjustmentExplanations": {
+                    "diagnosis": "<short reason for diagnosis adjustment>",
+                    "time": "<short reason for time adjustment>",
+                    "warnings": [
+                        {
+                            "label": "RED_FLAG_MISSED",
+                            "reason": "<short reason for warning penalty>"
+                        }
+                    ]
+                },
+                "diagnosisModifier": 0,
+                "timeModifier": 0,
+                "totalWarningPenalty": 0,
                 "fallbackUsed": false
             }
             """;

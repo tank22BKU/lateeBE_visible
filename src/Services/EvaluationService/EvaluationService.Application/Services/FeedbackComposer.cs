@@ -12,28 +12,30 @@ namespace EvaluationService.Application.Services;
 public sealed class FeedbackComposer : IFeedbackComposer
 {
     private readonly IConfiguration _config;
-    private readonly HttpClient     _httpClient;
+    private readonly HttpClient _httpClient;
     private readonly ILogger<FeedbackComposer> _logger;
 
     private const string ModelEndpoint =
         "[https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent](https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent)";
 
     public FeedbackComposer(
-        IConfiguration             config,
-        IHttpClientFactory        httpClientFactory,
-        ILogger<FeedbackComposer> logger)
+        IConfiguration config,
+        IHttpClientFactory httpClientFactory,
+        ILogger<FeedbackComposer> logger
+    )
     {
-        _config     = config;
+        _config = config;
         _httpClient = httpClientFactory.CreateClient();
-        _logger     = logger;
+        _logger = logger;
     }
 
     public async Task<PracticeFeedbackResponseDto> ComposeAsync(
-        PracticeSession           session,
-        Evaluation               evaluation,
+        PracticeSession session,
+        Evaluation evaluation,
         List<EvaluationEpaScore> epaScores,
-        List<Warning>            warnings,
-        CancellationToken        ct = default)
+        List<Warning> warnings,
+        CancellationToken ct = default
+    )
     {
         var prompt = BuildPrompt(session, evaluation, epaScores, warnings);
         var apiKey = _config["GeminiAi:ApiKey"] ?? _config["GEMINI_API_KEY"];
@@ -48,22 +50,26 @@ public sealed class FeedbackComposer : IFeedbackComposer
     }
 
     private static string BuildPrompt(
-        PracticeSession           session,
-        Evaluation               evaluation,
+        PracticeSession session,
+        Evaluation evaluation,
         List<EvaluationEpaScore> epaScores,
-        List<Warning>            warnings)
+        List<Warning> warnings
+    )
     {
         var warningLabels = warnings.Select(w => w.Label ?? "UNKNOWN").ToList();
-        var finalScore    = (int)(evaluation.Score ?? 0);
-        var level         = evaluation.EntrustmentLevel ?? 1;
+        var finalScore = (int)(evaluation.Score ?? 0);
+        var level = evaluation.EntrustmentLevel ?? 1;
 
         var epaContext = new StringBuilder();
         foreach (var epa in epaScores)
         {
             epaContext.AppendLine(
-                $"- {epa.EpaId}: {epa.NumericalScore}/20 (Level {epa.EntrustmentLevel}) — {epa.FeedbackDetail}");
+                $"- {epa.EpaId}: {epa.NumericalScore}/20 (Level {epa.EntrustmentLevel}) — {epa.FeedbackDetail}"
+            );
             if (epa.EvidenceCited.Count > 0)
-                epaContext.AppendLine($"  Evidence: {string.Join("; ", epa.EvidenceCited.Take(2))}");
+                epaContext.AppendLine(
+                    $"  Evidence: {string.Join("; ", epa.EvidenceCited.Take(2))}"
+                );
             if (epa.FailurePatterns.Count > 0)
                 epaContext.AppendLine($"  Failures: {string.Join(", ", epa.FailurePatterns)}");
         }
@@ -104,25 +110,33 @@ public sealed class FeedbackComposer : IFeedbackComposer
     }
 
     private async Task<PracticeFeedbackResponseDto> CallGeminiAsync(
-        string prompt, string apiKey, Evaluation evaluation, CancellationToken ct)
+        string prompt,
+        string apiKey,
+        Evaluation evaluation,
+        CancellationToken ct
+    )
     {
-        var url  = $"{ModelEndpoint}?key={apiKey}";
+        var url = $"{ModelEndpoint}?key={apiKey}";
         var body = new
         {
-            contents         = new[] { new { parts = new[] { new { text = prompt } } } },
-            generationConfig = new { temperature = 0.2, responseMimeType = "application/json" }
+            contents = new[] { new { parts = new[] { new { text = prompt } } } },
+            generationConfig = new { temperature = 0.2, responseMimeType = "application/json" },
         };
 
         try
         {
-            var content  = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
+            var content = new StringContent(
+                JsonSerializer.Serialize(body),
+                Encoding.UTF8,
+                "application/json"
+            );
             var response = await _httpClient.PostAsync(url, content, ct);
             response.EnsureSuccessStatusCode();
 
             var raw = await response.Content.ReadAsStringAsync(ct);
             using var doc = JsonDocument.Parse(raw);
-            var text = doc.RootElement
-                .GetProperty("candidates")[0]
+            var text = doc
+                .RootElement.GetProperty("candidates")[0]
                 .GetProperty("content")
                 .GetProperty("parts")[0]
                 .GetProperty("text")
@@ -143,7 +157,7 @@ public sealed class FeedbackComposer : IFeedbackComposer
     private static PracticeFeedbackResponseDto ParseFeedback(string raw)
     {
         var clean = raw.Trim();
-        
+
         if (clean.StartsWith("```"))
         {
             var firstNewLine = clean.IndexOf('\n');
@@ -155,21 +169,22 @@ public sealed class FeedbackComposer : IFeedbackComposer
         }
 
         var start = clean.IndexOf('{');
-        var end   = clean.LastIndexOf('}');
-        if (start >= 0 && end > start) 
+        var end = clean.LastIndexOf('}');
+        if (start >= 0 && end > start)
         {
             clean = clean.Substring(start, end - start + 1);
         }
 
-        var opts   = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         var parsed = JsonSerializer.Deserialize<FeedbackSchema>(clean, opts);
 
         return new PracticeFeedbackResponseDto
         {
-            Strength       = parsed?.Strength,
-            Improvement    = $"{parsed?.Weakness}\n\nImprovement Steps:\n{parsed?.ImprovementSuggestion}",
+            Strength = parsed?.Strength,
+            Improvement =
+                $"{parsed?.Weakness}\n\nImprovement Steps:\n{parsed?.ImprovementSuggestion}",
             OverallAttempt = parsed?.OverallAttemptFeedback,
-            OverallLabel   = parsed?.OverallLabel ?? "DEVELOPING"
+            OverallLabel = parsed?.OverallLabel ?? "DEVELOPING",
         };
     }
 
@@ -178,16 +193,17 @@ public sealed class FeedbackComposer : IFeedbackComposer
         var score = (int)(eval.Score ?? 0);
         return new PracticeFeedbackResponseDto
         {
-            Strength       = "Feedback requires AI service. Check Gemini API configuration.",
-            Improvement    = "Review your EPA performance breakdown above for specific areas.",
-            OverallAttempt = $"Session completed with score {score}/110. Detailed coaching unavailable.",
-            OverallLabel   = score switch
+            Strength = "Feedback requires AI service. Check Gemini API configuration.",
+            Improvement = "Review your EPA performance breakdown above for specific areas.",
+            OverallAttempt =
+                $"Session completed with score {score}/110. Detailed coaching unavailable.",
+            OverallLabel = score switch
             {
                 >= 90 => "EXCELLENT",
                 >= 75 => "GOOD",
                 >= 60 => "DEVELOPING",
-                _     => "NEEDS_IMPROVEMENT"
-            }
+                _ => "NEEDS_IMPROVEMENT",
+            },
         };
     }
 
@@ -198,10 +214,10 @@ public sealed class FeedbackComposer : IFeedbackComposer
 
     private sealed class FeedbackSchema
     {
-        public string? Strength               { get; set; }
-        public string? Weakness               { get; set; }
-        public string? ImprovementSuggestion  { get; set; }
+        public string? Strength { get; set; }
+        public string? Weakness { get; set; }
+        public string? ImprovementSuggestion { get; set; }
         public string? OverallAttemptFeedback { get; set; }
-        public string? OverallLabel           { get; set; }
+        public string? OverallLabel { get; set; }
     }
 }

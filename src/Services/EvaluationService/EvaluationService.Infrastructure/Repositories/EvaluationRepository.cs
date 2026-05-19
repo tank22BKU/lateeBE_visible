@@ -11,37 +11,42 @@ public class EvaluationRepository : IEvaluationRepository
 
     public EvaluationRepository(EvaluationDbContext db) => _db = db;
 
-    public async Task<Evaluation?> GetByIdAsync(string id)
-        => await _db.Evaluations
-            .Include(e => e.EpaScores)
-            .FirstOrDefaultAsync(x => x.Id == id);
+    public async Task<Evaluation?> GetByIdAsync(string id) =>
+        await _db.Evaluations.Include(e => e.EpaScores).FirstOrDefaultAsync(x => x.Id == id);
 
-    public async Task<List<Evaluation>> GetByLearnerIdAsync(string learnerId)
-        => await _db.Evaluations
-            .Join(_db.PracticeSessions,
-                eval    => eval.PracticeSessionId,
+    public async Task<List<Evaluation>> GetByLearnerIdAsync(string learnerId) =>
+        await _db
+            .Evaluations.Join(
+                _db.PracticeSessions,
+                eval => eval.PracticeSessionId,
                 session => session.Id,
-                (eval, session) => new { eval, session })
+                (eval, session) => new { eval, session }
+            )
             .Where(x => x.session.LearnerId == learnerId)
             .OrderByDescending(x => x.eval.CreatedAt)
             .Select(x => x.eval)
             .AsNoTracking()
             .ToListAsync();
 
-    public async Task<PracticeSession?> GetPracticeSessionByIdAsync(string id)
-        => await _db.PracticeSessions.FirstOrDefaultAsync(x => x.Id == id);
+    public async Task<PracticeSession?> GetPracticeSessionByIdAsync(string id) =>
+        await _db.PracticeSessions.FirstOrDefaultAsync(x => x.Id == id);
 
-    public async Task<List<Warning>> GetWarningsByPracticeSessionIdAsync(string practiceSessionId)
-        => await _db.Warnings
-            .AsNoTracking()
+    public async Task<List<Warning>> GetWarningsByPracticeSessionIdAsync(
+        string practiceSessionId
+    ) =>
+        await _db
+            .Warnings.AsNoTracking()
             .Where(x => x.PracticeSessionId == practiceSessionId)
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync();
 
-    public async Task<ClinicalCaseDiagnosisDto?> GetClinicalDiagnosisByPatientIdAsync(string patientId)
+    public async Task<ClinicalCaseDiagnosisDto?> GetClinicalDiagnosisByPatientIdAsync(
+        string patientId
+    )
     {
-        var result = await _db.Database
-            .SqlQuery<ClinicalCaseDiagnosisRaw>($"""
+        var result = await _db
+            .Database.SqlQuery<ClinicalCaseDiagnosisRaw>(
+                $"""
                 SELECT
                     cc.case_id        AS CaseId,
                     cc.eccid          AS EccId,
@@ -53,25 +58,28 @@ public class EvaluationRepository : IEvaluationRepository
                 INNER JOIN clinical_case cc ON vp.case_id = cc.case_id
                 WHERE vp.patient_id = {patientId}
                 LIMIT 1
-                """)
+                """
+            )
             .FirstOrDefaultAsync();
 
-        if (result == null) return null;
+        if (result == null)
+            return null;
 
         return new ClinicalCaseDiagnosisDto(
-            CaseId:             result.CaseId             ?? string.Empty,
-            EccId:              result.EccId              ?? string.Empty,
+            CaseId: result.CaseId ?? string.Empty,
+            EccId: result.EccId ?? string.Empty,
             CanonicalDiagnosis: result.CanonicalDiagnosis ?? string.Empty,
-            DescriptionText:    result.DescriptionText    ?? string.Empty,
-            Symptom:            result.Symptom            ?? string.Empty,
-            MedicalHistory:     result.MedicalHistory     ?? string.Empty
+            DescriptionText: result.DescriptionText ?? string.Empty,
+            Symptom: result.Symptom ?? string.Empty,
+            MedicalHistory: result.MedicalHistory ?? string.Empty
         );
     }
 
     public async Task<VirtualPatientRef?> GetVirtualPatientByIdAsync(string patientId)
     {
-        var result = await _db.Database
-            .SqlQuery<VirtualPatientRaw>($"""
+        var result = await _db
+            .Database.SqlQuery<VirtualPatientRaw>(
+                $"""
                 SELECT
                     patient_id    AS PatientId,
                     time_setting  AS TimeSettingMinutes,
@@ -79,57 +87,70 @@ public class EvaluationRepository : IEvaluationRepository
                 FROM virtual_patient
                 WHERE patient_id = {patientId}
                 LIMIT 1
-                """)
+                """
+            )
             .FirstOrDefaultAsync();
 
-        if (result == null) return null;
+        if (result == null)
+            return null;
 
         return new VirtualPatientRef(
-            PatientId:           result.PatientId          ?? string.Empty,
-            TimeSettingMinutes:  result.TimeSettingMinutes  ?? 30,
+            PatientId: result.PatientId ?? string.Empty,
+            TimeSettingMinutes: result.TimeSettingMinutes ?? 30,
             ArgumentTimeMinutes: result.ArgumentTimeMinutes ?? 15
         );
     }
 
     public async Task<RubricDto?> GetRubricByEccIdAsync(string eccId)
     {
-        if (string.IsNullOrWhiteSpace(eccId)) return null;
+        if (string.IsNullOrWhiteSpace(eccId))
+            return null;
 
-        var result = await _db.Database
-            .SqlQuery<RubricRaw>($"""
+        var result = await _db
+            .Database.SqlQuery<RubricRaw>(
+                $"""
                 SELECT id, description, version
                 FROM evaluation_clinical_criteria
                 WHERE id = {eccId}
                 LIMIT 1
-                """)
+                """
+            )
             .FirstOrDefaultAsync();
 
-        if (result == null) return null;
+        if (result == null)
+            return null;
 
         return new RubricDto(
-            Id:          result.Id          ?? string.Empty,
+            Id: result.Id ?? string.Empty,
             Description: result.Description ?? string.Empty,
-            Version:     result.Version     ?? "1.0.0"
+            Version: result.Version ?? "1.0.0"
         );
     }
 
-    public async Task<PracticeFeedback?> GetPracticeFeedbackBySessionIdAsync(string practiceSessionId)
-        => await _db.PracticeFeedbacks
-            .AsNoTracking()
+    public async Task<PracticeFeedback?> GetPracticeFeedbackBySessionIdAsync(
+        string practiceSessionId
+    ) =>
+        await _db
+            .PracticeFeedbacks.AsNoTracking()
             .FirstOrDefaultAsync(x => x.PracticeSessionId == practiceSessionId);
 
-
-    public async Task<List<EvaluationEpaScore>> GetEpaScoresByEvaluationIdAsync(string evaluationId)
-        => await _db.EpaScores
-            .AsNoTracking()
+    public async Task<List<EvaluationEpaScore>> GetEpaScoresByEvaluationIdAsync(
+        string evaluationId
+    ) =>
+        await _db
+            .EpaScores.AsNoTracking()
             .Where(x => x.EvaluationId == evaluationId)
             .OrderBy(x => x.EpaId)
             .ToListAsync();
 
-    public async Task<List<IssueListItem>> GetIssuesAsync(string practiceSessionId, string learnerId)
+    public async Task<List<IssueListItem>> GetIssuesAsync(
+        string practiceSessionId,
+        string learnerId
+    )
     {
-        var rows = await _db.Database
-            .SqlQuery<IssueRow>($"""
+        var rows = await _db
+            .Database.SqlQuery<IssueRow>(
+                $"""
                 SELECT
                     i.id AS IssueId,
                     i.learner_id AS LearnerId,
@@ -149,11 +170,11 @@ public class EvaluationRepository : IEvaluationRepository
                     AND i.practice_session_id = {practiceSessionId}
                     AND i.learner_id = {learnerId}
                 ORDER BY i.created_at DESC
-                """)
+                """
+            )
             .ToListAsync();
 
-        return rows
-            .GroupBy(r => new
+        return rows.GroupBy(r => new
             {
                 r.IssueId,
                 r.LearnerId,
@@ -161,7 +182,7 @@ public class EvaluationRepository : IEvaluationRepository
                 r.CreatedAt,
                 r.Label,
                 r.Description,
-                r.Status
+                r.Status,
             })
             .Select(g =>
             {
@@ -190,17 +211,17 @@ public class EvaluationRepository : IEvaluationRepository
             .ToList();
     }
 
-    public async Task AddEvaluationAsync(Evaluation evaluation)
-        => await _db.Evaluations.AddAsync(evaluation);
+    public async Task AddEvaluationAsync(Evaluation evaluation) =>
+        await _db.Evaluations.AddAsync(evaluation);
 
-    public async Task AddEpaScoresAsync(IEnumerable<EvaluationEpaScore> scores)
-        => await _db.EpaScores.AddRangeAsync(scores);
+    public async Task AddEpaScoresAsync(IEnumerable<EvaluationEpaScore> scores) =>
+        await _db.EpaScores.AddRangeAsync(scores);
 
     public async Task AddWarningsAsync(IEnumerable<Warning> warnings)
     {
         var incomingIds = warnings.Select(w => w.Id).ToList();
-        var existingIds = await _db.Warnings
-            .Where(w => incomingIds.Contains(w.Id))
+        var existingIds = await _db
+            .Warnings.Where(w => incomingIds.Contains(w.Id))
             .Select(w => w.Id)
             .ToListAsync();
 
@@ -211,11 +232,10 @@ public class EvaluationRepository : IEvaluationRepository
             await _db.Warnings.AddRangeAsync(newWarnings);
     }
 
-    public async Task AddPracticeFeedbackAsync(PracticeFeedback feedback)
-        => await _db.PracticeFeedbacks.AddAsync(feedback);
+    public async Task AddPracticeFeedbackAsync(PracticeFeedback feedback) =>
+        await _db.PracticeFeedbacks.AddAsync(feedback);
 
-    public async Task AddIssueAsync(Issue issue)
-        => await _db.Issues.AddAsync(issue);
+    public async Task AddIssueAsync(Issue issue) => await _db.Issues.AddAsync(issue);
 
     public Task UpdatePracticeSessionAsync(PracticeSession session)
     {
@@ -226,34 +246,34 @@ public class EvaluationRepository : IEvaluationRepository
     public async Task DeleteAsync(string id)
     {
         var entity = await _db.Evaluations.FirstOrDefaultAsync(x => x.Id == id);
-        if (entity != null) _db.Evaluations.Remove(entity);
+        if (entity != null)
+            _db.Evaluations.Remove(entity);
     }
 
     public Task SaveChangesAsync() => _db.SaveChangesAsync();
 
-
     private sealed class ClinicalCaseDiagnosisRaw
     {
-        public string? CaseId             { get; set; }
-        public string? EccId              { get; set; }
+        public string? CaseId { get; set; }
+        public string? EccId { get; set; }
         public string? CanonicalDiagnosis { get; set; }
-        public string? DescriptionText    { get; set; }
-        public string? Symptom            { get; set; }
-        public string? MedicalHistory     { get; set; }
+        public string? DescriptionText { get; set; }
+        public string? Symptom { get; set; }
+        public string? MedicalHistory { get; set; }
     }
 
     private sealed class VirtualPatientRaw
     {
-        public string? PatientId            { get; set; }
-        public int?    TimeSettingMinutes   { get; set; }
-        public int?    ArgumentTimeMinutes  { get; set; }
+        public string? PatientId { get; set; }
+        public int? TimeSettingMinutes { get; set; }
+        public int? ArgumentTimeMinutes { get; set; }
     }
 
     private sealed class RubricRaw
     {
-        public string? Id          { get; set; }
+        public string? Id { get; set; }
         public string? Description { get; set; }
-        public string? Version     { get; set; }
+        public string? Version { get; set; }
     }
 
     private sealed class IssueRow

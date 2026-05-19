@@ -14,13 +14,14 @@ public static class DependencyInjection
     {
         services.AddAutoMapper(Assembly.GetExecutingAssembly());
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+        services.AddMediatR(cfg =>
+            cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly())
+        );
 
         services.AddScoped<EvaluationOrchestrator>();
         services.AddScoped<IEpaScoreAggregator, EpaScoreAggregator>();
-        services.AddScoped<IFeedbackComposer, FeedbackComposer>();         
+        services.AddScoped<IFeedbackComposer, FeedbackComposer>();
         services.AddScoped<IEvaluationPersistenceService, EvaluationPersistenceService>();
-
 
         return services;
     }
