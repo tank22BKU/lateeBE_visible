@@ -8,6 +8,10 @@ public interface IUserRepository
 
     Task<User?> GetUserByIdAsync(string userId);
 
+    Task<Expert?> GetExpertByIdAsync(string expertId);
+
+    Task<UserDashboardStatistics> GetDashboardStatisticsAsync();
+
     Task<User> CreateUserAsync(User user);
 
     Task<User?> UpdateUserAsync(User user);

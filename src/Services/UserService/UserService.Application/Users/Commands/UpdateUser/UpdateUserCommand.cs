@@ -13,6 +13,7 @@ public sealed class UpdateUserCommand : IRequest<User?>
     public DateTime? Birthday { get; set; }
     public string? Gender { get; set; } = "Male";
     public string? Address { get; set; } = "Not set yet";
+    public string? AvatarUrl { get; set; }
     public string? Password { get; set; }
     public string? Role { get; set; }
     public string? Status { get; set; }
@@ -36,7 +37,13 @@ public sealed class UpdateUserHandler : IRequestHandler<UpdateUserCommand, User?
             Email = request.Email,
             Phone = request.Phone,
             Birthday = request.Birthday,
+            Gender = request.Gender,
+            Address = request.Address,
+            UpdatedAt = DateTime.UtcNow,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow,
             Password = request.Password,
+            AvatarUrl = request.AvatarUrl,
             Role = request.Role,
             Status = request.Status
         };
