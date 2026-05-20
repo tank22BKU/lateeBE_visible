@@ -1,5 +1,5 @@
-using MediatR;
 using EvaluationService.Domain.Repositories;
+using MediatR;
 
 namespace EvaluationService.Application.Commands.DeleteEvaluation;
 
@@ -14,7 +14,8 @@ public sealed class DeleteEvaluationHandler : IRequestHandler<DeleteEvaluationCo
     public async Task<bool> Handle(DeleteEvaluationCommand cmd, CancellationToken ct)
     {
         var existing = await _repo.GetByIdAsync(cmd.Id);
-        if (existing == null) return false;
+        if (existing == null)
+            return false;
 
         await _repo.DeleteAsync(cmd.Id);
         await _repo.SaveChangesAsync();

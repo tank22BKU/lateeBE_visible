@@ -136,9 +136,9 @@ Response:
   "canAttempt": true
 }
 ```
+```
 
 ### GET /api/practice-sessions/active?learnerId={learnerId}&patientId={patientId}
-Response:
 ```json
 {
   "sessionId": "SESS_20260515090000",
@@ -184,22 +184,19 @@ Request fields (types):
   "practiceSessionId": "SESS_20260515090000",
   "learnerId": "USR-LRN-08",
   "finalDiagnosis": "Acute appendicitis",
-  "vpConversationLog": {
-    "messages": [
-      { "role": "learner", "content": "Any vomiting?" },
-      { "role": "patient", "content": "Yes, once." }
-    ]
-  },
-  "aiReasoningLog": {
-    "steps": [
-      { "step": 1, "content": "Detected classic appendicitis pattern." },
-      { "step": 2, "content": "Prepared final summary." }
-    ]
-  },
+  "vpConversationLog": "{\"messages\":[{\"role\":\"learner\",\"content\":\"Any vomiting?\"},{\"role\":\"patient\",\"content\":\"Yes, once.\"}]}",
+  "aiReasoningLog": "{\"steps\":[{\"step\":1,\"content\":\"Detected classic appendicitis pattern.\"},{\"step\":2,\"content\":\"Prepared final summary.\"}]}",
   "discussionType": "Message Type",
   "moduleId": "EPA_STANDARD_V1",
   "warnings": [
-    { "warningId": "W-001", "label": "Incomplete HPI", "description": "Onset details were not asked immediately." }
+    {
+      "warningId": "W-001",
+      "practiceSessionId": "SESS_20260515090000",
+      "learnerId": "USR-LRN-08",
+      "label": "Incomplete HPI",
+      "description": "Onset details were not asked immediately.",
+      "createdAt": "2026-05-15T09:20:00Z"
+    }
   ]
 }
 ```
@@ -214,6 +211,7 @@ Response:
     "entrustmentLevel": 4,
     "feedbackDetail": "Good clinical reasoning and appropriate follow-up questions.",
     "finalDiagnosis": "Acute appendicitis",
+    "rawTotal": 88,
     "diagnosisMatchType": "MATCH",
     "diagnosisModifier": 0,
     "timeModifier": 0,
@@ -221,7 +219,17 @@ Response:
     "warningCount": 1,
     "safetyEscalationRequired": false,
     "cognitiveAlerts": [],
-    "epaScores": [],
+    "epaScores": [
+      {
+        "epaId": "EPA-001",
+        "numericalScore": 88,
+        "entrustmentLevel": 4,
+        "feedbackDetail": "Strong data gathering with a focused ROS.",
+        "evidenceCited": ["Clear onset timeline", "Asked about migration of pain"],
+        "failurePatterns": [],
+        "safetyFlags": []
+      }
+    ],
     "discussionType": "Message Type",
     "duration": 27,
     "practiceFeedbackAvailable": false
@@ -237,12 +245,16 @@ Response:
     "evaluationId": "EVAL-20260515-001",
     "practiceSessionId": "SESS_20260515090000",
     "score": 88.5,
+    "entrustmentLevel": 4,
+    "rubricVersion": "v2",
     "createdAt": "2026-05-15T09:31:00Z"
   },
   {
     "evaluationId": "EVAL-20260510-014",
     "practiceSessionId": "SESS_20260510081500",
     "score": 81.0,
+    "entrustmentLevel": 3,
+    "rubricVersion": "v2",
     "createdAt": "2026-05-10T08:45:00Z"
   }
 ]
@@ -260,28 +272,102 @@ Response:
   "moduleId": "EPA_STANDARD_V1",
   "discussionType": "Message Type",
   "finalDiagnosis": "Acute appendicitis",
-  "vpConversationLog": {
-    "messages": [
-      { "role": "learner", "content": "Where exactly is the pain?" },
-      { "role": "patient", "content": "It moved to the right lower abdomen." }
-    ]
-  },
-  "aiReasoningLog": {
-    "steps": [
-      { "step": 1, "content": "Assessed localization and progression of pain." },
-      { "step": 2, "content": "Evaluated red flags and surgical urgency." }
-    ]
-  },
+  "vpConversationLog": "{\"messages\":[{\"role\":\"learner\",\"content\":\"Where exactly is the pain?\"},{\"role\":\"patient\",\"content\":\"It moved to the right lower abdomen.\"}]}",
+  "aiReasoningLog": "{\"steps\":[{\"step\":1,\"content\":\"Assessed localization and progression of pain.\"},{\"step\":2,\"content\":\"Evaluated red flags and surgical urgency.\"}]}",
   "score": 88.5,
   "duration": 27,
-  "feedbackDetail": "Good clinical reasoning and appropriate follow-up questions.",
+  "evaluationTrace": null,
   "entrustmentLevel": 4,
+  "rubricVersion": "v2",
+  "pureEpaScore": 86,
+  "positiveAdjustmentTotal": 10,
+  "negativeAdjustmentTotal": 8,
+  "adjustmentTotal": 2,
+  "diagnosisMatch": {
+    "matchType": "EXACT_MATCH",
+    "matchTypeLabel": "Exact match",
+    "isAcceptable": true,
+    "isDangerous": false,
+    "requiresSafetyReview": false
+  },
+  "diagnosisMatchType": "EXACT_MATCH",
+  "diagnosisModifier": 10,
+  "timeModifier": -1,
+  "warningPenalty": 7,
+  "safetyEscalationRequired": false,
+  "cognitiveAlerts": [],
+  "epaScores": [
+    {
+      "epaId": "EPA-001",
+      "numericalScore": 16,
+      "maxScore": 20,
+      "entrustmentLevel": 4,
+      "feedbackDetail": "Strong data gathering with a focused ROS.",
+      "evidenceCited": ["Clear onset timeline", "Asked about migration of pain"],
+      "failurePatterns": [],
+      "safetyFlags": []
+    }
+  ],
+  "adjustments": {
+    "positive": [
+      {
+        "code": "DIAGNOSIS_EXACT_MATCH",
+        "title": "Exact diagnosis match",
+        "score": 10,
+        "reason": "Diagnosis matches the canonical condition.",
+        "source": "diagnosis",
+        "severity": "positive"
+      }
+    ],
+    "negative": [
+      {
+        "code": "TIME_OVER_SLIGHT",
+        "title": "Slightly over time",
+        "score": -1,
+        "reason": "Session exceeded allotted time by up to 20%.",
+        "source": "time",
+        "severity": "low"
+      }
+    ],
+    "validation": {
+      "hasEthicsViolation": false,
+      "hasUnsafeQuestion": false,
+      "hasWorkflowViolation": false,
+      "safetyEscalationRequired": false,
+      "totalWarnings": 1
+    }
+  },
   "createdAt": "2026-05-15T09:31:00Z",
   "warnings": [
-    { "warningId": "W-001", "label": "Incomplete HPI", "description": "Onset details were not asked immediately." }
-  ]
+    {
+      "warningId": "W-001",
+      "practiceSessionId": "SESS_20260515090000",
+      "learnerId": "USR-LRN-08",
+      "label": "Incomplete HPI",
+      "description": "Onset details were not asked immediately.",
+      "createdAt": "2026-05-15T09:20:00Z"
+    }
+  ],
+  "practiceFeedback": {
+    "id": "FB-20260515-001",
+    "overallAttempt": "Good effort",
+    "overallLabel": "Solid reasoning",
+    "strength": "Focused abdominal pain history",
+    "improvement": "Ask onset details earlier",
+    "createdAt": "2026-05-15T09:31:00Z"
+  }
 }
 ```
+
+EpaScore response fields (types):
+- epaId: string
+- numericalScore: number
+- maxScore: number
+- entrustmentLevel: number
+- feedbackDetail: string
+- evidenceCited: array of string
+- failurePatterns: array of string
+- safetyFlags: array of string
 
 ### POST /api/evaluation/practice-feedback/{practiceSessionId}
 Request:
@@ -332,7 +418,7 @@ Response:
 }
 ```
 
-### POST /evaluation/api/issues
+### POST /api/evaluation/issues
 Request:
 Request fields (types):
 - practiceSessionId: string

@@ -2,6 +2,7 @@
 ```
 lateeBE_visible
 ├─ api_v1.md
+├─ API_v2.md
 ├─ docker
 │  ├─ docker-compose copy.yml
 │  ├─ docker-compose.yml
@@ -10,8 +11,10 @@ lateeBE_visible
 │  ├─ Dockerfile.Assessment
 │  ├─ Dockerfile.ClinicalCase
 │  ├─ Dockerfile.Evaluation
+│  ├─ Dockerfile.KnowledgeResource
 │  ├─ Dockerfile.PracticeSession
 │  ├─ Dockerfile.Roadmap
+│  ├─ Dockerfile.UserService
 │  ├─ Dockerfile.VirtualPatient
 │  ├─ Dockerfile.VirtualPatient.Python
 │  ├─ Llama-3.1-Virtual-Patient-MimicIV_Ver2.0
@@ -27,7 +30,10 @@ lateeBE_visible
 │  │     ├─ 01_create_tables.sql
 │  │     ├─ 02_insert_data.sql
 │  │     ├─ 03_insert_additional_data.sql
+│  │     ├─ 04_index_database.sql
+│  │     ├─ 05_add_practice_session_status.sql
 │  │     ├─ data-sam.txt
+│  │     ├─ example__insert_data.txt
 │  │     └─ patients.txt
 │  ├─ ollama_vp_setup
 │  │  └─ Modelfile.VP
@@ -81,6 +87,7 @@ lateeBE_visible
 │     │     ├─ app.py
 │     │     ├─ assistantChat.py
 │     │     ├─ config.py
+│     │     ├─ config2.py
 │     │     ├─ data
 │     │     │  ├─ abdominal_pain_guideline.md
 │     │     │  └─ process_guideline_v1.1.docx
@@ -138,6 +145,10 @@ lateeBE_visible
 │     │  │  └─ Queries
 │     │  │     ├─ GetAllAssessments
 │     │  │     │  └─ GetAllAssessmentsHandler.cs
+│     │  │     ├─ GetAllAttempts
+│     │  │     │  ├─ AssessmentAttemptOverview.cs
+│     │  │     │  ├─ GetAllAttemptsDto.cs
+│     │  │     │  └─ GetAllAttemptsHandler.cs
 │     │  │     ├─ GetAssessmentById
 │     │  │     │  ├─ AssessmentDetailDto.cs
 │     │  │     │  └─ GetAssessmentByIdQuery.cs
@@ -173,58 +184,7 @@ lateeBE_visible
 │     │  │     └─ GeminiAiRepository.cs
 │     │  └─ AssessmentService.sln
 │     ├─ ClinicalCaseService
-│     │  ├─ ClinicalCaseService.API
-│     │  │  ├─ appsettings.Development.json
-│     │  │  ├─ appsettings.json
-│     │  │  ├─ ClinicalCaseService.API.csproj
-│     │  │  ├─ ClinicalCaseService.API.csproj.lscache
-│     │  │  ├─ ClinicalCaseService.API.http
-│     │  │  ├─ Controllers
-│     │  │  │  └─ ClinicalCaseController.cs
-│     │  │  ├─ Program.cs
-│     │  │  └─ Properties
-│     │  │     └─ launchSettings.json
-│     │  ├─ ClinicalCaseService.Application
-│     │  │  ├─ Class1.cs
-│     │  │  ├─ ClinicalCaseService.Application.csproj
-│     │  │  ├─ ClinicalCaseService.Application.csproj.lscache
-│     │  │  ├─ Commands
-│     │  │  │  ├─ CreateClinicalCase
-│     │  │  │  │  └─ CreateClinicalCaseCommand.cs
-│     │  │  │  ├─ DeleteClinicalCase
-│     │  │  │  │  └─ DeleteClinicalCaseCommand.cs
-│     │  │  │  └─ UpdateClinicalCase
-│     │  │  │     └─ UpdateClinicalCaseCommand.cs
-│     │  │  ├─ DependencyInjection.cs
-│     │  │  ├─ Dtos
-│     │  │  │  └─ PageResult.cs
-│     │  │  └─ Queries
-│     │  │     ├─ GetClinicalCaseById
-│     │  │     │  ├─ GetClinicalCaseByIdHandler.cs
-│     │  │     │  └─ GetClinicalCaseByIdQuery.cs
-│     │  │     └─ GetClinicalCases
-│     │  │        ├─ ClinicalCaseDto.cs
-│     │  │        ├─ GetClinicalCasesHandler.cs
-│     │  │        └─ GetClinicalCasesQuery.cs
-│     │  ├─ ClinicalCaseService.Domain
-│     │  │  ├─ Class1.cs
-│     │  │  ├─ ClinicalCaseService.Domain.csproj
-│     │  │  ├─ ClinicalCaseService.Domain.csproj.lscache
-│     │  │  ├─ Entities
-│     │  │  │  ├─ ClinicalCase.cs
-│     │  │  │  └─ VirtualPatient.cs
-│     │  │  └─ Repositories
-│     │  │     └─ IClinicalCaseRepository.cs
-│     │  ├─ ClinicalCaseService.Infrastructure
-│     │  │  ├─ Class1.cs
-│     │  │  ├─ ClinicalCaseService.Infrastructure.csproj
-│     │  │  ├─ ClinicalCaseService.Infrastructure.csproj.lscache
-│     │  │  ├─ DependencyInjection.cs
-│     │  │  ├─ Persistance
-│     │  │  │  └─ ClinicalCaseDbContext.cs
-│     │  │  └─ Repositories
-│     │  │     └─ ClinicalCaseRepository.cs
-│     │  └─ ClinicalCaseService.sln
+|     ├─ ├─ ....
 │     ├─ EvaluationService
 │     │  ├─ EvaluationService.API
 │     │  │  ├─ appsettings.Development.json
@@ -232,13 +192,17 @@ lateeBE_visible
 │     │  │  ├─ Controllers
 │     │  │  │  └─ EvaluationController.cs
 │     │  │  ├─ EvaluationService.API.csproj
-│     │  │  ├─ EvaluationService.API.csproj.lscache
 │     │  │  ├─ EvaluationService.API.http
 │     │  │  ├─ Program.cs
 │     │  │  └─ Properties
 │     │  │     └─ launchSettings.json
+│     │  ├─ EvaluationService.API.Tests
+│     │  │  ├─ EvaluationControllerTests.cs
+│     │  │  └─ EvaluationService.API.Tests.csproj
 │     │  ├─ EvaluationService.Application
 │     │  │  ├─ Commands
+│     │  │  │  ├─ CreateIssue
+│     │  │  │  │  └─ CreateIssueCommand.cs
 │     │  │  │  ├─ DeleteEvaluation
 │     │  │  │  │  └─ DeleteEvaluationCommand.cs
 │     │  │  │  ├─ GeneratePracticeFeedback
@@ -251,6 +215,7 @@ lateeBE_visible
 │     │  │  │  ├─ ClinicalCaseDiagnosisDto.cs
 │     │  │  │  ├─ EpaScoreDto.cs
 │     │  │  │  ├─ EvaluationReportDto.cs
+│     │  │  │  ├─ IssueListResponseDto.cs
 │     │  │  │  ├─ PracticeFeedbackResponseDto.cs
 │     │  │  │  ├─ SubmitEvaluationResultDto.cs
 │     │  │  │  └─ WarningDto.cs
@@ -261,18 +226,24 @@ lateeBE_visible
 │     │  │  ├─ Queries
 │     │  │  │  ├─ GetHistory
 │     │  │  │  │  └─ GetUserHistoryQuery.cs
+│     │  │  │  ├─ GetIssues
+│     │  │  │  │  └─ GetIssuesQuery.cs
 │     │  │  │  └─ GetReport
 │     │  │  │     └─ GetEvaluationReportQuery.cs
 │     │  │  └─ Services
 │     │  │     ├─ EpaScoreAggregator.cs
 │     │  │     ├─ EvaluationPersistenceService.cs
-│     │  │     └─ FeedbackComposer.cs
+│     │  │     ├─ FeedbackComposer.cs
+│     │  │     ├─ IEvaluationPersistenceService.cs
+│     │  │     └─ IFeedbackComposer.cs
 │     │  ├─ EvaluationService.Domain
 │     │  │  ├─ Entities
 │     │  │  │  ├─ Evaluation.cs
 │     │  │  │  ├─ EvaluationEpaScore.cs
+│     │  │  │  ├─ Issue.cs
 │     │  │  │  ├─ PracticeFeedback.cs
 │     │  │  │  ├─ PracticeSession.cs
+│     │  │  │  ├─ ResolvedIssue.cs
 │     │  │  │  ├─ VirtualPatientRef.cs
 │     │  │  │  └─ Warning.cs
 │     │  │  ├─ EvaluationService.Domain.csproj
@@ -283,7 +254,6 @@ lateeBE_visible
 │     │  │  ├─ Services
 │     │  │  │  ├─ IEpaScoreAggregator.cs
 │     │  │  │  ├─ IEvaluationPromptBuilder.cs
-│     │  │  │  ├─ IFeedbackComposer.cs
 │     │  │  │  └─ IRubricProvider.cs
 │     │  │  └─ ValueObjects
 │     │  │     ├─ DiagnosisMatchResult.cs
@@ -322,10 +292,15 @@ lateeBE_visible
 │     │  │     └─ launchSettings.json
 │     │  ├─ PracticeSessionService.Application
 │     │  │  ├─ Commands
-│     │  │  │  └─ CreatePracticeSession
-│     │  │  │     ├─ CreatePracticeSessionCommand.cs
-│     │  │  │     ├─ CreatePracticeSessionHandler.cs
-│     │  │  │     └─ CreatePracticeSessionResult.cs
+│     │  │  │  ├─ CreatePracticeSession
+│     │  │  │  │  ├─ CreatePracticeSessionCommand.cs
+│     │  │  │  │  ├─ CreatePracticeSessionHandler.cs
+│     │  │  │  │  └─ CreatePracticeSessionResult.cs
+│     │  │  │  └─ UpdatePracticeSessionStatus
+│     │  │  │     ├─ UpdatePracticeSessionStatusCommand.cs
+│     │  │  │     ├─ UpdatePracticeSessionStatusHandler.cs
+│     │  │  │     ├─ UpdatePracticeSessionStatusRequest.cs
+│     │  │  │     └─ UpdatePracticeSessionStatusResponse.cs
 │     │  │  ├─ DependencyInjection.cs
 │     │  │  ├─ Dtos
 │     │  │  │  ├─ PageResult.cs
@@ -333,6 +308,14 @@ lateeBE_visible
 │     │  │  ├─ PracticeSessionService.Application.csproj
 │     │  │  ├─ PracticeSessionService.Application.csproj.lscache
 │     │  │  └─ Queries
+│     │  │     ├─ GetActivePracticeSession
+│     │  │     │  ├─ GetActivePracticeSessionHandler.cs
+│     │  │     │  ├─ GetActivePracticeSessionRequest.cs
+│     │  │     │  └─ GetActivePracticeSessionResponse.cs
+│     │  │     ├─ GetAttemptCount
+│     │  │     │  ├─ GetAttemptCountHandler.cs
+│     │  │     │  ├─ GetAttemptCountRequest.cs
+│     │  │     │  └─ GetAttemptCountResponse.cs
 │     │  │     ├─ GetClinicalCases
 │     │  │     │  ├─ ClinicalCaseDto.cs
 │     │  │     │  ├─ GetClinicalCasesHandler.cs
@@ -349,6 +332,8 @@ lateeBE_visible
 │     │  │  ├─ Entities
 │     │  │  │  ├─ ClinicalCase.cs
 │     │  │  │  ├─ Constants
+│     │  │  │  │  ├─ PracticeSessionRules.cs
+│     │  │  │  │  ├─ PracticeSessionStatuses.cs
 │     │  │  │  │  └─ WarningLabels.cs
 │     │  │  │  ├─ PracticeSession.cs
 │     │  │  │  └─ Warning.cs
@@ -368,58 +353,6 @@ lateeBE_visible
 │     │  │     ├─ ClinicalCaseRepository.cs
 │     │  │     └─ PracticeSessionRepository.cs
 │     │  └─ PracticeSessionService.sln
-│     ├─ RoadmapService
-│     │  ├─ RoadmapService.API
-│     │  │  ├─ appsettings.Development.json
-│     │  │  ├─ appsettings.json
-│     │  │  ├─ Controllers
-│     │  │  │  └─ RoadmapController.cs
-│     │  │  ├─ Program.cs
-│     │  │  ├─ Properties
-│     │  │  │  └─ launchSettings.json
-│     │  │  ├─ RoadmapService.API.csproj
-│     │  │  ├─ RoadmapService.API.csproj.lscache
-│     │  │  └─ RoadmapService.API.http
-│     │  ├─ RoadmapService.Application
-│     │  │  ├─ Class1.cs
-│     │  │  ├─ DependencyInjection.cs
-│     │  │  ├─ Dtos
-│     │  │  │  └─ PageResult.cs
-│     │  │  ├─ Queries
-│     │  │  │  ├─ GenerateRoadmap
-│     │  │  │  │  ├─ GenerateRoadmapHandler.cs
-│     │  │  │  │  ├─ GenerateRoadmapRequest.cs
-│     │  │  │  │  └─ GenerateRoadmapResponse.cs
-│     │  │  │  └─ GetClinicalCases
-│     │  │  │     ├─ ClinicalCaseDto.cs
-│     │  │  │     ├─ GetClinicalCasesHandler.cs
-│     │  │  │     └─ GetClinicalCasesQuery.cs
-│     │  │  ├─ RoadmapService.Application.csproj
-│     │  │  └─ RoadmapService.Application.csproj.lscache
-│     │  ├─ RoadmapService.Domain
-│     │  │  ├─ Class1.cs
-│     │  │  ├─ Entities
-│     │  │  │  ├─ ClinicalCase.cs
-│     │  │  │  └─ VirtualPatient.cs
-│     │  │  ├─ Repositories
-│     │  │  │  └─ IClinicalCaseRepository.cs
-│     │  │  ├─ RoadmapService.Domain.csproj
-│     │  │  ├─ RoadmapService.Domain.csproj.lscache
-│     │  │  └─ Services
-│     │  │     └─ IGeminiService.cs
-│     │  ├─ RoadmapService.Infrastructure
-│     │  │  ├─ Class1.cs
-│     │  │  ├─ DependencyInjection.cs
-│     │  │  ├─ Persistance
-│     │  │  │  └─ ClinicalCaseDbContext.cs
-│     │  │  ├─ Repositories
-│     │  │  │  └─ ClinicalCaseRepository.cs
-│     │  │  ├─ RoadmapService.Infrastructure.csproj
-│     │  │  ├─ RoadmapService.Infrastructure.csproj.lscache
-│     │  │  └─ Services
-│     │  │     ├─ GeminiService.cs
-│     │  │     └─ Prompts.cs
-│     │  └─ RoadmapService.sln
 │     └─ VirtualPatientService
 │        ├─ VirtualPatientService.API
 │        │  ├─ appsettings.Development.json
@@ -466,6 +399,37 @@ lateeBE_visible
 │        │  └─ VirtualPatientService.Infrastructure.csproj.lscache
 │        ├─ VirtualPatientService.sln
 │        └─ vp_api
+│           ├─ FE
+│           │  ├─ .next
+│           │  │  └─ dev
+│           │  │     ├─ build
+│           │  │     │  ├─ chunks
+│           │  │     │  │  ├─ [turbopack]_runtime.js
+│           │  │     │  │  └─ [turbopack]_runtime.js.map
+│           │  │     │  ├─ package.json
+│           │  │     │  ├─ postcss.js
+│           │  │     │  └─ postcss.js.map
+│           │  │     ├─ build-manifest.json
+│           │  │     ├─ cache
+│           │  │     │  ├─ .rscinfo
+│           │  │     │  ├─ chrome-devtools-workspace-uuid
+│           │  │     │  ├─ images
+│           │  │     │  └─ next-devtools-config.json
+│           │  │     ├─ fallback-build-manifest.json
+│           │  │     ├─ package.json
+│           │  │     ├─ prerender-manifest.json
+│           │  │     ├─ routes-manifest.json
+│           │  │     └─ trace
+│           │  ├─ eslint.config.mjs
+│           │  ├─ next-env.d.ts
+│           │  ├─ next.config.ts
+│           │  ├─ package-lock.json
+│           │  ├─ package.json
+│           │  ├─ postcss.config.mjs
+│           │  ├─ PROJECT_STRUCTURE.md
+│           │  ├─ README.md
+│           │  ├─ StrctureFE.md
+│           │  └─ tsconfig.json
 │           ├─ hhs.txt
 │           ├─ main.py
 │           ├─ requirements copy.txt
@@ -477,6 +441,6 @@ lateeBE_visible
 │           │  ├─ system_prompts.json
 │           │  └─ trainVP.py
 │           └─ system_prompt.txt
-└─ structure.md
+└─ structureBE.md
 
 ```

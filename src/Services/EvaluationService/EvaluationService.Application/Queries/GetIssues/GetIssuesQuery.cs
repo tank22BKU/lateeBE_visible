@@ -1,6 +1,6 @@
-using MediatR;
 using EvaluationService.Application.Dtos;
 using EvaluationService.Domain.Repositories;
+using MediatR;
 
 namespace EvaluationService.Application.Queries.GetIssues;
 
@@ -24,22 +24,27 @@ public sealed class GetIssuesHandler : IRequestHandler<GetIssuesQuery, IssueList
 
         return new IssueListResponseDto
         {
-            Items = items.Select(x => new IssueItemDto
-            {
-                IssueId = x.IssueId,
-                LearnerId = x.LearnerId,
-                LearnerName = x.LearnerName,
-                CreatedAt = x.CreatedAt,
-                Label = x.Label,
-                Description = x.Description,
-                Status = x.Status,
-                ExpertFeedback = x.ExpertFeedback == null ? null : new IssueExpertFeedbackDto
+            Items = items
+                .Select(x => new IssueItemDto
                 {
-                    ExpertId = x.ExpertFeedback.ExpertId,
-                    ExpertName = x.ExpertFeedback.ExpertName,
-                    Feedback = x.ExpertFeedback.Feedback
-                }
-            }).ToList()
+                    IssueId = x.IssueId,
+                    LearnerId = x.LearnerId,
+                    LearnerName = x.LearnerName,
+                    CreatedAt = x.CreatedAt,
+                    Label = x.Label,
+                    Description = x.Description,
+                    Status = x.Status,
+                    ExpertFeedback =
+                        x.ExpertFeedback == null
+                            ? null
+                            : new IssueExpertFeedbackDto
+                            {
+                                ExpertId = x.ExpertFeedback.ExpertId,
+                                ExpertName = x.ExpertFeedback.ExpertName,
+                                Feedback = x.ExpertFeedback.Feedback,
+                            },
+                })
+                .ToList(),
         };
     }
 }

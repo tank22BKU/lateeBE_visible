@@ -6,66 +6,77 @@ using Microsoft.Extensions.Logging;
 
 namespace EvaluationService.Application.Services;
 
-/// Nhận AI raw output → validate bounds → apply ScoringModifiers → return AggregatedResult.
-/// Đây là "sanity check" layer giữa AI output và persistence.
 public sealed class EpaScoreAggregator : IEpaScoreAggregator
 {
     private readonly ILogger<EpaScoreAggregator> _logger;
 
-    public EpaScoreAggregator(ILogger<EpaScoreAggregator> logger)
-        => _logger = logger;
+    public EpaScoreAggregator(ILogger<EpaScoreAggregator> logger) => _logger = logger;
 
     public AggregatedEvaluationResult Aggregate(
         GeminiEvaluationOutput aiOutput,
-        EvaluationInput        input)
+        EvaluationInput input
+    )
     {
-        var epaScoreEntities = aiOutput.EpaScores
-            .Take(5)
+        var epaScores = aiOutput
+            .EpaScores.Take(5)
             .Select(s => new EvaluationEpaScore
             {
-                Id               = Guid.NewGuid().ToString("N"),
-                EpaId            = s.EpaId,
-                NumericalScore   = Math.Clamp(s.NumericalScore, 0, 20),
+                Id = Guid.NewGuid().ToString("N"),
+                EpaId = s.EpaId,
+                NumericalScore = Math.Clamp(s.NumericalScore, 0, 20),
                 EntrustmentLevel = Math.Clamp(s.EntrustmentLevel, 1, 5),
-                FeedbackDetail   = s.FeedbackDetail,
-                EvidenceCited    = s.EvidenceCited   ?? [],
-                FailurePatterns  = s.FailurePatterns  ?? [],
-                SafetyFlags      = s.SafetyFlags      ?? [],
-                CreatedAt        = DateTime.UtcNow
+                FeedbackDetail = s.FeedbackDetail,
+                EvidenceCited = s.EvidenceCited ?? [],
+                FailurePatterns = s.FailurePatterns ?? [],
+                SafetyFlags = s.SafetyFlags ?? [],
+                CreatedAt = DateTime.UtcNow,
             })
             .ToList();
 
-        var rawTotal = epaScoreEntities.Sum(x => x.NumericalScore);
+        var pureEpaScore = epaScores.Sum(x => x.NumericalScore);
 
         var allottedTotal = input.AllottedVpTimeMinutes + input.AllottedArgumentTimeMinutes;
-        var scoring = ScoringModifiers.Calculate(
-            rawTotal:             rawTotal,
-            diagnosisMatchType:   aiOutput.DiagnosisMatchType,
+
+        var adjustments = AdjustmentRuleEngine.Calculate(
+            diagnosisMatchType: aiOutput.DiagnosisMatchType,
+            learnerDiagnosis: input.LearnerFinalDiagnosis,
+            canonicalDiagnosis: input.CanonicalDiagnosis,
             actualDurationMinutes: input.ActualDurationMinutes,
             allottedTotalMinutes: allottedTotal,
-            warningLabels:        input.ActiveWarningLabels
+            warningLabels: input.ActiveWarningLabels,
+            warningDescriptions: input.ActiveWarningDescriptions,
+            pureEpaScore: pureEpaScore,
+            explanation: aiOutput.AdjustmentExplanations
         );
 
-        var diff = Math.Abs(aiOutput.FinalScore - scoring.FinalScore);
+        var finalScore = AdjustmentRuleEngine.ComputeFinalScore(pureEpaScore, adjustments);
+        var level = AdjustmentRuleEngine.MapEntrustmentLevel(finalScore);
+
+        var diff = Math.Abs(aiOutput.FinalScore - finalScore);
         if (diff > 5)
-        {
             _logger.LogWarning(
-                "Score discrepancy: AI reported {AiScore}, backend computed {BackendScore} (diff={Diff})",
-                aiOutput.FinalScore, scoring.FinalScore, diff);
-        }
+                "Score discrepancy: AI={AiScore} backend={BackendScore} diff={Diff} "
+                    + "pureEpa={PureEpa} adjTotal={AdjTotal}",
+                aiOutput.FinalScore,
+                finalScore,
+                diff,
+                pureEpaScore,
+                adjustments.AdjustmentTotal
+            );
 
         return new AggregatedEvaluationResult(
-            EpaScores:               epaScoreEntities,
-            RawTotal:                rawTotal,
-            DiagnosisModifier:       scoring.DiagnosisModifier,
-            DiagnosisMatchType:      aiOutput.DiagnosisMatchType,
-            TimeModifier:            scoring.TimeModifier,
-            WarningPenalty:          scoring.WarningPenalty,
-            FinalScore:              scoring.FinalScore,           
-            OverallEntrustmentLevel: scoring.EntrustmentLevel,
-            CognitiveAlerts:         aiOutput.CognitiveAlerts,
-            SafetyEscalationRequired: scoring.SafetyEscalationRequired,
-            EvaluationTrace:         aiOutput.EvaluationTrace
+            EpaScores: epaScores,
+            PureEpaScore: pureEpaScore,
+            PositiveAdjustmentTotal: adjustments.PositiveTotal,
+            NegativeAdjustmentTotal: adjustments.NegativeTotal,
+            AdjustmentTotal: adjustments.AdjustmentTotal,
+            DiagnosisMatchType: aiOutput.DiagnosisMatchType,
+            FinalScore: finalScore,
+            OverallEntrustmentLevel: level,
+            CognitiveAlerts: aiOutput.CognitiveAlerts,
+            SafetyEscalationRequired: adjustments.Validation.SafetyEscalationRequired,
+            EvaluationTrace: aiOutput.EvaluationTrace,
+            Adjustments: adjustments
         );
     }
 }

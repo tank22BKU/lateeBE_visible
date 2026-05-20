@@ -298,6 +298,7 @@ CREATE TABLE evaluation
     feedback_detail     TEXT,
     entrustment_level   INT,
     rubric_version VARCHAR(20),
+    pure_epa_score      INT DEFAULT 0,
     CONSTRAINT fk_eval_practice FOREIGN KEY (practice_session_id) REFERENCES practice_sessions (id) ON DELETE CASCADE
 );
 
@@ -434,7 +435,7 @@ CREATE TABLE assessment_answer
     CONSTRAINT fk_ans_question FOREIGN KEY (question_id) REFERENCES question (id) ON DELETE CASCADE
 );
 
-CREATE TABKE expert_assessment {
+CREATE TABLE expert_assessment {
     expert_id VARCHAR(50) NOT NULL,
     assessment_id VARCHAR(50) NOT NULL,
     CONSTRAINT fk_expert_assessment_expert FOREIGN KEY (expert_id) REFERENCES expert (eid),
