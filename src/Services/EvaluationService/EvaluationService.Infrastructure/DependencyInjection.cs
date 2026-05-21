@@ -12,13 +12,14 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
-        IConfiguration          configuration)
+        IConfiguration configuration
+    )
     {
         services.AddScoped<IEvaluationRepository, EvaluationRepository>();
-        
+
         services.AddHttpClient<GeminiEvaluationRepository>();
         services.AddScoped<IAiEvaluationProvider, GeminiEvaluationRepository>();
-        
+
         services.AddMemoryCache();
         services.AddScoped<IRubricProvider, RubricProvider>();
         services.AddScoped<IEvaluationPromptBuilder, EvaluationPromptBuilder>();

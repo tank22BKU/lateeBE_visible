@@ -3,7 +3,6 @@ using PracticeSessionService.Application.Dtos;
 
 namespace PracticeSessionService.Application.Queries.SavePracticeSessions;
 
-
 public class SavePracticeSessionsRequest : IRequest<SavePracticeSessionsResponse>
 {
     public string SessionId { get; set; } = default!;

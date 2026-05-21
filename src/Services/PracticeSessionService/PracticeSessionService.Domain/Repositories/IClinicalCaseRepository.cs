@@ -4,5 +4,9 @@ namespace PracticeSessionService.Domain.Repositories;
 
 public interface IClinicalCaseRepository
 {
-	Task<(List<ClinicalCase> Items, int Total)> GetPagedAsync(string? status, int page, int pageSize);
+    Task<(List<ClinicalCase> Items, int Total)> GetPagedAsync(
+        string? status,
+        int page,
+        int pageSize
+    );
 }

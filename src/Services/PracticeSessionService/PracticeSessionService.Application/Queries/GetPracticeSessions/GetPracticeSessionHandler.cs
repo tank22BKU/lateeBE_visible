@@ -1,6 +1,6 @@
 ﻿using MediatR;
-using PracticeSessionService.Domain.Repositories;
 using PracticeSessionService.Application.Dtos;
+using PracticeSessionService.Domain.Repositories;
 
 namespace PracticeSessionService.Application.Queries.GetPracticeSessions;
 
@@ -16,7 +16,8 @@ public class GetPracticeSessionHandler
 
     public async Task<GetPracticeSessionsResponse> Handle(
         GetPracticeSessionsRequest request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var session = await _repo.GetSessionByIdAsync(request.SessionId);
 
@@ -42,15 +43,17 @@ public class GetPracticeSessionHandler
             StartTime = session.StartTime,
             EndTime = session.EndTime,
             CreatedAt = session.CreatedAt,
-            Warnings = warnings.Select(w => new WarningDto
-            {
-                WarningId = w.Id,
-                PracticeSessionId = w.PracticeSessionId,
-                LearnerId = w.LearnerId,
-                Label = w.Label ?? "",
-                Description = w.Description ?? "",
-                CreatedAt = w.CreatedAt
-            }).ToList()
+            Warnings = warnings
+                .Select(w => new WarningDto
+                {
+                    WarningId = w.Id,
+                    PracticeSessionId = w.PracticeSessionId,
+                    LearnerId = w.LearnerId,
+                    Label = w.Label ?? "",
+                    Description = w.Description ?? "",
+                    CreatedAt = w.CreatedAt,
+                })
+                .ToList(),
         };
     }
 }

@@ -9,11 +9,9 @@ public interface IPracticeSessionRepository
     Task<PracticeSession?> GetLatestSessionAsync(
         string learnerId,
         string patientId,
-        IEnumerable<string> statuses);
-    Task<int> CountSessionsAsync(
-        string learnerId,
-        string patientId,
-        IEnumerable<string> statuses);
+        IEnumerable<string> statuses
+    );
+    Task<int> CountSessionsAsync(string learnerId, string patientId, IEnumerable<string> statuses);
     Task<string> AddSessionAsync(PracticeSession entity);
     Task UpdateSessionAsync(PracticeSession entity);
     Task<List<Warning>> GetWarningsBySessionIdAsync(string sessionId);
