@@ -14,6 +14,7 @@ public sealed class CreateUserCommand : IRequest<User>
     public DateTime? Birthday { get; set; }
     public string? Gender { get; set; } = "Male";
     public string? Address { get; set; } = "Not set yet";
+    public string? AvatarUrl { get; set; }
     public string? Role { get; set; }
     public string? Status { get; set; }
 }
@@ -36,7 +37,13 @@ public sealed class CreateUserHandler : IRequestHandler<CreateUserCommand, User>
             Email = request.Email,
             Phone = request.Phone,
             Birthday = request.Birthday,
-            Password = request.Password,
+            Gender = request.Gender,
+            Address = request.Address,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            IsDeleted = false,
+            Password = request.Password is null ? "user" : request.Password,
+            AvatarUrl = request.AvatarUrl,
             Role = request.Role,
             Status = request.Status
         };

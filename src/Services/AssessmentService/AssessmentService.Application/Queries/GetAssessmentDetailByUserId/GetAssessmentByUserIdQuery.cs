@@ -1,26 +1,30 @@
 using MediatR;
 using System.Text.Json;
+using AssessmentService.Application.Queries.GetAssessmentById;
 using AssessmentService.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 
-namespace AssessmentService.Application.Queries.GetAssessmentById;
+namespace AssessmentService.Application.Queries.GetAssessmentByUserId;
 
-public record GetAssessmentByIdQuery(string AssessmentId) : IRequest<AssessmentDetailDto?>;
+public record GetAssessmentByUserIdQuery(string AssessmentId, string learnerId) : IRequest<AssessmentDetailDto?>;
 
-public class GetAssessmentByIdHandler : IRequestHandler<GetAssessmentByIdQuery, AssessmentDetailDto?>
+public class GetAssessmentByIdHandler : IRequestHandler<GetAssessmentByUserIdQuery, AssessmentDetailDto?>
 {
     private readonly IAssessmentRepository _repo;
     private readonly ILogger<GetAssessmentByIdHandler> _logger;
     public GetAssessmentByIdHandler(IAssessmentRepository repo, ILogger<GetAssessmentByIdHandler> logger) { _repo = repo; _logger = logger; }
 
-    public async Task<AssessmentDetailDto?> Handle(GetAssessmentByIdQuery request, CancellationToken cancellationToken)
+    public async Task<AssessmentDetailDto?> Handle(GetAssessmentByUserIdQuery request, CancellationToken cancellationToken)
     {
         var assessment = await _repo.GetByIdWithQuestionsAsync(request.AssessmentId);
-        if (assessment == null) return null;
+        if (assessment == null) return new AssessmentDetailDto();
         
         decimal maxScore = assessment.Questions.Count > 0
             ? assessment.Questions.Sum(x => x.Points)
             : assessment.NumQuestions;
+        
+        /// implement to count attempts here
+        int timesPracticed = _repo.GetSessionsForLearnerAndAssessmentAsync(request.learnerId, request.AssessmentId).Result.Count;
 
         return new AssessmentDetailDto
         {
@@ -36,7 +40,7 @@ public class GetAssessmentByIdHandler : IRequestHandler<GetAssessmentByIdQuery, 
             PassingScorePercentage = assessment.PassingScorePercentage,
             MaxAttempts = assessment.MaxAttempts,
             MaxScore = maxScore,
-            TimesPracticed = 0, ///// do not care because do not know UserId
+            TimesPracticed = timesPracticed,
             Goal = assessment.Goal,
             Specialty = assessment.Specialty,
             TimeLimitMinutes = assessment.TimeLimitMinutes,

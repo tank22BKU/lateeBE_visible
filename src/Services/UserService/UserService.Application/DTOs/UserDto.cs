@@ -12,4 +12,20 @@ public class UserDto
     public string? Address { get; set; }
     public string? Status { get; set; }
     public string? Role { get; set; }
+    public string? AvatarUrl { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public Profile? Profile { get; set; }
 }
+
+public class Profile
+{
+    public string Id { get; set; } 
+    public string Ssn { get; set; }
+    public string? BioQoute { get; set; } = String.Empty;
+    public string? EducationDetail { get; set; } = String.Empty;
+    public string? TitlePosition { get; set; } = String.Empty;
+    public string? ExpertiseSkill {get; set; } = String.Empty;
+    public string? SocialLink { get; set; } = String.Empty;
+}
+

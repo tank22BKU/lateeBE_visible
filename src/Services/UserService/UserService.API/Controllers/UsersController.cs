@@ -4,6 +4,7 @@ using UserService.Application.DTOs;
 using UserService.Application.Users.Commands.CreateUser;
 using UserService.Application.Users.Commands.DeleteUser;
 using UserService.Application.Users.Commands.UpdateUser;
+using UserService.Application.Users.Queries.GetDashboardStatistics;
 using UserService.Application.Users.Queries.GetAllUsers;
 using UserService.Application.Users.Queries.GetUserById;
 
@@ -31,6 +32,13 @@ public class UsersController : ControllerBase
         return user is null ? NotFound() : Ok(user);
     }
 
+    [HttpGet("dashboard-stats")]
+    public async Task<IActionResult> GetDashboardStats()
+    {
+        var stats = await _mediator.Send(new GetDashboardStatisticsQuery());
+        return Ok(stats);
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create(UserDto req)
     {
@@ -44,6 +52,7 @@ public class UsersController : ControllerBase
             Birthday = req.Birthday,
             Gender = req.Gender,
             Address = req.Address,
+            AvatarUrl = req.AvatarUrl,
             Status = req.Status,
             Role = req.Role
         });
@@ -65,6 +74,7 @@ public class UsersController : ControllerBase
             Birthday = req.Birthday,
             Gender = req.Gender,
             Address = req.Address,
+            AvatarUrl = req.AvatarUrl,
             Status = req.Status
         });
 

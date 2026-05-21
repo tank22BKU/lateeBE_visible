@@ -160,5 +160,3 @@ http://localhost:5000/ai-assistant/assistant
 ### Bổ sung pakage cho Evaluation
 dotnet add src/Services/EvaluationService/EvaluationService.Application/EvaluationService.Application.csproj package Microsoft.Extensions.Configuration.Abstractions
 dotnet add src/Services/EvaluationService/EvaluationService.Application/EvaluationService.Application.csproj package Microsoft.Extensions.Http
-
-

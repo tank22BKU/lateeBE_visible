@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace KnowledgeResourceService.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/knowledge-resources")]
 public class KnowledgeResourcesController : ControllerBase
 {
     private readonly IMediator _mediator;

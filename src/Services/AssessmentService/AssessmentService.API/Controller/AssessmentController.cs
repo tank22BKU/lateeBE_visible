@@ -14,6 +14,10 @@ using AssessmentService.Application.Commands.CreateFullAssessment;
 using AssessmentService.Application.Commands.SubmitAssessment;
 using AssessmentService.Application.Queries.GetAttemptDetails;
 using AssessmentService.Application.Queries.GetAllAttempts;
+using AssessmentService.Application.Queries.GetAllAssessmentsOverviewOfLearner;
+using AssessmentService.Application.Queries.GetAssessmentOverviewAnalytics;
+using AssessmentService.Application.Queries.GetAssessmentByUserId;
+
 namespace AssessmentService.API.Controllers;
 
 [ApiController]
@@ -200,6 +204,28 @@ public class AssessmentController : ControllerBase
             return NotFound(new { message = "Không tìm thấy lượt thi nào cho learner này." });
 
         return Ok(new { data = result });
+    }
+
+    [HttpGet("learner/{learnerId}")]
+    public async Task<IActionResult> GetAllAssessmentsOverviewOfLearner([FromRoute] string learnerId)
+    {
+        var result = await _mediator.Send(new GetAllAssessmentsOverviewOfLearnerQuery(learnerId));
+        return Ok(result);
+    }
+    
+    [HttpGet("learner/{learnerId}/analytics")]
+    public async Task<IActionResult> GetAssessmentOverviewAnalytics([FromRoute] string learnerId)
+    {
+        var result = await _mediator.Send(new GetAssessmentOverviewAnalyticsQuery(learnerId));
+        return Ok(result);
+    }
+    
+    [HttpGet("{assessmentId}/learner/{learnerId}")]
+    public async Task<IActionResult> GetAssesmentDetailByUserId(string assessmentId, string learnerId)
+    {
+        var result = await _mediator.Send(new GetAssessmentByUserIdQuery(assessmentId, learnerId));
+
+        return Ok(result);
     }
 }
 

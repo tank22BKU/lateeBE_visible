@@ -1,10 +1,10 @@
 using AssessmentService.Application.Queries.GetPagedAssessments;
-
+using AssessmentService.Application.Queries.GetAllAssessmentsOverviewOfLearner;
 namespace AssessmentService.Application.Queries.GetAssessmentById;
 
 public class AssessmentDetailDto : AssessmentSummaryDto
 {
-    public string? Descriptions { get; set; }
+    public int TimesPracticed { get; set; }
     public string? Goal { get; set; }
     public string? Specialty { get; set; }
     public int? TimeLimitMinutes { get; set; }

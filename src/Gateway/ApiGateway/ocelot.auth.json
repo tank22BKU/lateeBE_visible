@@ -1,540 +1,522 @@
 ﻿{
-    "Routes": [
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
         {
-            "DownstreamPathTemplate": "/api/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "clinicalcase",
-                    "Port": 8080
-                }
-            ],
-            "UpstreamPathTemplate": "/clinical-case/api/{everything}",
-            "UpstreamHttpMethod": [
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE"
-            ],
-            "SwaggerKey": "clinicalcase",
-            "AuthenticationOptions": {
-                "AuthenticationProviderKey": "Bearer",
-                "AllowedScopes": []
-            }
-        },
-        {
-            "DownstreamPathTemplate": "/api/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "virtualpatient",
-                    "Port": 8080
-                }
-            ],
-            "UpstreamPathTemplate": "/virtual-patient/api/{everything}",
-            "UpstreamHttpMethod": [
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE"
-            ],
-            "SwaggerKey": "virtualpatient",
-            "AuthenticationOptions": {
-                "AuthenticationProviderKey": "Bearer",
-                "AllowedScopes": []
-            }
-        },
-        {
-            "DownstreamPathTemplate": "/api/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "roadmap",
-                    "Port": 8080
-                }
-            ],
-            "UpstreamPathTemplate": "/roadmap/api/{everything}",
-            "UpstreamHttpMethod": [
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE"
-            ],
-            "SwaggerKey": "roadmap",
-            "AuthenticationOptions": {
-                "AuthenticationProviderKey": "Bearer",
-                "AllowedScopes": []
-            }
-        },
-
-        
-        {
-            "DownstreamPathTemplate": "/api/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "knowledgeresource",
-                    "Port": 8080
-                }
-            ],
-            "UpstreamPathTemplate": "/knowledgeresource/api/{everything}",
-            "UpstreamHttpMethod": [
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE"
-            ],
-            "SwaggerKey": "knowledgeresource",
-            "AuthenticationOptions": {
-                "AuthenticationProviderKey": "Bearer",
-                "AllowedScopes": []
-            }
-        },
-        {
-            "DownstreamPathTemplate": "/api/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "user",
-                    "Port": 8080
-                }
-            ],
-            "UpstreamPathTemplate": "/user/api/{everything}",
-            "UpstreamHttpMethod": [
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE"
-            ],
-            "SwaggerKey": "user",
-            "AuthenticationOptions": {
-                "AuthenticationProviderKey": "Bearer",
-                "AllowedScopes": []
-            }
-        },
-
-
-        {
-            "DownstreamPathTemplate": "/api/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "evaluation",
-                    "Port": 8080
-                }
-            ],
-            "UpstreamPathTemplate": "/evaluation/api/{everything}",
-            "UpstreamHttpMethod": [
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE"
-            ],
-            "SwaggerKey": "evaluation",
-            "AuthenticationOptions": {
-                "AuthenticationProviderKey": "Bearer",
-                "AllowedScopes": []
-            }
-        },
-      {
-        "DownstreamPathTemplate": "/swagger/{everything}",
-        "DownstreamScheme": "http",
-        "DownstreamHostAndPorts": [
-          {
-            "Host": "evaluation",
-            "Port": 8080
-          }
-        ],
-        "UpstreamPathTemplate": "/evaluation/swagger/{everything}",
-        "UpstreamHttpMethod": [
-          "GET"
-        ]
-      },
-        {
-            "DownstreamPathTemplate": "/swagger/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "clinicalcase",
-                    "Port": 8080
-                }
-            ],
-            "UpstreamPathTemplate": "/clinical-case/swagger/{everything}",
-            "UpstreamHttpMethod": [
-                "GET"
-            ]
-        },
-        {
-            "DownstreamPathTemplate": "/swagger/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "virtualpatient",
-                    "Port": 8080
-                }
-            ],
-            "UpstreamPathTemplate": "/virtual-patient/swagger/{everything}",
-            "UpstreamHttpMethod": [
-                "GET"
-            ]
-        },
-        {
-            "DownstreamPathTemplate": "/swagger/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "roadmap",
-                    "Port": 8080
-                }
-            ],
-            "UpstreamPathTemplate": "/roadmap/swagger/{everything}",
-            "UpstreamHttpMethod": [
-                "GET"
-            ]
-        },
-
-
-        {
-            "DownstreamPathTemplate": "/swagger/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "knowledgeresource",
-                    "Port": 8080
-                }
-            ],
-            "UpstreamPathTemplate": "/knowledgeresource/swagger/{everything}",
-            "UpstreamHttpMethod": [
-                "GET"
-            ]
-        },{
-            "DownstreamPathTemplate": "/swagger/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "user",
-                    "Port": 8080
-                }
-            ],
-            "UpstreamPathTemplate": "/user/swagger/{everything}",
-            "UpstreamHttpMethod": [
-                "GET"
-            ]
-        },
-
-
-
-        {
-            "DownstreamPathTemplate": "/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "virtualpatient-python",
-                    "Port": 8080
-                }
-            ],
-            "UpstreamPathTemplate": "/virtual-patient/ai/{everything}",
-            "UpstreamHttpMethod": [
-                "GET",
-                "POST",
-                "OPTIONS"
-            ],
-            "SwaggerKey": "vppython",
-            "AuthenticationOptions": {
-                "AuthenticationProviderKey": "Bearer",
-                "AllowedScopes": []
-            }
-        },
-        {
-            "DownstreamPathTemplate": "/openapi.json",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "virtualpatient-python",
-                    "Port": 8080
-                }
-            ],
-            "UpstreamPathTemplate": "/virtual-patient/ai/openapi.json",
-            "UpstreamHttpMethod": [
-                "GET"
-            ]
-        },
-        {
-            "DownstreamPathTemplate": "/docs",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "virtualpatient-python",
-                    "Port": 8080
-                }
-            ],
-            "UpstreamPathTemplate": "/virtual-patient/ai/docs",
-            "UpstreamHttpMethod": [
-                "GET"
-            ]
-        },
-        {
-            "DownstreamPathTemplate": "/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "ai-assistant",
-                    "Port": 8000
-                }
-            ],
-            "UpstreamPathTemplate": "/ai-assistant/{everything}",
-            "UpstreamHttpMethod": [
-                "GET",
-                "POST",
-                "OPTIONS"
-            ],
-            "SwaggerKey": "aiassistant",
-            "Timeout": 300000,
-            "AuthenticationOptions": {
-                "AuthenticationProviderKey": "Bearer",
-                "AllowedScopes": []
-            }
-        },
-        {
-            "DownstreamPathTemplate": "/openapi.json",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "ai-assistant",
-                    "Port": 8000
-                }
-            ],
-            "UpstreamPathTemplate": "/ai-assistant/openapi.json",
-            "UpstreamHttpMethod": [
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE"
-            ]
-        },
-        {
-            "DownstreamPathTemplate": "/docs",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "ai-assistant",
-                    "Port": 8000
-                }
-            ],
-            "UpstreamPathTemplate": "/ai-assistant/docs",
-            "UpstreamHttpMethod": [
-                "GET"
-            ]
-        },
-        {
-            "DownstreamPathTemplate": "/api/assessments",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "assessment",
-                    "Port": 8080
-                }
-            ],
-            "UpstreamPathTemplate": "/assessment/api/assessments",
-            "UpstreamHttpMethod": [
-                "GET",
-                "POST"
-            ],
-            "SwaggerKey": "assessment",
-            "AuthenticationOptions": {
-                "AuthenticationProviderKey": "Bearer",
-                "AllowedScopes": []
-            }
-        },
-        {
-            "DownstreamPathTemplate": "/api/assessments/{id}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "assessment",
-                    "Port": 8080
-                }
-            ],
-            "UpstreamPathTemplate": "/assessment/api/assessments/{id}",
-            "UpstreamHttpMethod": [
-                "GET",
-                "PUT",
-                "DELETE"
-            ],
-            "SwaggerKey": "assessment",
-            "AuthenticationOptions": {
-                "AuthenticationProviderKey": "Bearer",
-                "AllowedScopes": []
-            }
-        },
-        {
-            "DownstreamPathTemplate": "/api/assessments/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "assessment",
-                    "Port": 8080
-                }
-            ],
-            "UpstreamPathTemplate": "/assessment/api/assessments/{everything}",
-            "UpstreamHttpMethod": [
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE"
-            ],
-            "SwaggerKey": "assessment",
-            "AuthenticationOptions": {
-                "AuthenticationProviderKey": "Bearer",
-                "AllowedScopes": []
-            }
-        },
-        {
-            "DownstreamPathTemplate": "/api/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "practice-session",
-                    "Port": 8080
-                }
-            ],
-            "UpstreamPathTemplate": "/practice-session/api/{everything}",
-            "UpstreamHttpMethod": [
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE"
-            ],
-            "SwaggerKey": "practice-session",
-            "AuthenticationOptions": {
-                "AuthenticationProviderKey": "Bearer",
-                "AllowedScopes": []
-            }
+          "Host": "clinicalcase",
+          "Port": 8080
         }
-    ],
-    "SwaggerEndPoints": [
+      ],
+      "UpstreamPathTemplate": "/clinical-case/api/{everything}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
+      "SwaggerKey": "clinicalcase",
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
         {
-            "Key": "clinicalcase",
-            "Config": [
-                {
-                    "Name": "Clinical Case API",
-                    "Version": "v1",
-                    "Url": "http://clinicalcase:8080/swagger/v1/swagger.json"
-                }
-            ]
-        },
-        {
-            "Key": "assessment",
-            "Config": [
-                {
-                    "Name": "Assessment API",
-                    "Version": "v1",
-                    "Url": "http://assessment:8080/swagger/v1/swagger.json"
-                }
-            ]
-        },
-        {
-            "Key": "virtualpatient",
-            "Config": [
-                {
-                    "Name": "Virtual Patient API",
-                    "Version": "v1",
-                    "Url": "http://virtualpatient:8080/swagger/v1/swagger.json"
-                }
-            ]
-        },
-        {
-            "Key": "roadmap",
-            "Config": [
-                {
-                    "Name": "Roadmap API",
-                    "Version": "v1",
-                    "Url": "http://roadmap:8080/swagger/v1/swagger.json"
-                }
-            ]
-        },
-
-        {
-            "Key": "knowledgeresource",
-            "Config": [
-                {
-                    "Name": "Knowledge Resource API",
-                    "Version": "v1",
-                    "Url": "http://knowledgeresource:8080/swagger/v1/swagger.json"
-                }
-            ]
-        },{
-            "Key": "user",
-            "Config": [
-                {
-                    "Name": "User API",
-                    "Version": "v1",
-                    "Url": "http://user:8080/swagger/v1/swagger.json"
-                }
-            ]
-        },
-
-        {
-            "Key": "vppython",
-            "Config": [
-                {
-                    "Name": "Virtual Patient AI (Python) API",
-                    "Version": "v1",
-                    "Url": "http://vp-python-api:8080/openapi.json"
-                }
-            ]
-        },
-        {
-            "Key": "aiassistant",
-            "Config": [
-                {
-                    "Name": "AI Assistant API",
-                    "Version": "v1",
-                    "Url": "http://ai-assistant:8000/openapi.json"
-                }
-            ]
-        },
-        {
-            "Key": "evaluation",
-            "Config": [
-                {
-                "Name": "Evaluation API",
-                "Version": "v1",
-                "Url": "http://evaluation:8080/swagger/v1/swagger.json"
-                }
-            ]
-        },
-        {
-            "Key": "practice-session",
-            "Config": [
-                {
-                    "Name": "Practice Sessions API",
-                    "Version": "v1",
-                    "Url": "http://practice-session:8080/swagger/v1/swagger.json"
-                }
-            ]
-        },
-        {
-            "Key": "gateway-auth",
-            "Config": [
-                {
-                    "Name": "Gateway Auth API",
-                    "Version": "v1",
-                    "Url": "http://api-gateway:8080/gateway-auth/swagger/v1/swagger.json"
-                }
-            ]
-        },{
-            "Key": "evaluation",
-            "Config": [
-                {
-                    "Name": "Evaluation API",
-                    "Version": "v1",
-                    "Url": "http://evaluation:8080/swagger/v1/swagger.json"
-                }
-            ]
+          "Host": "virtualpatient",
+          "Port": 8080
         }
-    ],
-    "GlobalConfiguration": {
-        "BaseUrl": "http://localhost:5000"
+      ],
+      "UpstreamPathTemplate": "/virtual-patient/api/{everything}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
+      "SwaggerKey": "virtualpatient",
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "roadmap",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/roadmap/api/{everything}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
+      "SwaggerKey": "roadmap",
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "knowledgeresource",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/knowledgeresource/api/{everything}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
+      "SwaggerKey": "knowledgeresource",
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "user",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/user/api/{everything}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
+      "SwaggerKey": "user",
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "evaluation",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/evaluation/api/{everything}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
+      "SwaggerKey": "evaluation",
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/swagger/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "evaluation",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/evaluation/swagger/{everything}",
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/swagger/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "clinicalcase",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/clinical-case/swagger/{everything}",
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/swagger/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "virtualpatient",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/virtual-patient/swagger/{everything}",
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/swagger/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "roadmap",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/roadmap/swagger/{everything}",
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/swagger/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "knowledgeresource",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/knowledgeresource/swagger/{everything}",
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/swagger/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "user",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/user/swagger/{everything}",
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "virtualpatient-python",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/virtual-patient/ai/{everything}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "OPTIONS"
+      ],
+      "SwaggerKey": "vppython",
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/openapi.json",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "virtualpatient-python",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/virtual-patient/ai/openapi.json",
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/docs",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "virtualpatient-python",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/virtual-patient/ai/docs",
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ai-assistant",
+          "Port": 8000
+        }
+      ],
+      "UpstreamPathTemplate": "/ai-assistant/{everything}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "OPTIONS"
+      ],
+      "SwaggerKey": "aiassistant",
+      "Timeout": 300000,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/openapi.json",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ai-assistant",
+          "Port": 8000
+        }
+      ],
+      "UpstreamPathTemplate": "/ai-assistant/openapi.json",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/docs",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ai-assistant",
+          "Port": 8000
+        }
+      ],
+      "UpstreamPathTemplate": "/ai-assistant/docs",
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/assessments",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "assessment",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/assessment/api/assessments",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST"
+      ],
+      "SwaggerKey": "assessment",
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/assessments/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "assessment",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/assessment/api/assessments/{id}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "PUT",
+        "DELETE"
+      ],
+      "SwaggerKey": "assessment",
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/assessments/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "assessment",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/assessment/api/assessments/{everything}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
+      "SwaggerKey": "assessment",
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "practice-session",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/practice-session/api/{everything}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
+      "SwaggerKey": "practice-session",
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
     }
+  ],
+  "SwaggerEndPoints": [
+    {
+      "Key": "clinicalcase",
+      "Config": [
+        {
+          "Name": "Clinical Case API",
+          "Version": "v1",
+          "Url": "http://clinicalcase:8080/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "assessment",
+      "Config": [
+        {
+          "Name": "Assessment API",
+          "Version": "v1",
+          "Url": "http://assessment:8080/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "virtualpatient",
+      "Config": [
+        {
+          "Name": "Virtual Patient API",
+          "Version": "v1",
+          "Url": "http://virtualpatient:8080/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "roadmap",
+      "Config": [
+        {
+          "Name": "Roadmap API",
+          "Version": "v1",
+          "Url": "http://roadmap:8080/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "knowledgeresource",
+      "Config": [
+        {
+          "Name": "Knowledge Resource API",
+          "Version": "v1",
+          "Url": "http://knowledgeresource:8080/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "user",
+      "Config": [
+        {
+          "Name": "User API",
+          "Version": "v1",
+          "Url": "http://user:8080/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "vppython",
+      "Config": [
+        {
+          "Name": "Virtual Patient AI (Python) API",
+          "Version": "v1",
+          "Url": "http://vp-python-api:8080/openapi.json"
+        }
+      ]
+    },
+    {
+      "Key": "aiassistant",
+      "Config": [
+        {
+          "Name": "AI Assistant API",
+          "Version": "v1",
+          "Url": "http://ai-assistant:8000/openapi.json"
+        }
+      ]
+    },
+    {
+      "Key": "evaluation",
+      "Config": [
+        {
+          "Name": "Evaluation API",
+          "Version": "v1",
+          "Url": "http://evaluation:8080/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "practice-session",
+      "Config": [
+        {
+          "Name": "Practice Sessions API",
+          "Version": "v1",
+          "Url": "http://practice-session:8080/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "gateway-auth",
+      "Config": [
+        {
+          "Name": "Gateway Auth API",
+          "Version": "v1",
+          "Url": "http://api-gateway:8080/gateway-auth/swagger/v1/swagger.json"
+        }
+      ]
+    }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:5000"
+  }
 }
