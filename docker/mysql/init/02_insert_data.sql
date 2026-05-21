@@ -11,6 +11,16 @@ VALUES ('USR-ADM-01', 'Nguyen Quan Tri', 'admin.system@latee.com', '0901234567',
        ('USR-LRN-01', 'Tran Van Hoc', 'hoc.tran@student.com', '0912345678', '2002-09-20', 'learner1', 'Male',
         'Ho Chi Minh City, Vietnam', 'Learner', 'active');
 
+INSERT INTO users
+(userid, name, email, phone, birthday, password, gender, address, role, avatar_url)
+VALUES ('USR-EXP-003','Emily Carter','emily.carter@latee.com','0908111222','1987-04-18','expert3','Female','Boston, USA','Expert','/images/d23.jpg'),
+
+       ('USR-EXP-004','Le Minh Duc','duc.le@latee.com','0908333444','1985-08-22','expert4','Male','Ho Chi Minh City, Vietnam','Expert','/images/d24.jpg'),
+
+       ('USR-LRN-002','Nguyen Thanh Long','long.nguyen@student.com','0911222333','2001-06-02','learner2','Male','Da Nang, Vietnam','Learner','/images/student1.jpg'),
+
+       ('USR-LRN-003','Pham Bao Anh','baoanh@student.com','0911555666','2003-12-10','learner3','Female','Hanoi, Vietnam','Learner','/images/student2.jpg');
+
 -- Admin
 INSERT INTO admin (aid, ssn)
 VALUES ('USR-ADM-01', '052204022947');
@@ -18,6 +28,11 @@ VALUES ('USR-ADM-01', '052204022947');
 -- Learner
 INSERT INTO learner (lid, ssn)
 VALUES ('USR-LRN-01', '052204022949');
+
+INSERT INTO learner (lid, ssn)
+VALUES
+    ('USR-LRN-002','052204022950'),
+    ('USR-LRN-003','052204022951');
 
 -- Expert
 INSERT INTO expert (eid, ssn, bio_quote, education_detail, title_position, expertise_skill, social_link)
@@ -35,6 +50,30 @@ VALUES  ('USR-EXP-001',
         'Specialist in Diagnostic Reasoning',
         'Clinical Reasoning, Diagnostic Strategy, Case-based Learning',
         'https://linkedin.com/in/andrewnguyen');
+
+INSERT INTO expert
+(eid,
+ ssn,
+ bio_quote,
+ education_detail,
+ title_position,
+ expertise_skill,
+ social_link)
+VALUES ('USR-EXP-003',
+        '052204022952',
+        'Helping learners improve diagnostic confidence through evidence-based medicine.',
+        'MD Internal Medicine - Stanford University',
+        'Clinical Education Specialist',
+        'Internal Medicine, Diagnostic Reasoning, Simulation',
+        'https://linkedin.com/in/emilycarter'),
+
+       ('USR-EXP-004',
+        '052204022953',
+        'Building practical medical thinking using virtual patient scenarios.',
+        'PhD Medical Education - HCMUT Medical Faculty',
+        'Senior Medical Educator',
+        'Clinical Training, Medical Assessment, Case Authoring',
+        'https://linkedin.com/in/leminhduc');
 
 -- Evaluation Clinical Criteria
 INSERT INTO evaluation_clinical_criteria (id, description, version)
@@ -777,3 +816,263 @@ VALUES ('USR-EXP-001', '10070247'),
        ('USR-EXP-002', '10040056'),
        ('USR-EXP-002', '10034272'),
        ('USR-EXP-002', '10031940');
+
+-- ==========================
+-- KNOWLEDGE RESOURCES
+-- ==========================
+
+INSERT INTO knowledge_resources
+(id,
+ title,
+ content,
+ link,
+ imageUrl,
+ authorlist)
+VALUES ('KR-001',
+        'Clinical Reasoning Fundamentals',
+        '
+        <h2>Overview</h2>
+        
+        <p>
+        Clinical reasoning is the structured process clinicians use to collect information,
+        form diagnostic hypotheses, evaluate evidence, and determine the most appropriate next step.
+        Strong reasoning improves diagnostic accuracy and reduces unnecessary intervention.
+        </p>
+        
+        <h2>Hypothesis Generation</h2>
+        
+        <p>
+        Experienced clinicians rarely begin from zero.
+        Initial observations immediately activate mental models and possible explanations.
+        These early impressions should remain flexible and continuously updated.
+        </p>
+        
+        <h2>Data Collection</h2>
+        
+        <p>
+        Patient history remains one of the highest value diagnostic tools.
+        Questions should narrow possibilities rather than accumulate unrelated information.
+        </p>
+        
+        <h2>Verification</h2>
+        
+        <p>
+        Every working diagnosis requires active confirmation and disconfirmation.
+        Clinicians should intentionally search for findings that challenge assumptions.
+        </p>
+        
+        <h2>Cognitive Bias</h2>
+        
+        <p>
+        Anchoring, premature closure, and confirmation bias remain frequent contributors to diagnostic error.
+        Structured reflection improves decision quality.
+        </p>
+        ',
+        'https://latee.com/resources/clinical-reasoning',
+        '/images/das2.jpeg',
+        'Emily Carter'),
+
+       ('KR-002',
+        'Patient Communication Essentials',
+        '
+        <h2>Communication Foundations</h2>
+        
+        <p>
+        Effective patient communication builds trust and directly improves outcomes.
+        Patients who understand care plans demonstrate stronger adherence and satisfaction.
+        </p>
+        
+        <h2>Opening the Conversation</h2>
+        
+        <p>
+        A strong opening encourages patients to explain concerns in their own words before directed questioning.
+        </p>
+        
+        <h2>Active Listening</h2>
+        
+        <p>
+        Listening requires verbal and nonverbal attention.
+        Interrupting too early often reduces diagnostic quality.
+        </p>
+        
+        <h2>Empathy in Practice</h2>
+        
+        <p>
+        Empathy is demonstrated through acknowledgement, clarification, and respectful language.
+        </p>
+        
+        <h2>Difficult Conversations</h2>
+        
+        <p>
+        High emotion situations benefit from slower pacing, summarization, and shared understanding.
+        </p>
+        ',
+        'https://latee.com/resources/patient-communication',
+        '/images/das2.jpg',
+        'Tachibana Hana'),
+
+       ('KR-003',
+        'Emergency Assessment Checklist',
+        '
+        <h2>Immediate Stabilization</h2>
+        
+        <p>
+        Emergency assessment begins with identifying life threats before detailed diagnosis.
+        </p>
+        
+        <h2>Primary Survey</h2>
+        
+        <p>
+        Airway, breathing, circulation, disability, and exposure remain the standard sequence.
+        </p>
+        
+        <h2>Rapid Information Gathering</h2>
+        
+        <p>
+        Focused history and targeted examination should happen simultaneously.
+        </p>
+        
+        <h2>Escalation Criteria</h2>
+        
+        <p>
+        Clinicians should recognize deteriorating signs early and activate escalation pathways.
+        </p>
+        
+        <h2>Documentation</h2>
+        
+        <p>
+        Clear documentation improves continuity and reduces handoff failure.
+        </p>
+        ',
+        'https://latee.com/resources/emergency-checklist',
+        '/images/das3.jpg',
+        'Andrew Nguyen'),
+
+       ('KR-004',
+        'Virtual Patient Simulation Handbook',
+        '
+        <h2>Introduction</h2>
+        
+        <p>
+        Simulation environments provide a safe setting for repeated practice.
+        </p>
+        
+        <h2>Learning Design</h2>
+        
+        <p>
+        Scenarios should align with explicit learning outcomes.
+        </p>
+        
+        <h2>Debriefing</h2>
+        
+        <p>
+        Reflection after simulation contributes more learning value than scenario completion alone.
+        </p>
+        
+        <h2>Feedback Loops</h2>
+        
+        <p>
+        Immediate actionable feedback supports improvement.
+        </p>
+        
+        <h2>Measurement</h2>
+        
+        <p>
+        Performance metrics should emphasize reasoning and process.
+        </p>
+        ',
+        'https://latee.com/resources/virtual-patient',
+        '/images/das2.jpeg',
+        'Le Minh Duc'),
+
+       ('KR-005',
+        'Evidence-Based Clinical Decision Making',
+        '
+        <h2>Principles</h2>
+        
+        <p>
+        Evidence-based practice combines literature, expertise, and patient context.
+        </p>
+        
+        <h2>Searching Evidence</h2>
+        
+        <p>
+        Efficient searching starts with focused clinical questions.
+        </p>
+        
+        <h2>Appraisal</h2>
+        
+        <p>
+        Quality assessment determines reliability and applicability.
+        </p>
+        
+        <h2>Applying Results</h2>
+        
+        <p>
+        Clinical decisions require adaptation to patient goals.
+        </p>
+        
+        <h2>Continuous Learning</h2>
+        
+        <p>
+        Updating evidence supports long-term quality improvement.
+        </p>
+        ',
+        'https://latee.com/resources/ebm',
+        '/images/das2.jpg',
+        'Emily Carter'),
+
+       ('KR-006',
+        'EPA Assessment Framework',
+        '
+        <h2>EPA Overview</h2>
+        
+        <p>
+        Entrustable Professional Activities evaluate readiness for real clinical responsibility.
+        </p>
+        
+        <h2>Assessment Levels</h2>
+        
+        <p>
+        Progression reflects increasing independence.
+        </p>
+        
+        <h2>Observation</h2>
+        
+        <p>
+        Direct observation creates stronger assessment quality.
+        </p>
+        
+        <h2>Feedback</h2>
+        
+        <p>
+        Specific and timely feedback accelerates improvement.
+        </p>
+        
+        <h2>Implementation</h2>
+        
+        <p>
+        EPA systems require alignment with curriculum and supervision.
+        </p>
+        ',
+        'https://latee.com/resources/epa',
+        '/images/das3.jpg',
+        'Medical Education Board');
+
+-- ==========================
+-- EXPERT_RESOURCE
+-- (expert_knowledge)
+-- ==========================
+
+INSERT INTO expert_knowledge
+(expert_id,
+ knowledge_resource_id)
+VALUES ('USR-EXP-001', 'KR-002'),
+
+       ('USR-EXP-002', 'KR-003'),
+
+       ('USR-EXP-003', 'KR-001'),
+       ('USR-EXP-003', 'KR-005'),
+
+       ('USR-EXP-004', 'KR-004'),
+       ('USR-EXP-004', 'KR-006');

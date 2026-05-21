@@ -9,7 +9,8 @@ public sealed class CreateKnowledgeResourceCommand : IRequest<KnowledgeResource>
     public string? Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Content { get; set; }
-    public string? AuthorId { get; set; }
+    
+    public string? AuthorList { get; set; }
 }
 
 public sealed class CreateKnowledgeResourceHandler : IRequestHandler<CreateKnowledgeResourceCommand, KnowledgeResource>
@@ -28,7 +29,7 @@ public sealed class CreateKnowledgeResourceHandler : IRequestHandler<CreateKnowl
             Id = request.Id ?? string.Empty,
             Title = request.Title,
             Content = request.Content,
-            AuthorId = request.AuthorId
+            AuthorList = request.AuthorList
         };
 
         return _repository.CreateKnowledgeResourceAsync(entity);

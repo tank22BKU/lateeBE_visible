@@ -435,12 +435,13 @@ CREATE TABLE assessment_answer
     CONSTRAINT fk_ans_question FOREIGN KEY (question_id) REFERENCES question (id) ON DELETE CASCADE
 );
 
-CREATE TABLE expert_assessment {
+CREATE TABLE expert_assessment
+(
     expert_id VARCHAR(50) NOT NULL,
     assessment_id VARCHAR(50) NOT NULL,
     CONSTRAINT fk_expert_assessment_expert FOREIGN KEY (expert_id) REFERENCES expert (eid),
     CONSTRAINT fk_expert_assessment_assessment FOREIGN KEY (assessment_id) REFERENCES assessments (assessment_id)
-}
+);
 
 CREATE TABLE issue
 (

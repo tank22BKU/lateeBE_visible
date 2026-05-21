@@ -9,7 +9,7 @@ public sealed class UpdateKnowledgeResourceCommand : IRequest<KnowledgeResource?
     public string Id { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string? Content { get; set; }
-    public string? AuthorId { get; set; }
+    public string? AuthorList { get; set; }
 }
 
 public sealed class UpdateKnowledgeResourceHandler : IRequestHandler<UpdateKnowledgeResourceCommand, KnowledgeResource?>
@@ -28,7 +28,7 @@ public sealed class UpdateKnowledgeResourceHandler : IRequestHandler<UpdateKnowl
             Id = request.Id,
             Title = request.Title,
             Content = request.Content,
-            AuthorId = request.AuthorId
+            AuthorList = request.AuthorList
         };
 
         return _repository.UpdateKnowledgeResourceAsync(entity);
