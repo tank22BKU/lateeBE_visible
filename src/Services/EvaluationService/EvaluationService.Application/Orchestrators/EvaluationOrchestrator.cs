@@ -90,7 +90,7 @@ public sealed class EvaluationOrchestrator
             RubricVersion: rubric.Version,
             ActiveWarningLabels: cmd.Warnings.Select(w => w.Label).ToList(),
             ActiveWarningDescriptions: cmd.Warnings.Select(w => w.Description).ToList()
-        ); 
+        );
 
         var prompt = _promptBuilder.Build(input, rubric);
         var aiOutput = await _geminiRepo.AnalyzePerformanceAsync(prompt, ct);

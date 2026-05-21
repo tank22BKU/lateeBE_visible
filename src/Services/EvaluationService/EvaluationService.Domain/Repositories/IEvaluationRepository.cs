@@ -16,6 +16,12 @@ public interface IEvaluationRepository
 
     Task<List<EvaluationEpaScore>> GetEpaScoresByEvaluationIdAsync(string evaluationId);
 
+    Task<List<PracticeHistoryRow>> GetPracticeHistoryAsync(
+        string learnerId,
+        string patientId,
+        CancellationToken cancellationToken = default
+    );
+
     Task<List<IssueListItem>> GetIssuesAsync(string practiceSessionId, string learnerId);
     Task AddIssueAsync(Issue issue);
 
@@ -51,3 +57,18 @@ public record IssueListItem(
 );
 
 public record IssueExpertFeedback(string ExpertId, string ExpertName, string Feedback);
+
+public record PracticeHistoryRow(
+    string PracticeSessionId,
+    string? EvaluationId,
+    decimal? Score,
+    int? PureEpaScore,
+    int? EntrustmentLevel,
+    string? FinalDiagnosis,
+    int? Duration,
+    string? DiagnosisMatch,
+    string? RubricVersion,
+    DateTime CreatedAt,
+    string Status,
+    string? FeedbackId
+);

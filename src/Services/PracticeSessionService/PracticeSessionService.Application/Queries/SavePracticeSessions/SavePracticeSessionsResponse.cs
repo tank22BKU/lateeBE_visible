@@ -1,4 +1,5 @@
 ﻿namespace PracticeSessionService.Application.Queries.SavePracticeSessions;
+
 public class SavePracticeSessionsResponse
 {
     public string SessionId { get; set; }

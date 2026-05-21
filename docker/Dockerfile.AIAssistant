@@ -1,9 +1,9 @@
-# Dockerfile.AIAssistant
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV FASTEMBED_CACHE_PATH=/tmp/fastembed_cache
+
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
@@ -13,17 +13,14 @@ WORKDIR /src
 
 COPY src/Services/AIAssistantService/python_api/requirements.txt .
 
+RUN python -m pip install --upgrade pip setuptools wheel
+
 RUN pip install --no-cache-dir -r requirements.txt
 
 RUN python -c "from fastembed import TextEmbedding; TextEmbedding(model_name='jinaai/jina-embeddings-v2-small-en')"
 
 COPY src/Services/AIAssistantService/python_api/ .
 
-
-RUN rm -rf \
-    /root/.cache \
-    /tmp/pip-build-tracker
-
-
 EXPOSE 8000
+
 CMD ["uvicorn","app:app","--host","0.0.0.0","--port","8000"]

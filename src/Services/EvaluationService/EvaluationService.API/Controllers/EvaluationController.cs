@@ -4,6 +4,7 @@ using EvaluationService.Application.Commands.GeneratePracticeFeedback;
 using EvaluationService.Application.Commands.SubmitEvaluation;
 using EvaluationService.Application.Queries.GetHistory;
 using EvaluationService.Application.Queries.GetIssues;
+using EvaluationService.Application.Queries.GetPracticeHistory;
 using EvaluationService.Application.Queries.GetReport;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -73,5 +74,25 @@ public class EvaluationController : ControllerBase
     {
         var result = await _mediator.Send(cmd);
         return Ok(new { message = "Issue created successfully.", data = result });
+    }
+
+    [HttpGet("practice-history")]
+    public async Task<IActionResult> GetPracticeHistory(
+        [FromQuery] string learnerId,
+        [FromQuery] string patientId
+    )
+    {
+        try
+        {
+            var result = await _mediator.Send(
+                new GetPracticeHistoryQuery { LearnerId = learnerId, PatientId = patientId }
+            );
+
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 }

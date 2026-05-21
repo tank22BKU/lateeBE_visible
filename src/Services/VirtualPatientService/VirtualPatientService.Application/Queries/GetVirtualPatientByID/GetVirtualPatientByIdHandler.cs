@@ -1,76 +1,89 @@
-using MediatR;
 using System.Text.Json;
-using VirtualPatientService.Application.Queries.GetVirtualPatients;
+using MediatR;
+using VirtualPatientService.Application.Dtos;
 using VirtualPatientService.Domain.Repositories;
 
-namespace VirtualPatientService.Application.Queries.GetVirtualPatientByID;
+namespace VirtualPatientService.Application.Queries.GetVirtualPatientById;
 
-public class GetVirtualPatientByIdHandler : IRequestHandler<GetVirtualPatientByIdQuery, VirtualPatientDto?>
+public class GetVirtualPatientByIdHandler
+    : IRequestHandler<GetVirtualPatientByIdQuery, VirtualPatientDetailDto?>
 {
-    private readonly IVirtualPatientRepository _repo;
+    private readonly IVirtualPatientRepository _vpRepo;
     private readonly IClinicalCaseRepository _caseRepo;
 
-    public GetVirtualPatientByIdHandler(IVirtualPatientRepository repo, IClinicalCaseRepository caseRepo)
+    public GetVirtualPatientByIdHandler(
+        IVirtualPatientRepository vpRepo,
+        IClinicalCaseRepository caseRepo
+    )
     {
-        _repo = repo;
+        _vpRepo = vpRepo;
         _caseRepo = caseRepo;
     }
 
-    public async Task<VirtualPatientDto?> Handle(GetVirtualPatientByIdQuery request, CancellationToken cancellationToken)
+    public async Task<VirtualPatientDetailDto?> Handle(
+        GetVirtualPatientByIdQuery request,
+        CancellationToken cancellationToken
+    )
     {
-        var x = await _repo.GetByIdAsync(request.PatientId);
-        
-        if (x == null) return null;
+        var patient = await _vpRepo.GetByIdAsync(request.PatientId, cancellationToken);
+        if (patient is null)
+            return null;
 
-        var clinicalCase = await _caseRepo.GetByIdAsync(x.CaseId);
-        var experts = await _repo.GetExpertsByPatientIdAsync(x.PatientId);
+        var clinicalCase = await _caseRepo.GetByIdAsync(patient.CaseId, cancellationToken);
 
-        return new VirtualPatientDto
+        var experts = await _vpRepo.GetExpertsByPatientIdAsync(
+            patient.PatientId,
+            cancellationToken
+        );
+
+        return new VirtualPatientDetailDto
         {
-            PatientId = x.PatientId,
-            CaseId = x.CaseId,
-            Name = x.Name,
-            Age = x.Age,
-            Gender = x.Gender,
-            Occupation = x.Occupation,
-            ChiefConcern = x.ChiefConcern,
+            PatientId = patient.PatientId,
+            CaseId = patient.CaseId,
+            Name = patient.Name,
+            Age = patient.Age,
+            Gender = patient.Gender,
+            Pronouns = patient.Pronouns,
+            Ethnicity = patient.Ethnicity,
+            Occupation = patient.Occupation,
+            ChiefConcern = patient.ChiefConcern,
             MedicalHistory = clinicalCase?.MedicalHistory,
             Symptom = clinicalCase?.Symptom,
-            Pronouns = x.Pronouns,
-            Ethnicity = x.Ethnicity,
-            Persona = ParseJsonOrString(x.Persona),
-            VitalSigns = ParseJsonOrString(x.VitalSigns),
-            Instructions = ParseJsonOrString(x.Instructions),
-            Behaviors = ParseJsonOrString(x.Behaviors),
-            TimeSetting = x.TimeSetting,
-            ArgumentTime = x.ArgumentTime,
-            LearningObjectives = ParseJsonOrString(x.LearningObjectives),
-            Level = x.Level,
-            AvatarImage = x.AvatarImage,
-            CaseRule = ParseJsonOrString(x.CaseRule),
-            Status = x.Status,
-            CreatedAt = x.CreatedAt,
-            UpdatedAt = x.UpdatedAt,
-            Experts = experts.Select(e => new ExpertDto
-            {
-                ExpertId = e.ExpertId,
-                Name = e.Name,
-                Role = e.Role,
-                AvatarUrl = e.AvatarUrl,
-                BioQuote = e.BioQuote,
-                EducationDetail = e.EducationDetail,
-                ExpertiseSkill = e.ExpertiseSkill,
-                Phone = e.Phone,
-                Email = e.Email,
-                Location = e.Location
-            }).ToList()
+            Persona = ParseJson(patient.Persona),
+            VitalSigns = ParseJson(patient.VitalSigns),
+            Instructions = ParseJson(patient.Instructions),
+            Behaviors = ParseJson(patient.Behaviors),
+            TimeSetting = patient.TimeSetting,
+            ArgumentTime = patient.ArgumentTime,
+            LearningObjectives = ParseJson(patient.LearningObjectives),
+            Level = patient.Level,
+            AvatarImage = patient.AvatarImage,
+            CaseRule = ParseJson(patient.CaseRule),
+            Status = patient.Status,
+            CreatedAt = patient.CreatedAt,
+            UpdatedAt = patient.UpdatedAt,
+            Experts = experts
+                .Select(e => new ExpertDto
+                {
+                    ExpertId = e.ExpertId,
+                    Name = e.Name,
+                    Role = e.Role,
+                    AvatarUrl = e.AvatarUrl,
+                    BioQuote = e.BioQuote,
+                    EducationDetail = e.EducationDetail,
+                    ExpertiseSkill = e.ExpertiseSkill,
+                    Phone = e.Phone,
+                    Email = e.Email,
+                    Location = null, 
+                })
+                .ToList(),
         };
     }
 
-    private static object? ParseJsonOrString(string? value)
+    private static object? ParseJson(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value)) return null;
-
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
         try
         {
             return JsonSerializer.Deserialize<object>(value);

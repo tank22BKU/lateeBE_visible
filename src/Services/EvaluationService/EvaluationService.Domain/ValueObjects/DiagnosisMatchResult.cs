@@ -1,9 +1,5 @@
 namespace EvaluationService.Domain.ValueObjects;
 
-/// <summary>
-/// Value object cho diagnosis match — không thay đổi logic,
-/// chỉ thêm ToDto() để FE nhận được đầy đủ thông tin.
-/// </summary>
 public sealed class DiagnosisMatchResult
 {
     public static readonly IReadOnlySet<string> ValidMatchTypes = new HashSet<string>(
@@ -18,10 +14,15 @@ public sealed class DiagnosisMatchResult
         "NO_DIAGNOSIS",
         "UNKNOWN",
         "UNVERIFIED",
+        "MATCH",
+        "PARTIAL",
     };
 
     public string MatchType { get; }
-    public bool IsAcceptable => MatchType is "EXACT_MATCH" or "SEMANTIC_MATCH" or "PARTIAL_MATCH";
+
+    public bool IsAcceptable =>
+        MatchType is "EXACT_MATCH" or "SEMANTIC_MATCH" or "PARTIAL_MATCH" or "MATCH" or "PARTIAL";
+
     public bool IsDangerous => MatchType is "DANGEROUS";
     public bool RequiresSafetyReview => IsDangerous || MatchType is "NO_DIAGNOSIS";
 
@@ -31,6 +32,8 @@ public sealed class DiagnosisMatchResult
             "EXACT_MATCH" => "Exact match",
             "SEMANTIC_MATCH" => "Equivalent match",
             "PARTIAL_MATCH" => "Partial match",
+            "MATCH" => "Exact match",
+            "PARTIAL" => "Partial match",
             "WRONG" => "Incorrect",
             "DANGEROUS" => "Dangerous error",
             "NO_DIAGNOSIS" => "Not submitted",

@@ -2,5 +2,5 @@ namespace PracticeSessionService.Application.Commands.UpdatePracticeSessionStatu
 
 public class UpdatePracticeSessionStatusRequest
 {
-	public string Status { get; set; } = default!;
+    public string Status { get; set; } = default!;
 }

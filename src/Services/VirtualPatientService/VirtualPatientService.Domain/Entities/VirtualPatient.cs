@@ -21,7 +21,6 @@ public class VirtualPatient
     public string? Level { get; set; }
     public string? AvatarImage { get; set; }
     public string? CaseRule { get; set; }
-
     public string? Status { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

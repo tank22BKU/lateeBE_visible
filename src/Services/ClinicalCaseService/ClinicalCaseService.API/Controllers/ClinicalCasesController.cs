@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using MediatR;
-using ClinicalCaseService.Application.Commands.CreateClinicalCase;
+﻿using ClinicalCaseService.Application.Commands.CreateClinicalCase;
 using ClinicalCaseService.Application.Commands.DeleteClinicalCase;
 using ClinicalCaseService.Application.Commands.UpdateClinicalCase;
 using ClinicalCaseService.Application.Queries.GetClinicalCaseById;
 using ClinicalCaseService.Application.Queries.GetClinicalCases;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicalCaseService.API.Controllers;
 
@@ -21,13 +21,12 @@ public class ClinicalCasesController : ControllerBase
 
     [HttpGet]
     public async Task<IActionResult> GetPaged(
-    [FromQuery] string? status,
-    [FromQuery] int page = 1,
-    [FromQuery] int pageSize = 20)
+        [FromQuery] string? status,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20
+    )
     {
-        var result = await _mediator.Send(
-            new GetClinicalCasesQuery(status, page, pageSize)
-        );
+        var result = await _mediator.Send(new GetClinicalCasesQuery(status, page, pageSize));
 
         return Ok(result);
     }

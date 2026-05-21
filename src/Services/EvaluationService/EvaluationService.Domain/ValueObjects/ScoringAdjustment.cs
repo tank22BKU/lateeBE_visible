@@ -1,6 +1,5 @@
 namespace EvaluationService.Domain.ValueObjects;
 
-
 /// score > 0 = bonus, score < 0 = penalty.
 public sealed record ScoringAdjustment(
     string Code, // "DIAGNOSIS_EXACT_MATCH"

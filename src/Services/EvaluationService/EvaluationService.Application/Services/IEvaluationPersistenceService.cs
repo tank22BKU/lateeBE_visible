@@ -41,7 +41,7 @@ public sealed class EvaluationPersistenceService : IEvaluationPersistenceService
             CreatedAt = DateTime.UtcNow,
             EntrustmentLevel = result.OverallEntrustmentLevel,
             RubricVersion = rubricVersion,
-            PureEpaScore = result.PureEpaScore, 
+            PureEpaScore = result.PureEpaScore,
             FeedbackDetail = BuildLegacyJson(result),
         };
 

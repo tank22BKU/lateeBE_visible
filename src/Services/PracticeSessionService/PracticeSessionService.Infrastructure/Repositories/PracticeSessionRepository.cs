@@ -1,7 +1,7 @@
-﻿using PracticeSessionService.Domain.Entities;
-using PracticeSessionService.Infrastructure.Persistance;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using PracticeSessionService.Domain.Entities;
 using PracticeSessionService.Domain.Repositories;
+using PracticeSessionService.Infrastructure.Persistance;
 
 namespace PracticeSessionService.Infrastructure.Repositories;
 
@@ -13,26 +13,29 @@ public class PracticeSessionRepository : IPracticeSessionRepository
     {
         _db = db;
     }
-    
+
     public async Task<PracticeSession?> GetSessionByIdAsync(string id)
     {
-        return await _db.PracticeSessions
-            .FirstOrDefaultAsync(x => x.Id == id);
+        return await _db.PracticeSessions.FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public async Task<PracticeSession?> GetLatestSessionAsync(
         string learnerId,
         string patientId,
-        IEnumerable<string> statuses)
+        IEnumerable<string> statuses
+    )
     {
         var statusList = statuses.Distinct().ToList();
-        if (statusList.Count == 0) return null;
+        if (statusList.Count == 0)
+            return null;
 
-        return await _db.PracticeSessions
-            .AsNoTracking()
-            .Where(x => x.LearnerId == learnerId
-                        && x.PatientId == patientId
-                        && statusList.Contains(x.Status))
+        return await _db
+            .PracticeSessions.AsNoTracking()
+            .Where(x =>
+                x.LearnerId == learnerId
+                && x.PatientId == patientId
+                && statusList.Contains(x.Status)
+            )
             .OrderByDescending(x => x.CreatedAt)
             .FirstOrDefaultAsync();
     }
@@ -40,16 +43,20 @@ public class PracticeSessionRepository : IPracticeSessionRepository
     public async Task<int> CountSessionsAsync(
         string learnerId,
         string patientId,
-        IEnumerable<string> statuses)
+        IEnumerable<string> statuses
+    )
     {
         var statusList = statuses.Distinct().ToList();
-        if (statusList.Count == 0) return 0;
+        if (statusList.Count == 0)
+            return 0;
 
-        return await _db.PracticeSessions
-            .AsNoTracking()
-            .Where(x => x.LearnerId == learnerId
-                        && x.PatientId == patientId
-                        && statusList.Contains(x.Status))
+        return await _db
+            .PracticeSessions.AsNoTracking()
+            .Where(x =>
+                x.LearnerId == learnerId
+                && x.PatientId == patientId
+                && statusList.Contains(x.Status)
+            )
             .CountAsync();
     }
 
@@ -68,8 +75,8 @@ public class PracticeSessionRepository : IPracticeSessionRepository
 
     public async Task<List<Warning>> GetWarningsBySessionIdAsync(string sessionId)
     {
-        return await _db.Warnings
-            .AsNoTracking()
+        return await _db
+            .Warnings.AsNoTracking()
             .Where(x => x.PracticeSessionId == sessionId)
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync();

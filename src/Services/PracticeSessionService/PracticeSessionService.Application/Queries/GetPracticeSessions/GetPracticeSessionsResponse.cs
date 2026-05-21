@@ -1,6 +1,7 @@
 ﻿using PracticeSessionService.Application.Dtos;
 
 namespace PracticeSessionService.Application.Queries.GetPracticeSessions;
+
 public class GetPracticeSessionsResponse
 {
     public string SessionId { get; set; } = default!;
