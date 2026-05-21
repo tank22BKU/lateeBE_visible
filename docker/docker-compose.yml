@@ -1,5 +1,5 @@
 ﻿x-auth-env: &auth-env
-  Security__AuthorizationEnabled: ${AUTHORIZATION_ENABLED:-true}
+  Security__AuthorizationEnabled: ${AUTHORIZATION_ENABLED:-false}
   Jwt__Issuer: ${JWT_ISSUER:-latee-auth}
   Jwt__Audience: ${JWT_AUDIENCE:-latee-clients}
   Jwt__SigningKey: ${JWT_SIGNING_KEY:-latee_super_secret_signing_key_2026_change_me}

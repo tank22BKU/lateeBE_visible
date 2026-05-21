@@ -143,6 +143,55 @@ public class EvaluationRepository : IEvaluationRepository
             .OrderBy(x => x.EpaId)
             .ToListAsync();
 
+    public async Task<List<PracticeHistoryRow>> GetPracticeHistoryAsync(
+        string learnerId,
+        string patientId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var rows = await _db
+            .Database.SqlQuery<PracticeHistoryRaw>(
+                $"""
+                SELECT
+                    ps.id AS PracticeSessionId,
+                    e.id AS EvaluationId,
+                    e.score AS Score,
+                    e.pure_epa_score AS PureEpaScore,
+                    e.entrustment_level AS EntrustmentLevel,
+                    ps.final_diagnosis AS FinalDiagnosis,
+                    e.duration AS Duration,
+                    NULL AS DiagnosisMatch,
+                    e.rubric_version AS RubricVersion,
+                    ps.created_at AS CreatedAt,
+                    ps.status AS Status,
+                    pf.id AS FeedbackId
+                FROM practice_sessions ps
+                LEFT JOIN evaluation e ON e.practice_session_id = ps.id
+                LEFT JOIN practice_feedback pf ON pf.practice_session_id = ps.id
+                WHERE ps.learner_id = {learnerId}
+                    AND ps.patient_id = {patientId}
+                ORDER BY ps.created_at ASC
+                """
+            )
+            .ToListAsync(cancellationToken);
+
+        return rows.Select(r => new PracticeHistoryRow(
+                PracticeSessionId: r.PracticeSessionId ?? string.Empty,
+                EvaluationId: r.EvaluationId,
+                Score: r.Score,
+                PureEpaScore: r.PureEpaScore,
+                EntrustmentLevel: r.EntrustmentLevel,
+                FinalDiagnosis: r.FinalDiagnosis,
+                Duration: r.Duration,
+                DiagnosisMatch: r.DiagnosisMatch,
+                RubricVersion: r.RubricVersion,
+                CreatedAt: r.CreatedAt ?? DateTime.UtcNow,
+                Status: r.Status ?? string.Empty,
+                FeedbackId: r.FeedbackId
+            ))
+            .ToList();
+    }
+
     public async Task<List<IssueListItem>> GetIssuesAsync(
         string practiceSessionId,
         string learnerId
@@ -288,5 +337,21 @@ public class EvaluationRepository : IEvaluationRepository
         public string? ExpertId { get; set; }
         public string? ExpertName { get; set; }
         public string? Feedback { get; set; }
+    }
+
+    private sealed class PracticeHistoryRaw
+    {
+        public string? PracticeSessionId { get; set; }
+        public string? EvaluationId { get; set; }
+        public decimal? Score { get; set; }
+        public int? PureEpaScore { get; set; }
+        public int? EntrustmentLevel { get; set; }
+        public string? FinalDiagnosis { get; set; }
+        public int? Duration { get; set; }
+        public string? DiagnosisMatch { get; set; }
+        public string? RubricVersion { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public string? Status { get; set; }
+        public string? FeedbackId { get; set; }
     }
 }

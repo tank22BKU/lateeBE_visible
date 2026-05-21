@@ -16,7 +16,8 @@ public class UpdatePracticeSessionStatusHandler
 
     public async Task<UpdatePracticeSessionStatusResponse?> Handle(
         UpdatePracticeSessionStatusCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         if (string.IsNullOrWhiteSpace(request.SessionId))
             throw new ArgumentException("SessionId is required.");
@@ -28,25 +29,44 @@ public class UpdatePracticeSessionStatusHandler
             throw new ArgumentException("Invalid status value.");
 
         var session = await _repo.GetSessionByIdAsync(request.SessionId);
-        if (session == null) return null;
+        if (session == null)
+            return null;
 
         if (string.Equals(session.Status, normalizedStatus, StringComparison.OrdinalIgnoreCase))
         {
             return new UpdatePracticeSessionStatusResponse
             {
                 SessionId = session.Id,
-                Status = session.Status
+                Status = session.Status,
             };
         }
 
-        if (string.Equals(session.Status, PracticeSessionStatuses.Completed, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(session.Status, PracticeSessionStatuses.Abandoned, StringComparison.OrdinalIgnoreCase))
+        if (
+            string.Equals(
+                session.Status,
+                PracticeSessionStatuses.Completed,
+                StringComparison.OrdinalIgnoreCase
+            )
+            || string.Equals(
+                session.Status,
+                PracticeSessionStatuses.Abandoned,
+                StringComparison.OrdinalIgnoreCase
+            )
+        )
         {
-            throw new InvalidOperationException("Cannot change status of a completed or abandoned session.");
+            throw new InvalidOperationException(
+                "Cannot change status of a completed or abandoned session."
+            );
         }
 
         session.Status = normalizedStatus;
-        if (string.Equals(normalizedStatus, PracticeSessionStatuses.Completed, StringComparison.OrdinalIgnoreCase))
+        if (
+            string.Equals(
+                normalizedStatus,
+                PracticeSessionStatuses.Completed,
+                StringComparison.OrdinalIgnoreCase
+            )
+        )
         {
             session.EndTime = DateTime.UtcNow;
         }
@@ -57,7 +77,7 @@ public class UpdatePracticeSessionStatusHandler
         return new UpdatePracticeSessionStatusResponse
         {
             SessionId = session.Id,
-            Status = session.Status
+            Status = session.Status,
         };
     }
 }

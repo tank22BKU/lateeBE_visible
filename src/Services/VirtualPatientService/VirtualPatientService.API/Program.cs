@@ -1,21 +1,23 @@
+using System.Text;
+using System.Text.Json;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using VirtualPatientService.Application;
 using VirtualPatientService.Infrastructure;
 using VirtualPatientService.Infrastructure.Persistance;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using System.Text;
-using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var authorizationEnabled = builder.Configuration.GetValue<bool>("Security:AuthorizationEnabled");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "latee-auth";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "latee-clients";
-var jwtSigningKey = builder.Configuration["Jwt:SigningKey"] ?? "latee_super_secret_signing_key_2026_change_me";
+var jwtSigningKey =
+    builder.Configuration["Jwt:SigningKey"] ?? "latee_super_secret_signing_key_2026_change_me";
 
-builder.Services.AddControllers()
+builder
+    .Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
@@ -32,8 +34,8 @@ builder.Services.AddDbContext<VirtualPatientDbContext>(options =>
 // Dependency Injection
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder
+    .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -45,7 +47,7 @@ builder.Services
             ValidIssuer = jwtIssuer,
             ValidAudience = jwtAudience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSigningKey)),
-            ClockSkew = TimeSpan.FromMinutes(2)
+            ClockSkew = TimeSpan.FromMinutes(2),
         };
     });
 
@@ -59,15 +61,21 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Virtual Patient API", Version = "v1" });
+    c.SwaggerDoc(
+        "v1",
+        new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Virtual Patient API", Version = "v1" }
+    );
 });
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("SwaggerCors", policy =>
-    {
-        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-    });
+    options.AddPolicy(
+        "SwaggerCors",
+        policy =>
+        {
+            policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        }
+    );
 });
 
 var app = builder.Build();

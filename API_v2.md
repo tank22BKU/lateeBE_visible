@@ -392,6 +392,45 @@ Response:
 }
 ```
 
+### GET /api/evaluation/practice-history?learnerId={learnerId}&patientId={patientId}
+Response:
+```json
+{
+  "learnerId": "USR-LRN-08",
+  "patientId": "10070247",
+  "items": [
+    {
+      "practiceSessionId": "SESS_20260515090000",
+      "evaluationId": "EVAL-20260515-001",
+      "score": 88.5,
+      "pureEpaScore": 86,
+      "entrustmentLevel": 4,
+      "finalDiagnosis": "Acute appendicitis",
+      "duration": 27,
+      "diagnosisMatch": null,
+      "rubricVersion": "v2",
+      "createdAt": "2026-05-15T09:31:00Z",
+      "status": "Completed",
+      "feedbackId": "FB-20260515-001"
+    },
+    {
+      "practiceSessionId": "SESS_20260420083000",
+      "evaluationId": null,
+      "score": null,
+      "pureEpaScore": null,
+      "entrustmentLevel": null,
+      "finalDiagnosis": "",
+      "duration": 18,
+      "diagnosisMatch": null,
+      "rubricVersion": null,
+      "createdAt": "2026-04-20T08:48:00Z",
+      "status": "Submitted",
+      "feedbackId": null
+    }
+  ]
+}
+```
+
 ### DELETE /api/evaluation/{id}
 Response: 204 No Content
 
@@ -590,6 +629,147 @@ Response:
       "location": "Hudson, Wisconsin"
     }
   ]
+}
+```
+
+### GET /api/virtual-patients/discovery?learnerId={learnerId}&page=1&pageSize=9&sortBy=newest
+Implemented `sortBy` values: `newest` (default), `oldest`, `level_asc`, `level_desc`. Other accepted values currently fall back to `newest`.
+Response:
+```json
+{
+  "items": [
+    {
+      "patientId": "10070247",
+      "caseId": "27892518",
+      "name": "Richard Anderson",
+      "age": 43,
+      "gender": "MALE",
+      "occupation": "Warehouse worker",
+      "chiefConcern": "Abdominal pain",
+      "symptom": "Right lower quadrant pain",
+      "level": "Intermediate",
+      "avatarImage": "/images/patients/richard-anderson.png",
+      "timeSetting": 30,
+      "argumentTime": 15,
+      "createdAt": "2026-05-15T09:00:00Z",
+      "feedbackCount": 2,
+      "attemptSummary": {
+        "attempted": true,
+        "attemptCount": 2,
+        "maxAttempts": 3,
+        "bestScore": 88.5,
+        "latestScore": 84.0
+      },
+      "experts": [
+        {
+          "expertId": "EXP-001",
+          "name": "Dr. Andrew Nguyen",
+          "role": "Specialist in Diagnostic Reasoning",
+          "avatarUrl": "/images/d22.jpg"
+        }
+      ]
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "pageSize": 9,
+  "filters": {
+    "availableLevels": ["Beginner", "Intermediate"],
+    "availableGenders": ["FEMALE", "MALE"],
+    "availableSpecialties": ["APPENDICITIS", "ABDOMINAL_PAIN"],
+    "availableCaseTypes": ["APPENDICITIS", "ABDOMINAL_PAIN"]
+  }
+}
+```
+
+### POST /api/virtual-patients/discovery/fetch-cases
+Request:
+Request fields (types):
+- learnerId: string
+- level: string|null
+- gender: string|null
+- fetchCount: number
+```json
+{
+  "learnerId": "USR-LRN-08",
+  "level": "Intermediate",
+  "gender": "MALE",
+  "fetchCount": 5
+}
+```
+Response:
+```json
+{
+  "success": true,
+  "message": "Successfully fetched 5 new virtual patient cases from the system database.",
+  "data": {
+    "learnerId": "USR-LRN-08",
+    "fetchedCount": 5,
+    "currentPoolTotal": 14,
+    "fetchedItems": [
+      { "patientId": "10070247", "caseId": "27892518", "name": "Richard Anderson", "level": "Intermediate" },
+      { "patientId": "10070248", "caseId": "27892520", "name": "John Doe", "level": "Intermediate" },
+      { "patientId": "10070249", "caseId": "27892521", "name": "Robert Smith", "level": "Intermediate" },
+      { "patientId": "10070250", "caseId": "27892522", "name": "Michael Johnson", "level": "Intermediate" },
+      { "patientId": "10070251", "caseId": "27892523", "name": "William David", "level": "Intermediate" }
+    ]
+  }
+}
+```
+Error 400:
+```json
+{
+  "success": false,
+  "errorCode": "INVALID_FETCH_COUNT",
+  "message": "The fetchCount parameter must be an integer between 1 and 20."
+}
+```
+Error 404:
+```json
+{
+  "success": false,
+  "errorCode": "NO_MORE_CASES_AVAILABLE",
+  "message": "No new patient cases match your criteria in the system database. Try changing the difficulty level or gender filters."
+}
+```
+Error 401:
+```json
+{
+  "success": false,
+  "errorCode": "LEARNER_NOT_FOUND",
+  "message": "The provided learnerId does not exist or session has expired."
+}
+```
+
+### GET /api/virtual-patients/learner-last-discovery?learnerId={learnerId}
+Response:
+```json
+{
+  "learnerId": "USR-LRN-08",
+  "filterJson": "{\"level\":\"Intermediate\",\"gender\":\"MALE\",\"sortBy\":\"newest\"}",
+  "lastAccessed": "2026-05-18T10:20:00Z"
+}
+```
+
+### POST /api/virtual-patients/learner-last-discovery
+Request:
+Request fields (types):
+- learnerId: string
+- filterJson: string|null
+- lastAccessed: string|null (date-time)
+```json
+{
+  "learnerId": "USR-LRN-08",
+  "filterJson": "{\"level\":\"Intermediate\",\"gender\":\"MALE\",\"sortBy\":\"newest\"}",
+  "lastAccessed": "2026-05-18T10:20:00Z"
+}
+```
+Response:
+```json
+{
+  "success": true,
+  "learnerId": "USR-LRN-08",
+  "lastAccessed": "2026-05-18T10:20:00Z"
 }
 ```
 

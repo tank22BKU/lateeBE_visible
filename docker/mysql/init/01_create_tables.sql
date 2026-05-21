@@ -435,12 +435,12 @@ CREATE TABLE assessment_answer
     CONSTRAINT fk_ans_question FOREIGN KEY (question_id) REFERENCES question (id) ON DELETE CASCADE
 );
 
-CREATE TABLE expert_assessment {
+CREATE TABLE expert_assessment( 
     expert_id VARCHAR(50) NOT NULL,
     assessment_id VARCHAR(50) NOT NULL,
     CONSTRAINT fk_expert_assessment_expert FOREIGN KEY (expert_id) REFERENCES expert (eid),
     CONSTRAINT fk_expert_assessment_assessment FOREIGN KEY (assessment_id) REFERENCES assessments (assessment_id)
-}
+);
 
 CREATE TABLE issue
 (
@@ -471,3 +471,11 @@ CREATE TABLE resolved_issue
     CONSTRAINT fk_issue_expert FOREIGN KEY (expert_id) REFERENCES expert (eid ) ON DELETE CASCADE
 );
 
+CREATE TABLE learner_discovery_state (
+    learner_id    VARCHAR(50) PRIMARY KEY,
+    filter_json   JSON,
+    last_accessed TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_discovery_learner
+        FOREIGN KEY (learner_id) REFERENCES users(userid) ON DELETE CASCADE
+);

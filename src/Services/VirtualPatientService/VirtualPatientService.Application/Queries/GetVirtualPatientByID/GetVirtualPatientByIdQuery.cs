@@ -1,6 +1,6 @@
 using MediatR;
-using VirtualPatientService.Application.Queries.GetVirtualPatients;
+using VirtualPatientService.Application.Dtos;
 
-namespace VirtualPatientService.Application.Queries.GetVirtualPatientByID;
+namespace VirtualPatientService.Application.Queries.GetVirtualPatientById;
 
-public record GetVirtualPatientByIdQuery(string PatientId) : IRequest<VirtualPatientDto?>;
+public record GetVirtualPatientByIdQuery(string PatientId) : IRequest<VirtualPatientDetailDto?>;

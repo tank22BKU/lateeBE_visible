@@ -4,7 +4,8 @@ using PracticeSessionService.Domain.Repositories;
 
 namespace PracticeSessionService.Application.Commands.CreatePracticeSession;
 
-public class CreatePracticeSessionHandler : IRequestHandler<CreatePracticeSessionCommand, CreatePracticeSessionResult>
+public class CreatePracticeSessionHandler
+    : IRequestHandler<CreatePracticeSessionCommand, CreatePracticeSessionResult>
 {
     private readonly IPracticeSessionRepository _repository;
 
@@ -13,10 +14,13 @@ public class CreatePracticeSessionHandler : IRequestHandler<CreatePracticeSessio
         _repository = repository;
     }
 
-    public async Task<CreatePracticeSessionResult> Handle(CreatePracticeSessionCommand request, CancellationToken cancellationToken)
+    public async Task<CreatePracticeSessionResult> Handle(
+        CreatePracticeSessionCommand request,
+        CancellationToken cancellationToken
+    )
     {
-        var finalSessionId = !string.IsNullOrEmpty(request.Id) 
-            ? request.Id 
+        var finalSessionId = !string.IsNullOrEmpty(request.Id)
+            ? request.Id
             : $"SESS_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
 
         var session = new PracticeSession
@@ -29,7 +33,7 @@ public class CreatePracticeSessionHandler : IRequestHandler<CreatePracticeSessio
             GuidelinesId = request.GuidelinesId,
             Status = request.Status ?? "Practicing",
             StartTime = DateTime.UtcNow,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
         };
 
         await _repository.AddSessionAsync(session);

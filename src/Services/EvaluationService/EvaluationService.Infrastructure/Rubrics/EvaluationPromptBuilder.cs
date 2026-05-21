@@ -103,14 +103,58 @@ public sealed class EvaluationPromptBuilder : IEvaluationPromptBuilder
             ═══════════════════════════════════════════════════════════
             LAYER 5 — DIAGNOSIS CLASSIFICATION
             ═══════════════════════════════════════════════════════════
-            Compare learner's final diagnosis to canonical diagnosis.
-            diagnosisMatchType must be exactly one of:
-                EXACT_MATCH    — identical or medically equivalent
-                SEMANTIC_MATCH — clinically equivalent (different terminology)
-                PARTIAL_MATCH  — correct organ system, wrong specifics
-                WRONG          — incorrect diagnosis
-                DANGEROUS      — diagnosis that would cause patient harm
-                NO_DIAGNOSIS   — learner did not submit a diagnosis
+            You are a clinical expert evaluating whether a medical learner's diagnosis is correct.
+
+            GROUND TRUTH (canonical diagnosis): {{input.CanonicalDiagnosis}}
+            LEARNER DIAGNOSIS: {{(string.IsNullOrWhiteSpace(input.LearnerFinalDiagnosis) ? "[NOT SUBMITTED]" : input.LearnerFinalDiagnosis)}}
+
+            MATCHING RULES — Apply medical semantic understanding, NOT string comparison:
+
+            EXACT_MATCH — Use when the learner's diagnosis is clinically equivalent to the canonical:
+                • Identical condition, regardless of phrasing or terminology
+                • Medically accepted synonyms (e.g. "Nephrotic Syndrome" ↔ "Renal nephrotic syndrome")
+                • Minor word-order or qualifier differences that don't change meaning
+                Examples:
+                    "Nephrotic syndrome" vs "Nephrotic Syndrome"                   → EXACT_MATCH
+                    "Renal nephrotic syndrome" vs "Nephrotic Syndrome"             → EXACT_MATCH
+                    "Type 2 Diabetes Mellitus" vs "T2DM"                          → EXACT_MATCH
+
+            SEMANTIC_MATCH — Use when meaning is clinically equivalent but terminology differs noticeably:
+                • Different classification systems (ICD vs clinical vernacular)
+                • Acceptable paraphrase with same diagnostic implication
+                Examples:
+                    "Glomerular protein-loss syndrome" vs "Nephrotic Syndrome"     → SEMANTIC_MATCH
+                    "Insulin-resistant hyperglycemia" vs "Type 2 Diabetes"        → SEMANTIC_MATCH
+
+            PARTIAL_MATCH — Use when the learner correctly identifies the organ system or disease
+                family but misses the specific diagnosis:
+                • Right system, wrong specifics
+                • Probable / possible qualifier does NOT disqualify from PARTIAL
+                Examples:
+                    "Kidney disease" vs "Nephrotic Syndrome"                       → PARTIAL_MATCH
+                    "Possible glomerular disorder" vs "Nephrotic Syndrome"        → PARTIAL_MATCH
+                    "Renal insufficiency" vs "Nephrotic Syndrome"                 → PARTIAL_MATCH
+
+            WRONG — Use when the learner's diagnosis is clinically unrelated or incompatible:
+                • Different organ system
+                • Incorrect pathophysiology
+                Examples:
+                    "Pneumonia" vs "Nephrotic Syndrome"                            → WRONG
+                    "Appendicitis" vs "Nephrotic Syndrome"                         → WRONG
+
+            DANGEROUS — Use when the learner's diagnosis would lead to harmful treatment if acted upon:
+                • Treatment for the learner's diagnosis would worsen or endanger the patient
+                • Fundamentally dangerous misidentification
+                Examples:
+                    "Hypovolemic shock — give fluids aggressively" vs condition requiring fluid restriction → DANGEROUS
+
+            NO_DIAGNOSIS — Use when learner submitted nothing or only "[NOT SUBMITTED]".
+
+            IMPORTANT:
+            - Use your medical knowledge. Do NOT do string matching.
+            - "Possible X" or "Suspected X" = same match type as "X" — the qualifier is acceptable.
+            - Abbreviations and full names are equivalent.
+            - Do NOT default to WRONG simply because wording differs. Use clinical judgment to determine if the meaning is close enough for PARTIAL or SEMANTIC_MATCH.
 
             ═══════════════════════════════════════════════════════════
             LAYER 6 — OUTPUT CONTRACT
