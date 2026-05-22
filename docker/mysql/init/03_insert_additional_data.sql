@@ -24,18 +24,6 @@ VALUES
     'v1.2'
 );
 
-INSERT INTO practice_sessions (id, learner_id, patient_id, final_diagnosis, ai_reasoning_log, vp_conversation_log, module_id, discussion_type, guidelines_id, start_time, end_time, status, created_at)
-VALUES
-('PS-005', 'USR-LRN-01', '10070247', 'Appendicitis', '{"steps":["history","exam","diagnosis"]}', '{"dialogue":"..."}', 'EPA_STANDARD_V1', 'Message Type', 'GL-001', '2026-05-01 09:00:00', '2026-05-01 09:30:00', 'Completed', '2026-05-01 09:00:00'),
-('PS-006', 'USR-LRN-01', '10073256', 'Cholecystitis', '{"steps":["history","exam","diagnosis"]}', '{"dialogue":"..."}', 'EPA_STANDARD_V1', 'Message Type', 'GL-002', '2026-05-02 10:00:00', '2026-05-02 10:40:00', 'Completed', '2026-05-02 10:00:00');
-
-
-
-INSERT INTO evaluation (id, epa_id, practice_session_id, score, duration, created_at, feedback_detail, entrustment_level)
-VALUES
-('EVAL-001', 'EPA-001', 'PS-005', 85.5, 30, '2026-05-01 09:31:00', 'Good clinical reasoning and communication.', 4),
-('EVAL-002', 'EPA-002', 'PS-006', 78.0, 40, '2026-05-02 10:41:00', 'Solid diagnosis, needs improvement in history taking.', 3);
-
 -- INSERT ASSESSMENTS --
 INSERT INTO assessments (assessment_id, module_id, specialty, topic, subtopic, difficulty_level, title, descriptions, goal, num_questions, time_limit_minutes, passing_score_percentage, max_attempts, allowed_question_types, is_active)
 VALUES

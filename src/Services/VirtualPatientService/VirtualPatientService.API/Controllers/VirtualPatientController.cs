@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VirtualPatientService.Application.Commands.FetchVirtualPatientCases;
 using VirtualPatientService.Application.Commands.SaveLearnerDiscoveryState;
@@ -161,6 +162,7 @@ public class VirtualPatientController : ControllerBase
         }
     }
 
+    [AllowAnonymous]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(
         string id,
