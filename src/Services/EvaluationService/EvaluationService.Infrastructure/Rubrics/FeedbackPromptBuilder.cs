@@ -144,7 +144,7 @@ public sealed class FeedbackPromptBuilder : IFeedbackPromptBuilder
 
 			FEEDBACK GUIDANCE:
 			- strength: return one single paragraph only. Do not use bullets, arrays, or object-style formatting; keep all strengths in continuous prose.
-			- weakness: return one combined weakness section only. Use EPA-by-EPA improvement points, then finish with one concise concluding sentence that summarizes the overall improvement direction.
+			- weakness: return exactly one combined weakness section only. Use only the EPAs already present in EPA BREAKDOWN, write detailed improvement points EPA-by-EPA in plain text, and finish with one concise concluding sentence that summarizes the overall improvement direction.
 			- overallAttemptFeedback: summarize performance in plain clinical language; include whether the learner was safe, efficient, and reasoning clearly.
 			- overallLabel: choose the label that best matches the session, not the most encouraging label.
 		""";

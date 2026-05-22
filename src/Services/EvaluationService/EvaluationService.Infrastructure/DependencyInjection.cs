@@ -23,6 +23,7 @@ public static class DependencyInjection
         services.AddMemoryCache();
         services.AddScoped<IRubricProvider, RubricProvider>();
         services.AddScoped<IEvaluationPromptBuilder, EvaluationPromptBuilder>();
+        services.AddScoped<IFeedbackPromptBuilder, FeedbackPromptBuilder>();
         services.AddHttpClient();
 
         return services;

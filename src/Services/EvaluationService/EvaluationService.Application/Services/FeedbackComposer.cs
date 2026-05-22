@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using EvaluationService.Application.Dtos;
 using EvaluationService.Domain.Entities;
+using EvaluationService.Domain.Repositories;
 using EvaluationService.Domain.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -13,6 +14,8 @@ public sealed class FeedbackComposer : IFeedbackComposer
 {
     private readonly IConfiguration _config;
     private readonly HttpClient _httpClient;
+    private readonly IEvaluationRepository _repo;
+    private readonly IFeedbackPromptBuilder _feedbackPromptBuilder;
     private readonly ILogger<FeedbackComposer> _logger;
 
     private const string ModelEndpoint =
@@ -21,11 +24,15 @@ public sealed class FeedbackComposer : IFeedbackComposer
     public FeedbackComposer(
         IConfiguration config,
         IHttpClientFactory httpClientFactory,
+        IEvaluationRepository repo,
+        IFeedbackPromptBuilder feedbackPromptBuilder,
         ILogger<FeedbackComposer> logger
     )
     {
         _config = config;
         _httpClient = httpClientFactory.CreateClient();
+        _repo = repo;
+        _feedbackPromptBuilder = feedbackPromptBuilder;
         _logger = logger;
     }
 
@@ -37,7 +44,19 @@ public sealed class FeedbackComposer : IFeedbackComposer
         CancellationToken ct = default
     )
     {
-        var prompt = BuildPrompt(session, evaluation, epaScores, warnings);
+        var clinicalDx = await _repo.GetClinicalDiagnosisByPatientIdAsync(session.PatientId);
+        var patient = await _repo.GetVirtualPatientByIdAsync(session.PatientId);
+
+        var prompt = _feedbackPromptBuilder.Build(
+            session,
+            evaluation,
+            epaScores,
+            warnings,
+            clinicalDx?.CanonicalDiagnosis ?? string.Empty,
+            clinicalDx?.DescriptionText ?? string.Empty,
+            patient?.TimeSettingMinutes ?? 30,
+            patient?.ArgumentTimeMinutes ?? 15
+        );
         var apiKey = _config["GeminiAi:ApiKey"] ?? _config["GEMINI_API_KEY"];
 
         if (string.IsNullOrWhiteSpace(apiKey))
@@ -47,66 +66,6 @@ public sealed class FeedbackComposer : IFeedbackComposer
         }
 
         return await CallGeminiAsync(prompt, apiKey, evaluation, ct);
-    }
-
-    private static string BuildPrompt(
-        PracticeSession session,
-        Evaluation evaluation,
-        List<EvaluationEpaScore> epaScores,
-        List<Warning> warnings
-    )
-    {
-        var warningLabels = warnings.Select(w => w.Label ?? "UNKNOWN").ToList();
-        var finalScore = (int)(evaluation.Score ?? 0);
-        var level = evaluation.EntrustmentLevel ?? 1;
-
-        var epaContext = new StringBuilder();
-        foreach (var epa in epaScores)
-        {
-            epaContext.AppendLine(
-                $"- {epa.EpaId}: {epa.NumericalScore}/20 (Level {epa.EntrustmentLevel}) — {epa.FeedbackDetail}"
-            );
-            if (epa.EvidenceCited.Count > 0)
-                epaContext.AppendLine(
-                    $"  Evidence: {string.Join("; ", epa.EvidenceCited.Take(2))}"
-                );
-            if (epa.FailurePatterns.Count > 0)
-                epaContext.AppendLine($"  Failures: {string.Join(", ", epa.FailurePatterns)}");
-        }
-
-        return $$"""
-                SYSTEM:
-                You are a clinical education coach providing actionable, evidence-based feedback
-                to a medical learner after their Virtual Patient simulation.
-                Be honest, constructive, specific. Reference EPA evidence. Focus on growth.
-                NEVER fabricate clinical details not in the transcripts.
-
-                LEARNER PERFORMANCE:
-                Final Score         : {{finalScore}}/110
-                Entrustment Level   : {{level}}/5
-                Final Diagnosis     : {{session.FinalDiagnosis ?? "Not submitted"}}
-                Session Duration    : {{evaluation.Duration ?? 0}} minutes
-                Warnings Triggered  : {{string.Join(", ", warningLabels.DefaultIfEmpty("None"))}}
-
-                EPA PERFORMANCE BREAKDOWN:
-                {{epaContext}}
-
-                VP CONVERSATION EXCERPT:
-                {{Truncate(session.VpConversationLog, 1000)}}
-
-                AI REASONING EXCERPT:
-                {{Truncate(session.AiReasoningLog, 1000)}}
-
-                INSTRUCTIONS:
-                Return ONLY valid JSON — no markdown, no preamble:
-                {
-                    "strength"              : "<2–3 specific strengths with transcript evidence>",
-                    "weakness"              : "<2–3 areas for improvement with reasoning>",
-                    "improvementSuggestion" : "<3 actionable prioritized steps>",
-                    "overallAttemptFeedback": "<1–2 paragraph narrative>",
-                    "overallLabel"          : "<EXCELLENT|GOOD|DEVELOPING|NEEDS_IMPROVEMENT>"
-                }
-            """;
     }
 
     private async Task<PracticeFeedbackResponseDto> CallGeminiAsync(
@@ -175,16 +134,68 @@ public sealed class FeedbackComposer : IFeedbackComposer
             clean = clean.Substring(start, end - start + 1);
         }
 
-        var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-        var parsed = JsonSerializer.Deserialize<FeedbackSchema>(clean, opts);
+        using var payload = JsonDocument.Parse(clean);
+        var root = payload.RootElement;
+        var strength = ReadFlexibleText(root, "strength");
+        var weakness = ReadFlexibleText(root, "weakness");
+        var overallAttemptFeedback = ReadFlexibleText(root, "overallAttemptFeedback");
+        var overallLabel = ReadFlexibleText(root, "overallLabel");
 
         return new PracticeFeedbackResponseDto
         {
-            Strength = parsed?.Strength,
-            Improvement =
-                $"{parsed?.Weakness}\n\nImprovement Steps:\n{parsed?.ImprovementSuggestion}",
-            OverallAttempt = parsed?.OverallAttemptFeedback,
-            OverallLabel = parsed?.OverallLabel ?? "DEVELOPING",
+            Strength = strength,
+            Improvement = weakness,
+            OverallAttempt = overallAttemptFeedback,
+            OverallLabel = string.IsNullOrWhiteSpace(overallLabel) ? "DEVELOPING" : overallLabel,
+        };
+    }
+
+    private static string? ReadFlexibleText(JsonElement root, string propertyName)
+    {
+        if (!root.TryGetProperty(propertyName, out var element))
+            return null;
+
+        return element.ValueKind switch
+        {
+            JsonValueKind.String => element.GetString()?.Trim(),
+            JsonValueKind.Array => string.Join(
+                "\n",
+                element
+                    .EnumerateArray()
+                    .Select(ToText)
+                    .Where(value => !string.IsNullOrWhiteSpace(value))
+            ),
+            JsonValueKind.Object => ToText(element),
+            JsonValueKind.Number => element.ToString(),
+            JsonValueKind.True => "true",
+            JsonValueKind.False => "false",
+            _ => null,
+        };
+    }
+
+    private static string ToText(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.String => element.GetString() ?? string.Empty,
+            JsonValueKind.Array => string.Join(
+                " ",
+                element
+                    .EnumerateArray()
+                    .Select(ToText)
+                    .Where(value => !string.IsNullOrWhiteSpace(value))
+            ),
+            JsonValueKind.Object => string.Join(
+                " ",
+                element
+                    .EnumerateObject()
+                    .Select(p => ToText(p.Value))
+                    .Where(value => !string.IsNullOrWhiteSpace(value))
+            ),
+            JsonValueKind.Number => element.ToString(),
+            JsonValueKind.True => "true",
+            JsonValueKind.False => "false",
+            _ => string.Empty,
         };
     }
 
@@ -211,13 +222,4 @@ public sealed class FeedbackComposer : IFeedbackComposer
         string.IsNullOrWhiteSpace(text) ? "(empty)"
         : text.Length <= max ? text
         : text.Substring(0, Math.Min(text.Length, max)) + "...[truncated]";
-
-    private sealed class FeedbackSchema
-    {
-        public string? Strength { get; set; }
-        public string? Weakness { get; set; }
-        public string? ImprovementSuggestion { get; set; }
-        public string? OverallAttemptFeedback { get; set; }
-        public string? OverallLabel { get; set; }
-    }
 }
