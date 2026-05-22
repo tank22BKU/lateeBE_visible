@@ -101,6 +101,7 @@ dotnet add package Google.GenAI
 ### Build and run the project
 - Build khi ở root
 + docker compose -f docker/docker-compose.yml up --build
++  docker compose --env-file .env -f docker/docker-compose.yml up --build
 - Cleam & Rebuild
 + docker compose -f docker/docker-compose.yml down -v
 + docker compose -f docker/do*cker-compose.yml up -d --build*

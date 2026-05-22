@@ -41,7 +41,7 @@ public class KnowledgeResourcesController : ControllerBase
             Id = req.Id,
             Title = req.Title,
             Content = req.Content,
-            AuthorId = req.AuthorId
+            AuthorList = req.AuthorList
         });
 
         return CreatedAtAction(nameof(Get), new { id = entity.Id }, entity);
@@ -55,7 +55,7 @@ public class KnowledgeResourcesController : ControllerBase
             Id = id,
             Title = req.Title,
             Content = req.Content,
-            AuthorId = req.AuthorId
+            AuthorList = req.AuthorList
         });
 
         return updated is null ? NotFound() : NoContent();

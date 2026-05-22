@@ -1,18 +1,12 @@
 from typing import List, Optional, Dict, Any, Tuple
 from pydantic import BaseModel, Field
 import time
-import os
 
 HISTORY_MAX_ITEMS = 50  # int(os.getenv("HISTORY_MAX_ITEMS", "50"))
 # History config
 HISTORY_TTL_SECONDS = (
     3600  # int(os.getenv("HISTORY_TTL_SECONDS", "3600"))  # 1 hour default
 )
-
-try:
-    import redis
-except Exception:
-    redis = None
 
 try:
     from cachetools import TTLCache
@@ -54,35 +48,6 @@ class HistoryStore:
         raise NotImplementedError()
 
 
-class RedisHistoryStore(HistoryStore):
-    def __init__(self, url: str):
-        self.client = redis.from_url(url, decode_responses=True)
-
-    def _key(self, doctor_id: str) -> str:
-        return f"assistant_history:{doctor_id}"
-
-    def append(self, doctor_id: str, question: str, answer: str):
-        key = self._key(doctor_id)
-        # store as simple JSON-like string; use timestamp prefix for ordering
-        item = {"q": question, "a": answer, "ts": int(time.time())}
-        import json
-
-        self.client.rpush(key, json.dumps(item))
-        self.client.expire(key, HISTORY_TTL_SECONDS)
-        # trim list to max items
-        self.client.ltrim(key, -HISTORY_MAX_ITEMS, -1)
-
-    def get(self, doctor_id: str):
-        key = self._key(doctor_id)
-        arr = self.client.lrange(key, 0, -1)
-        import json
-
-        return [json.loads(x) for x in arr] if arr else []
-
-    def clear(self, doctor_id: str):
-        self.client.delete(self._key(doctor_id))
-
-
 class MemoryHistoryStore(HistoryStore):
     def __init__(self):
         if TTLCache is None:
@@ -113,20 +78,35 @@ class QuestionValidationRequest(BaseModel):
         default_factory=list
     )  # Lịch sử hội thoại để hiểu ngữ cảnh
 
+
 class QuestionValidationResponse(BaseModel):
     isValid: bool
-    reason: str = Field(default="", max_length=300,)
-    suggestion: str = Field(default="", max_length=500,)
-    severity: str = Field(default="medium",)
-    category: str = Field(default="unknown",)
-    confidence: float = Field(default=0.5, ge=0.0, le=1.0,)
+    reason: str = Field(
+        default="",
+        max_length=300,
+    )
+    suggestion: str = Field(
+        default="",
+        max_length=500,
+    )
+    severity: str = Field(
+        default="medium",
+    )
+    category: str = Field(
+        default="unknown",
+    )
+    confidence: float = Field(
+        default=0.5,
+        ge=0.0,
+        le=1.0,
+    )
 
 
 class ValidationFlag(BaseModel):
     isValid: bool
     reason: str
     suggestion: Optional[str] = ""
-    
+
 
 class ClinicalReasoningInteraction(BaseModel):
     dimension: str

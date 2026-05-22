@@ -286,7 +286,7 @@
           "Port": 8080
         }
       ],
-      "UpstreamPathTemplate": "/knowledge/api/{everything}",
+      "UpstreamPathTemplate": "/knowledgeresource/api/{everything}",
       "UpstreamHttpMethod": [
         "GET",
         "POST",
@@ -336,7 +336,7 @@
           "Port": 8080
         }
       ],
-      "UpstreamPathTemplate": "/knowledge/swagger/{everything}",
+      "UpstreamPathTemplate": "/knowledgeresource/swagger/{everything}",
       "UpstreamHttpMethod": [
         "GET"
       ]

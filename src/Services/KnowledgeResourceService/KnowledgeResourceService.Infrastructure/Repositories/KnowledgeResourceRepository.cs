@@ -45,7 +45,7 @@ public class KnowledgeResourceRepository : IKnowledgeResourceRepository
 
         existing.Title = knowledgeResource.Title;
         existing.Content = knowledgeResource.Content;
-        existing.AuthorId = knowledgeResource.AuthorId;
+        existing.AuthorList = knowledgeResource.AuthorList;
         existing.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();

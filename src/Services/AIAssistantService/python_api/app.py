@@ -21,13 +21,12 @@ from config import (
 from dtos import (
     AssistantRequest,
     QuestionValidationRequest,
-    RedisHistoryStore,
     MemoryHistoryStore,
-    redis,
     TTLCache,
     ClinicalReasoningRequest,
     ClinicalReasoningResponse,
 )
+
 # from ragLoader import RAGLoader
 from ragLoaderVer2 import RAGLoader
 
@@ -38,6 +37,7 @@ load_dotenv()
 # If you want RAG, instantiate a retriever (FAISS/Chroma/etc.) and set RETRIEVER var.
 ragLoader = RAGLoader()
 RETRIEVER = None
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -57,6 +57,7 @@ async def lifespan(app: FastAPI):
     yield
     logger.info("[SHUTDOWN] App shutdown")
 
+
 app = FastAPI(title="Medical Assistant API", lifespan=lifespan)
 
 app.add_middleware(
@@ -71,14 +72,9 @@ export_app = app  # for testing purposes
 
 HF_TOKEN = os.getenv("HF_TOKEN", "")
 REPO_ID = os.getenv("HF_REPO_ID", "meta-llama/Llama-3.1-8B-Instruct")
-USE_REDIS = bool(os.getenv("REDIS_URL"))
-
-
-REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
-REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
-REDIS_DB = int(os.getenv("REDIS_DB", 0))
 
 executor = ThreadPoolExecutor(max_workers=4)
+
 
 async def retrieve_documents_async(
     question: str, use_rag: bool
@@ -110,16 +106,10 @@ async def prepare_llm_async():
     return await loop.run_in_executor(executor, get_llm)
 
 
-REDIS_URL = os.getenv("REDIS_URL")
+if TTLCache is None:
+    raise RuntimeError("Install cachetools for in-memory history storage")
 
-if REDIS_URL and redis is not None:
-    HISTORY_STORE = RedisHistoryStore(REDIS_URL)
-else:
-    if TTLCache is None:
-        raise RuntimeError(
-            "Install cachetools or configure REDIS_URL for history storage"
-        )
-    HISTORY_STORE = MemoryHistoryStore()
+HISTORY_STORE = MemoryHistoryStore()
 
 
 # Middleware to strip trailing spaces from request paths
@@ -162,9 +152,11 @@ def health_check():
 #     from assistantChat import assistant_stream
 #     return await assistant_stream(req)
 
+
 @app.post("/assistant/stream/hf")
 async def assistant_hf_chat(req: AssistantRequest):
     from assistantChat import assistant_stream_hf
+
     return await assistant_stream_hf(req)
 
 
@@ -184,9 +176,11 @@ async def normalize_path_middleware(request, call_next):
 #     from validateQuestion import validate_question
 #     return await validate_question(req)
 
+
 @app.post("/assistant/validate_question/hf")
 async def validate_question_endpoint(req: QuestionValidationRequest):
     from validateQuestion import validate_question_hf
+
     return await validate_question_hf(req)
 
 
@@ -200,7 +194,9 @@ Clinical reasoning endpoint, also implemented in separate module.
 #     from reasoning import clinical_reasoning_endpoint
 #     return await clinical_reasoning_endpoint(req)
 
+
 @app.post("/clinicalreasoning/hf")
 async def clinical_reasoning_chat_hf(req: ClinicalReasoningRequest):
     from reasoning import clinical_reasoning_stream_hf
+
     return await clinical_reasoning_stream_hf(req)
