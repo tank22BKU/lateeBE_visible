@@ -174,8 +174,8 @@ Request fields (types):
 - practiceSessionId: string
 - learnerId: string
 - finalDiagnosis: string|null
-- vpConversationLog: string|null (JSON string)
-- aiReasoningLog: string|null (JSON string)
+- vpConversationLog: string|null (JSON string payload)
+- aiReasoningLog: string|null (JSON string payload)
 - discussionType: string|null
 - moduleId: string|null
 - warnings: array of { warningId: string, practiceSessionId: string, learnerId: string, label: string, description: string, createdAt: string (date-time) }
@@ -211,18 +211,29 @@ Response:
     "entrustmentLevel": 4,
     "feedbackDetail": "Good clinical reasoning and appropriate follow-up questions.",
     "finalDiagnosis": "Acute appendicitis",
-    "rawTotal": 88,
-    "diagnosisMatchType": "MATCH",
-    "diagnosisModifier": 0,
-    "timeModifier": 0,
-    "warningPenalty": 0,
+    "pureEpaScore": 86,
+    "positiveAdjustmentTotal": 10,
+    "negativeAdjustmentTotal": 8,
+    "adjustmentTotal": 2,
+    "diagnosisMatch": {
+      "matchType": "EXACT_MATCH",
+      "matchTypeLabel": "Exact match",
+      "isAcceptable": true,
+      "isDangerous": false,
+      "requiresSafetyReview": false
+    },
+    "diagnosisMatchType": "EXACT_MATCH",
+    "diagnosisModifier": 10,
+    "timeModifier": -1,
+    "warningPenalty": 7,
     "warningCount": 1,
     "safetyEscalationRequired": false,
     "cognitiveAlerts": [],
     "epaScores": [
       {
         "epaId": "EPA-001",
-        "numericalScore": 88,
+        "numericalScore": 16,
+        "maxScore": 20,
         "entrustmentLevel": 4,
         "feedbackDetail": "Strong data gathering with a focused ROS.",
         "evidenceCited": ["Clear onset timeline", "Asked about migration of pain"],
@@ -230,6 +241,35 @@ Response:
         "safetyFlags": []
       }
     ],
+    "adjustments": {
+      "positive": [
+        {
+          "code": "DIAGNOSIS_EXACT_MATCH",
+          "title": "Exact diagnosis match",
+          "score": 10,
+          "reason": "Diagnosis matches the canonical condition.",
+          "source": "diagnosis",
+          "severity": "positive"
+        }
+      ],
+      "negative": [
+        {
+          "code": "TIME_OVER_SLIGHT",
+          "title": "Slightly over time",
+          "score": -1,
+          "reason": "Session exceeded allotted time by up to 20%.",
+          "source": "time",
+          "severity": "low"
+        }
+      ],
+      "validation": {
+        "hasEthicsViolation": false,
+        "hasUnsafeQuestion": false,
+        "hasWorkflowViolation": false,
+        "safetyEscalationRequired": false,
+        "totalWarnings": 1
+      }
+    },
     "discussionType": "Message Type",
     "duration": 27,
     "practiceFeedbackAvailable": false
@@ -351,7 +391,7 @@ Response:
   "practiceFeedback": {
     "id": "FB-20260515-001",
     "overallAttempt": "Good effort",
-    "overallLabel": "Solid reasoning",
+    "overallLabel": "GOOD",
     "strength": "Focused abdominal pain history",
     "improvement": "Ask onset details earlier",
     "createdAt": "2026-05-15T09:31:00Z"
@@ -383,7 +423,7 @@ Response:
   "data": {
     "id": "FB-20260515-001",
     "overallAttempt": "Good effort",
-    "overallLabel": "Solid reasoning",
+    "overallLabel": "GOOD",
     "strength": "Focused abdominal pain history",
     "improvement": "Ask onset details earlier",
     "createdAt": "2026-05-15T09:31:00Z",
@@ -401,6 +441,7 @@ Response:
   "items": [
     {
       "practiceSessionId": "SESS_20260515090000",
+      "attemptNo": 1,
       "evaluationId": "EVAL-20260515-001",
       "score": 88.5,
       "pureEpaScore": 86,
@@ -415,6 +456,9 @@ Response:
     },
     {
       "practiceSessionId": "SESS_20260420083000",
+
+  Note: `feedbackId` is the `practice_feedback.id` returned by `POST /api/evaluation/practice-feedback/{practiceSessionId}`.
+      "attemptNo": 2,
       "evaluationId": null,
       "score": null,
       "pureEpaScore": null,

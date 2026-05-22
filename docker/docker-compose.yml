@@ -345,7 +345,7 @@ services:
     ports:
       - "8008:8080"
     env_file:
-      - ../.env
+      - ./.env
     depends_on:
       - mysql
     environment:

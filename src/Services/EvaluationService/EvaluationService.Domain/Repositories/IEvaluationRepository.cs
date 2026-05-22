@@ -60,6 +60,7 @@ public record IssueExpertFeedback(string ExpertId, string ExpertName, string Fee
 
 public record PracticeHistoryRow(
     string PracticeSessionId,
+    int AttemptNo,
     string? EvaluationId,
     decimal? Score,
     int? PureEpaScore,

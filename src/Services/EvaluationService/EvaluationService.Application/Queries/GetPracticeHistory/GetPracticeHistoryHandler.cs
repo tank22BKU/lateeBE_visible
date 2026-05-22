@@ -37,6 +37,7 @@ public class GetPracticeHistoryHandler
             Items = rows.Select(r => new PracticeHistoryItemDto
                 {
                     PracticeSessionId = r.PracticeSessionId,
+                    AttemptNo = r.AttemptNo,
                     EvaluationId = r.EvaluationId,
                     Score = r.Score,
                     PureEpaScore = r.PureEpaScore,

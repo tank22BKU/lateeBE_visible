@@ -154,6 +154,10 @@ public class EvaluationRepository : IEvaluationRepository
                 $"""
                 SELECT
                     ps.id AS PracticeSessionId,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY ps.learner_id, ps.patient_id
+                        ORDER BY ps.created_at ASC, ps.id ASC
+                    ) AS AttemptNo,
                     e.id AS EvaluationId,
                     e.score AS Score,
                     e.pure_epa_score AS PureEpaScore,
@@ -177,6 +181,7 @@ public class EvaluationRepository : IEvaluationRepository
 
         return rows.Select(r => new PracticeHistoryRow(
                 PracticeSessionId: r.PracticeSessionId ?? string.Empty,
+                AttemptNo: r.AttemptNo ?? 0,
                 EvaluationId: r.EvaluationId,
                 Score: r.Score,
                 PureEpaScore: r.PureEpaScore,
@@ -342,6 +347,7 @@ public class EvaluationRepository : IEvaluationRepository
     private sealed class PracticeHistoryRaw
     {
         public string? PracticeSessionId { get; set; }
+        public int? AttemptNo { get; set; }
         public string? EvaluationId { get; set; }
         public decimal? Score { get; set; }
         public int? PureEpaScore { get; set; }

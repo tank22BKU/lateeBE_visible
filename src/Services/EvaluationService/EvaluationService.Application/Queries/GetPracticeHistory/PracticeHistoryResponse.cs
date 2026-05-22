@@ -10,6 +10,7 @@ public class PracticeHistoryResponse
 public class PracticeHistoryItemDto
 {
     public string PracticeSessionId { get; set; } = default!;
+    public int AttemptNo { get; set; }
     public string? EvaluationId { get; set; }
     public decimal? Score { get; set; }
     public int? PureEpaScore { get; set; }

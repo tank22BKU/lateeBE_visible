@@ -16,7 +16,7 @@ public sealed class FeedbackComposer : IFeedbackComposer
     private readonly ILogger<FeedbackComposer> _logger;
 
     private const string ModelEndpoint =
-        "[https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent](https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent)";
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
     public FeedbackComposer(
         IConfiguration config,
