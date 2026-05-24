@@ -56,7 +56,7 @@ public class VirtualPatientController : ControllerBase
                 new GetVirtualPatientDiscoveryQuery
                 {
                     LearnerId = learnerId,
-                    Page = 1,
+                    Page = page,
                     PageSize = pageSize,
                     Level = level,
                     Occupation = occupation,

@@ -899,6 +899,174 @@ No more cases available:
   "message": "No new patient cases match your criteria. Try changing filters."
 }
 ```
+
+## VirtualPatientExpertService (Expert APIs)
+
+Fake/example payloads for the expert-facing Virtual Patient management APIs (versioned under `api`).
+
+### GET /api/expert/virtual-patients
+Query params: `page`, `pageSize`, `search`, `sortBy`, `sortDir`, `status`, `level`, `gender`, `caseId`
+Response (200):
+```json
+{
+  "items": [
+    {
+      "patientId": "VP-abc123",
+      "caseId": "CASE-001",
+      "name": "John Doe",
+      "age": 45,
+      "gender": "male",
+      "occupation": "Farmer",
+      "chiefConcern": "Abdominal pain",
+      "level": "intermediate",
+      "status": "draft",
+      "avatarImage": null,
+      "timeSetting": 15,
+      "argumentTime": 3,
+      "createdAt": "2026-05-20T10:00:00Z",
+      "updatedAt": "2026-05-20T10:00:00Z",
+      "attemptCount": 12,
+      "avgScore": 78.5,
+      "expertCount": 2
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "pageSize": 15,
+  "totalPages": 1,
+  "filters": {
+    "availableStatuses": ["active","draft","archived","published"],
+    "availableLevels": ["beginner","intermediate","advanced"],
+    "availableGenders": ["male","female"],
+    "availableCaseIds": ["CASE-001","CASE-002"]
+  }
+}
+```
+
+### GET /api/expert/virtual-patients/{id}
+Response (200):
+```json
+{
+  "patientId": "VP-abc123",
+  "caseId": "CASE-001",
+  "name": "John Doe",
+  "age": 45,
+  "gender": "male",
+  "pronouns": "he/him",
+  "ethnicity": null,
+  "occupation": "Farmer",
+  "chiefConcern": "Abdominal pain",
+  "medicalHistory": "Background medical history text",
+  "symptom": "Right lower quadrant pain",
+  "persona": {"brief":"Cooperative, anxious"},
+  "vitalSigns": {"bp":"120/80","hr":78},
+  "instructions": null,
+  "behaviors": null,
+  "timeSetting": 15,
+  "argumentTime": 3,
+  "learningObjectives": {"objective1":"Collect focused history"},
+  "level": "intermediate",
+  "avatarImage": null,
+  "caseRule": null,
+  "status": "draft",
+  "createdAt": "2026-05-20T10:00:00Z",
+  "updatedAt": "2026-05-20T10:00:00Z",
+  "experts": [
+    {
+      "expertId": "EXP-01",
+      "name": "Dr. Alice",
+      "role": "Consultant",
+      "avatarUrl": null,
+      "bioQuote": "General surgeon",
+      "educationDetail": "MD, Surgery",
+      "expertiseSkill": "General surgery",
+      "phone": "+123456789",
+      "email": "alice@example.com",
+      "location": "Bangkok"
+    }
+  ],
+  "stats": {
+    "totalAttempts": 12,
+    "avgScore": 78.5,
+    "completionRate": 0.75
+  }
+}
+```
+
+### POST /api/expert/virtual-patients
+Request (201 Created) example body:
+```json
+{
+  "patientId": "optional-VP-xyz",
+  "caseId": "CASE-001",
+  "name": "New Patient",
+  "age": 30,
+  "gender": "female",
+  "pronouns": "she/her",
+  "occupation": "Teacher",
+  "chiefConcern": "Headache",
+  "persona": {"notes":"calm"},
+  "vitalSigns": {"bp":"110/70"},
+  "timeSetting": 10,
+  "argumentTime": 2,
+  "learningObjectives": {"obj":"Practice history taking"},
+  "level": "beginner",
+  "avatarImage": null,
+  "caseRule": null,
+  "expertIds": ["EXP-01","EXP-02"]
+}
+```
+Response (201):
+```json
+{
+  "patientId": "VP-unique-123",
+  "name": "New Patient",
+  "status": "draft",
+  "createdAt": "2026-05-24T12:00:00Z"
+}
+```
+
+### PUT /api/expert/virtual-patients/{id}
+Request body: same as POST. Response (200):
+```json
+{ "patientId": "VP-abc123", "updatedAt": "2026-05-24T12:10:00Z" }
+```
+
+### PATCH /api/expert/virtual-patients/{id}/status
+Request body:
+```json
+{ "status": "published" }
+```
+Response (200):
+```json
+{ "patientId": "VP-abc123", "status": "published", "updatedAt": "2026-05-24T12:11:00Z" }
+```
+
+### PATCH /api/expert/virtual-patients/{id}/publish
+Request body:
+```json
+{ "publish": true }
+```
+Response (200):
+```json
+{ "patientId": "VP-abc123", "status": "published", "updatedAt": "2026-05-24T12:11:00Z" }
+```
+
+### DELETE /api/expert/virtual-patients/{id}?confirm=true
+Response (200):
+```json
+{ "success": true, "patientId": "VP-abc123" }
+```
+
+### POST /api/expert/virtual-patients/{id}/duplicate
+Response (201):
+```json
+{ "patientId": "VP-duplicate-456", "name": "John Doe", "status": "draft", "createdAt": "2026-05-24T12:12:00Z" }
+```
+
+---
+
+Note: These are fake/example payloads for documentation and testing; adapt to real DTOs in `VirtualPatientExpertController` when implementing.
 Response:
 ```json
 {

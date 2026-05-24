@@ -37,6 +37,81 @@
       "SwaggerKey": "virtualpatient"
     },
     {
+      "DownstreamPathTemplate": "/api/expert/clinical-cases",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "clinicalcase",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/api/expert/clinical-cases",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
+      "SwaggerKey": "clinicalcase"
+    },
+    {
+      "DownstreamPathTemplate": "/api/expert/clinical-cases/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "clinicalcase",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/api/expert/clinical-cases/{everything}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH"
+      ],
+      "SwaggerKey": "clinicalcase"
+    },
+    {
+      "DownstreamPathTemplate": "/api/expert/virtual-patients",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "virtualpatient",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/api/expert/virtual-patients",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH"
+      ],
+      "SwaggerKey": "virtualpatient"
+    },
+    {
+      "DownstreamPathTemplate": "/api/expert/virtual-patients/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "virtualpatient",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/api/expert/virtual-patients/{everything}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH"
+      ],
+      "SwaggerKey": "virtualpatient"
+    },
+    {
       "DownstreamPathTemplate": "/api/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [

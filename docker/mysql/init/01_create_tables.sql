@@ -122,11 +122,11 @@ CREATE TABLE virtual_patient
     argument_time INT,
     level        ENUM('Beginner', 'Intermediate', 'Advanced', 'Expert') DEFAULT 'Intermediate',
     case_rule    TEXT,
-    status       ENUM('active', 'inactive') DEFAULT 'active',
+    status       ENUM('active', 'inactive', 'draft', 'archived', 'published') DEFAULT 'active',
     avatar_image VARCHAR(255),
     created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_virtual_patient_clinical_case FOREIGN KEY (case_id) REFERENCES clinical_case (case_id)
+    CONSTRAINT fk_virtual_patient_clinical_case FOREIGN KEY (case_id) REFERENCES clinical_case (case_id) ON DELETE CASCADE
 );
 
 CREATE TABLE learner_discovery_pool
@@ -139,7 +139,7 @@ CREATE TABLE learner_discovery_pool
     fetch_gender VARCHAR(10),
     UNIQUE KEY uq_learner_discovery_pool_learner_patient (learner_id, patient_id),
     CONSTRAINT fk_learner_discovery_pool_learner FOREIGN KEY (learner_id) REFERENCES users (userid),
-    CONSTRAINT fk_learner_discovery_pool_patient FOREIGN KEY (patient_id) REFERENCES virtual_patient (patient_id)
+    CONSTRAINT fk_learner_discovery_pool_patient FOREIGN KEY (patient_id) REFERENCES virtual_patient (patient_id) ON DELETE CASCADE
 );
 
 CREATE TABLE expert_virtual_patient_management
@@ -148,7 +148,7 @@ CREATE TABLE expert_virtual_patient_management
     virtual_id VARCHAR(50) NOT NULL,
     PRIMARY KEY (expert_id, virtual_id),
     CONSTRAINT fk_expert_virtual_expert FOREIGN KEY (expert_id) REFERENCES expert (eid),
-    CONSTRAINT fk_expert_virtual_patient FOREIGN KEY (virtual_id) REFERENCES virtual_patient (patient_id)
+    CONSTRAINT fk_expert_virtual_patient FOREIGN KEY (virtual_id) REFERENCES virtual_patient (patient_id) ON DELETE CASCADE
 );
 
 CREATE TABLE expert_clinical_case_management
@@ -157,7 +157,7 @@ CREATE TABLE expert_clinical_case_management
     case_id   VARCHAR(50) NOT NULL,
     PRIMARY KEY (expert_id, case_id),
     CONSTRAINT fk_expert_case_expert FOREIGN KEY (expert_id) REFERENCES expert (eid),
-    CONSTRAINT fk_expert_case_clinical FOREIGN KEY (case_id) REFERENCES clinical_case (case_id)
+    CONSTRAINT fk_expert_case_clinical FOREIGN KEY (case_id) REFERENCES clinical_case (case_id) ON DELETE CASCADE
 );
 
 CREATE TABLE notification
@@ -207,7 +207,7 @@ CREATE TABLE laboratorytest
     value           TEXT        NOT NULL,
     rangelower      VARCHAR(50),
     rangeupper      VARCHAR(50),
-    CONSTRAINT fk_lab_case FOREIGN KEY (clinicalcase_id) REFERENCES clinical_case (case_id),
+    CONSTRAINT fk_lab_case FOREIGN KEY (clinicalcase_id) REFERENCES clinical_case (case_id) ON DELETE CASCADE,
     CONSTRAINT fk_lab_item FOREIGN KEY (itemid) REFERENCES labtestitem (itemid)
 );
 
@@ -229,7 +229,7 @@ CREATE TABLE radiologyreport
     region          VARCHAR(50),
     examname        TEXT,
     text            TEXT,
-    CONSTRAINT fk_radio_case FOREIGN KEY (clinicalcase_id) REFERENCES clinical_case (case_id)
+    CONSTRAINT fk_radio_case FOREIGN KEY (clinicalcase_id) REFERENCES clinical_case (case_id) ON DELETE CASCADE
 );
 
 CREATE TABLE expert_radiology

@@ -39,6 +39,20 @@ public static class VirtualPatientConstants
     {
         public const string Active = "active";
         public const string Inactive = "inactive";
+        public const string Draft = "draft";
+        public const string Archived = "archived";
+        public const string Published = "published";
+
+        public static readonly HashSet<string> ExpertStatuses = new(
+            StringComparer.OrdinalIgnoreCase
+        )
+        {
+            Active,
+            Inactive,
+            Draft,
+            Archived,
+            Published,
+        };
     }
 
     public static class PracticeStatus

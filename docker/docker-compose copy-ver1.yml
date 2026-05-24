@@ -1,9 +1,9 @@
 ﻿x-auth-env: &auth-env
-  Security__AuthorizationEnabled: ${AUTHORIZATION_ENABLED:-true}
+  Security__AuthorizationEnabled: ${AUTHORIZATION_ENABLED:-false}
   Jwt__Issuer: ${JWT_ISSUER:-latee-auth}
   Jwt__Audience: ${JWT_AUDIENCE:-latee-clients}
   Jwt__SigningKey: ${JWT_SIGNING_KEY:-latee_super_secret_signing_key_2026_change_me}
-  Jwt__AccessTokenMinutes: ${JWT_ACCESS_TOKEN_MINUTES:-1440}
+  Jwt__AccessTokenMinutes: ${JWT_ACCESS_TOKEN_MINUTES:-30}
   Jwt__RefreshTokenDays: ${JWT_REFRESH_TOKEN_DAYS:-7}
 
 services:
@@ -75,14 +75,6 @@ services:
     networks:
       - latee-network
 
-  # =========================================================
-  # VIRTUAL PATIENT AI  –  HuggingFace base + LoRA adapter
-  #
-  #  • BASE_MODEL_ID  : HuggingFace repo (e.g. meta-llama/Llama-3.1-8B-Instruct)
-  #  • ADAPTER_PATH   : path INSIDE the container where the adapter folder is mounted
-  #  • HF_TOKEN       : needed only for gated / private models
-  #  • DEVICE         : "cuda" (GPU) or "cpu"
-  # =========================================================
   virtualpatient-python:
     build:
       context: ..
@@ -91,33 +83,91 @@ services:
     ports:
       - "8005:8080"
     depends_on:
-      virtualpatient:
-        condition: service_started
-    environment:
-      BASE_MODEL_ID: ${BASE_MODEL_ID:-meta-llama/Llama-3.1-8B-Instruct}
-      ADAPTER_PATH: /app/adapter
-      HF_TOKEN: ${HF_TOKEN:-}
-      DEVICE: ${DEVICE:-cuda}
-      MAX_NEW_TOKENS: ${MAX_NEW_TOKENS:-256}
-      VIRTUAL_PATIENT_API_URL: "http://virtualpatient:8080/api/virtual-patients"
+      - virtualpatient
     volumes:
-      # Mount the fine-tuned LoRA adapter (read-only)
-      - ./Llama-3.1-Virtual-Patient-MimicIV_Ver4.0:/app/adapter:ro
-      # Cache HF model weights across restarts to avoid repeated downloads
-      - hf_model_cache:/root/.cache/huggingface
+      - ./Llama-3.1-Virtual-Patient-MimicIV_Ver2.0/vp_llama_finetuning.gguf:/app/models/vp_llama_finetuning.gguf:ro
+    environment:
+      VIRTUAL_PATIENT_API_URL: "http://virtualpatient:8080/api/virtual-patients"
+      PYTHONUNBUFFERED: "1"
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
               count: 1
-              capabilities: [ gpu ]
+              capabilities: [gpu]
     networks:
       - latee-network
-
   # =========================================================
   # AI Assistant, Gateway, Redis...
   # =========================================================
+  
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: ollama
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   networks:
+  #     - latee-network
+  #   environment:
+  #     - OLLAMA_NUM_PARALLEL=2
+  #     - OLLAMA_FLASH_ATTENTION=1
+  #     - OLLAMA_NUM_GPU=1
+  #     - OLLAMA_MAX_LOADED_MODELS=1
+  #     - OLLAMA_KEEP_ALIVE=15m
+  #     - OLLAMA_NUM_THREAD=2
+  #     - OLLAMA_NUM_CTX=4096
+  #     - OLLAMA_LOG_LEVEL=warn
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [ gpu ]
+  #   healthcheck:
+  #     test: [ "CMD", "ollama", "list" ]
+  #     interval: 120s
+  #     timeout: 5s
+  #     retries: 5
+  #     start_period: 30s
+  
+  # ollama-warmup:
+  #   image: ollama/ollama:latest
+  #   container_name: ollama-warmup
+  #   depends_on:
+  #     ollama:
+  #       condition: service_healthy
+  #   environment:
+  #     - OLLAMA_HOST=http://ollama:11434
+  #   entrypoint: [ "/bin/sh", "-c" ]
+  #   command:
+  #     - "-c"
+  #     - |
+  #       echo "Waiting for Ollama API..."
+  #       until ollama list > /dev/null 2>&1; do sleep 2; done
+        
+  #       if ! ollama list | grep -q "llama3.1:8b"; then
+  #           ollama pull llama3.1:8b
+  #       else
+  #         echo "Model already exists"
+  #       fi
+  
+  #       echo "Verifying model is available..."
+  #       until ollama list | grep -q "llama3.1:8b"; do
+  #         sleep 2
+  #       done
+  
+  #       echo "Warmup model..."
+  #       ollama run llama3.1:8b "hello"
+  
+  #       echo "Warmup completed successfully!"
+      
+  #   restart: "no"
+  #   networks:
+  #     - latee-network
 
   ai-assistant:
     build:
@@ -135,6 +185,11 @@ services:
       - ai_assistant_faiss:/src/faiss_index
     env_file:
       - ../.env
+    #    depends_on:
+    #      ollama:
+    #        condition: service_started
+    #      ollama-warmup:
+    #        condition: service_completed_successfully
     command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
@@ -153,7 +208,6 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.Roadmap
-      target: dev
     container_name: roadmap-api
     ports:
       - "8006:8080"
@@ -163,67 +217,10 @@ services:
       - mysql
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://+:8080
-      DOTNET_USE_POLLING_FILE_WATCHER: "1"
       ConnectionStrings__RoadmapDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
       <<: *auth-env
-    command: dotnet watch --project src/Services/RoadmapService/RoadmapService.API/RoadmapService.API.csproj run --no-launch-profile --urls http://0.0.0.0:8080
-    volumes:
-      - ../src:/src/src
-      - roadmap_nuget_cache:/root/.nuget/packages
     networks:
       - latee-network
-
-  knowledgeresource:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.KnowledgeResource
-      target: dev
-    container_name: knowledgeresource-api
-    ports:
-      - "8009:8080"
-    env_file:
-      - ../.env
-    depends_on:
-      - mysql
-    environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://+:8080
-      DOTNET_USE_POLLING_FILE_WATCHER: "1"
-      ConnectionStrings__KnowledgeResourceDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
-      <<: *auth-env
-    command: dotnet watch --project src/Services/KnowledgeResourceService/KnowledgeResourceService.API/KnowledgeResourceService.API.csproj run --no-launch-profile --urls http://0.0.0.0:8080
-    volumes:
-      - ../src:/src/src
-      - knowledge_nuget_cache:/root/.nuget/knowledge_packages
-    networks:
-      - latee-network
-
-  user:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.UserService
-      target: dev
-    container_name: user-api
-    ports:
-      - "8010:8080"
-    env_file:
-      - ../.env
-    depends_on:
-      - mysql
-    environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://+:8080
-      DOTNET_USE_POLLING_FILE_WATCHER: "1"
-      ConnectionStrings__UserDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
-      <<: *auth-env
-    command: dotnet watch --project src/Services/UserService/UserService.API/UserService.API.csproj run --no-launch-profile --urls http://0.0.0.0:8080
-    volumes:
-      - ../src:/src/src
-      - user_nuget_cache:/root/.nuget/user_packages
-    networks:
-      - latee-network
-
   evaluation:
     build:
       context: ..
@@ -241,7 +238,6 @@ services:
       <<: *auth-env
     networks:
       - latee-network
-
   practice-session:
     build:
       context: ..
@@ -279,8 +275,6 @@ services:
       - roadmap
       - evaluation
       - practice-session
-      - user
-      - knowledgeresource
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__AuthDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
@@ -288,13 +282,19 @@ services:
     networks:
       - latee-network
 
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - latee-network
+
 volumes:
   mysql_data:
-  hf_model_cache:       
+  # ollama_data:
+  # ollama_vp_data:
   ai_assistant_faiss:
-  roadmap_nuget_cache:
-  knowledge_nuget_cache:
-  user_nuget_cache:
 
 networks:
   latee-network:

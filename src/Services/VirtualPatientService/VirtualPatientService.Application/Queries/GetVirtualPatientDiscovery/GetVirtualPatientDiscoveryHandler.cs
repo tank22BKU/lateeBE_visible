@@ -33,7 +33,7 @@ public class GetVirtualPatientDiscoveryHandler
 
         if (poolItems.Count == 0)
         {
-            return BuildEmptyResponse(1, request.PageSize);
+            return BuildEmptyResponse(request.Page, request.PageSize);
         }
 
         var items = poolItems
@@ -80,7 +80,7 @@ public class GetVirtualPatientDiscoveryHandler
         {
             Items = items,
             Total = poolItems.Count,
-            Page = 1,
+            Page = request.Page,
             PageSize = request.PageSize,
             Filters = new DiscoveryFiltersDto
             {

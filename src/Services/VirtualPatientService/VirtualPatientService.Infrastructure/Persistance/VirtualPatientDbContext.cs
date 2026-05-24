@@ -157,6 +157,7 @@ public class VirtualPatientDbContext : DbContext
             e.Property(x => x.AvatarUrl).HasColumnName("avatar_url").HasMaxLength(255);
             e.Property(x => x.Email).HasColumnName("email").HasMaxLength(100);
             e.Property(x => x.Phone).HasColumnName("phone").HasMaxLength(20);
+            e.Property(x => x.Address).HasColumnName("address").HasColumnType("TEXT");
         });
     }
 }
@@ -184,4 +185,5 @@ public class UserRef
     public string? AvatarUrl { get; set; }
     public string? Email { get; set; }
     public string? Phone { get; set; }
+    public string? Address { get; set; }
 }
