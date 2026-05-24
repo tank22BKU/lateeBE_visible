@@ -43,6 +43,36 @@ public class ClinicalCaseRepository : IClinicalCaseRepository
         return row?.Name;
     }
 
+    public async Task<bool> ExpertExistsAsync(string expertId)
+    {
+        var row = await _db
+            .Database.SqlQuery<ExistsRow>(
+                $"""
+                SELECT COUNT(1) AS Value
+                FROM expert
+                WHERE eid = {expertId}
+                """
+            )
+            .FirstAsync();
+
+        return row.Value > 0;
+    }
+
+    public async Task<bool> EvaluationCriteriaExistsAsync(string eccId)
+    {
+        var row = await _db
+            .Database.SqlQuery<ExistsRow>(
+                $"""
+                SELECT COUNT(1) AS Value
+                FROM evaluation_clinical_criteria
+                WHERE id = {eccId}
+                """
+            )
+            .FirstAsync();
+
+        return row.Value > 0;
+    }
+
     public Task<List<ClinicalCaseLab>> GetLabsByCaseIdAsync(string caseId)
     {
         return _db
@@ -224,6 +254,11 @@ public class ClinicalCaseRepository : IClinicalCaseRepository
     private sealed class ExpertNameRow
     {
         public string? Name { get; set; }
+    }
+
+    private sealed class ExistsRow
+    {
+        public int Value { get; set; }
     }
 
     private sealed class ClinicalCaseStatsRow

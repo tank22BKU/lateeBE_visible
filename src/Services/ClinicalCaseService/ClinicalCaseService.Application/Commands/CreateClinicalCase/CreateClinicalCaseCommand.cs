@@ -15,7 +15,7 @@ public record CreateClinicalCaseCommand(
     string? Symptom,
     string? MedicalHistory,
     string? CreatedBy,
-    string EccId
+    string EccId = "CRIT-001"
 ) : IRequest<ClinicalCaseDto>;
 
 public class CreateClinicalCaseHandler : IRequestHandler<CreateClinicalCaseCommand, ClinicalCaseDto>
@@ -37,6 +37,20 @@ public class CreateClinicalCaseHandler : IRequestHandler<CreateClinicalCaseComma
             ?? throw new InvalidOperationException(
                 "CreatedBy must be resolved before creating a clinical case."
             );
+
+        if (!await _repo.ExpertExistsAsync(createdBy))
+        {
+            throw new ArgumentException(
+                $"Expert '{createdBy}' does not exist, so clinical case cannot be created."
+            );
+        }
+
+        if (!await _repo.EvaluationCriteriaExistsAsync(request.EccId))
+        {
+            throw new ArgumentException(
+                $"Evaluation criteria '{request.EccId}' does not exist, so clinical case cannot be created."
+            );
+        }
 
         var clinicalCase = new ClinicalCase
         {

@@ -138,7 +138,7 @@ CREATE TABLE learner_discovery_pool
     fetch_level  VARCHAR(20),
     fetch_gender VARCHAR(10),
     UNIQUE KEY uq_learner_discovery_pool_learner_patient (learner_id, patient_id),
-    CONSTRAINT fk_learner_discovery_pool_learner FOREIGN KEY (learner_id) REFERENCES users (userid),
+    CONSTRAINT fk_learner_discovery_pool_learner FOREIGN KEY (learner_id) REFERENCES users (userid) ON DELETE CASCADE,
     CONSTRAINT fk_learner_discovery_pool_patient FOREIGN KEY (patient_id) REFERENCES virtual_patient (patient_id) ON DELETE CASCADE
 );
 
@@ -147,7 +147,7 @@ CREATE TABLE expert_virtual_patient_management
     expert_id  VARCHAR(50) NOT NULL,
     virtual_id VARCHAR(50) NOT NULL,
     PRIMARY KEY (expert_id, virtual_id),
-    CONSTRAINT fk_expert_virtual_expert FOREIGN KEY (expert_id) REFERENCES expert (eid),
+    CONSTRAINT fk_expert_virtual_expert FOREIGN KEY (expert_id) REFERENCES expert (eid) ON DELETE CASCADE,
     CONSTRAINT fk_expert_virtual_patient FOREIGN KEY (virtual_id) REFERENCES virtual_patient (patient_id) ON DELETE CASCADE
 );
 
@@ -216,8 +216,8 @@ CREATE TABLE expert_laboratory
     expert_id  VARCHAR(50) NOT NULL,
     labtest_id INT         NOT NULL,
     PRIMARY KEY (expert_id, labtest_id),
-    CONSTRAINT fk_expert_item FOREIGN KEY (expert_id) REFERENCES expert (eid),
-    CONSTRAINT fk_expert_lab FOREIGN KEY (labtest_id) REFERENCES laboratorytest (id)
+    CONSTRAINT fk_expert_item FOREIGN KEY (expert_id) REFERENCES expert (eid) ON DELETE CASCADE,
+    CONSTRAINT fk_expert_lab FOREIGN KEY (labtest_id) REFERENCES laboratorytest (id) ON DELETE CASCADE
 );
 
 CREATE TABLE radiologyreport
@@ -237,8 +237,8 @@ CREATE TABLE expert_radiology
     expert_id           VARCHAR(50) NOT NULL,
     radiology_report_id INT NOT NULL,
     PRIMARY KEY (expert_id, radiology_report_id),
-    CONSTRAINT fk_expert_radio FOREIGN KEY (expert_id) REFERENCES expert(eid),
-    CONSTRAINT fk_expert_radio_report FOREIGN KEY (radiology_report_id) REFERENCES radiologyreport (id)
+    CONSTRAINT fk_expert_radio FOREIGN KEY (expert_id) REFERENCES expert(eid) ON DELETE CASCADE,
+    CONSTRAINT fk_expert_radio_report FOREIGN KEY (radiology_report_id) REFERENCES radiologyreport (id) ON DELETE CASCADE
 );
 
 CREATE TABLE knowledge_resources

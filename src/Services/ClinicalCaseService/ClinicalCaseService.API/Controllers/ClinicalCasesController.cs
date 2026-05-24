@@ -1,11 +1,9 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using ClinicalCaseService.Application.Commands.CreateClinicalCase;
+﻿using ClinicalCaseService.Application.Commands.CreateClinicalCase;
 using ClinicalCaseService.Application.Commands.DeleteClinicalCase;
 using ClinicalCaseService.Application.Commands.UpdateClinicalCase;
 using ClinicalCaseService.Application.Queries.GetClinicalCaseById;
 using ClinicalCaseService.Application.Queries.GetClinicalCases;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicalCaseService.API.Controllers;
@@ -56,21 +54,25 @@ public class ClinicalCasesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateClinicalCaseCommand command)
     {
-        var createdBy = ResolveExpertId(command.CreatedBy);
-
-        if (string.IsNullOrWhiteSpace(createdBy))
+        if (string.IsNullOrWhiteSpace(command.CreatedBy))
         {
-            return BadRequest(
-                new
-                {
-                    message = "CreatedBy is required when no authenticated expert identity is available.",
-                }
-            );
+            return BadRequest(new { message = "createdBy is required in the request body." });
         }
 
-        var result = await _mediator.Send(command with { CreatedBy = createdBy });
+        try
+        {
+            var result = await _mediator.Send(command);
 
-        return CreatedAtAction(nameof(GetById), new { id = result.CaseId }, result);
+            return CreatedAtAction(nameof(GetById), new { id = result.CaseId }, result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpPut("{id}")]
@@ -81,8 +83,40 @@ public class ClinicalCasesController : ControllerBase
             return BadRequest(new { message = "ID trên route và body phải khớp nhau." });
         }
 
-        var createdBy = ResolveExpertId(command.CreatedBy);
-        var updated = await _mediator.Send(command with { CreatedBy = createdBy });
+        var updated = await _mediator.Send(command);
+
+        if (!updated)
+        {
+            return NotFound(new { message = $"Không tìm thấy clinical case với ID: {id}" });
+        }
+
+        return NoContent();
+    }
+
+    [HttpPatch("{id}/status")]
+    public async Task<IActionResult> UpdateStatus(string id, [FromBody] UpdateClinicalCaseStatusRequest request)
+    {
+        var current = await _mediator.Send(new GetClinicalCaseByIdQuery(id));
+
+        if (current == null)
+        {
+            return NotFound(new { message = $"Không tìm thấy clinical case với ID: {id}" });
+        }
+
+        var updated = await _mediator.Send(
+            new UpdateClinicalCaseCommand(
+                id,
+                current.Title ?? string.Empty,
+                current.Description,
+                current.CaseType,
+                request.Status,
+                current.Pe,
+                current.Symptom,
+                current.MedicalHistory,
+                current.CreatedBy,
+                current.EccId
+            )
+        );
 
         if (!updated)
         {
@@ -105,15 +139,9 @@ public class ClinicalCasesController : ControllerBase
         return NoContent();
     }
 
-    private string? ResolveExpertId(string? fallback)
-    {
-        var claimValue = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+}
 
-        if (!string.IsNullOrWhiteSpace(claimValue))
-        {
-            return claimValue;
-        }
-
-        return string.IsNullOrWhiteSpace(fallback) ? null : fallback;
-    }
+public sealed class UpdateClinicalCaseStatusRequest
+{
+    public string Status { get; set; } = null!;
 }

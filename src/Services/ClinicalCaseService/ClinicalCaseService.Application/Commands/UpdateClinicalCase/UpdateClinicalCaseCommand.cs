@@ -13,7 +13,7 @@ public record UpdateClinicalCaseCommand(
     string? Symptom,
     string? MedicalHistory,
     string? CreatedBy,
-    string EccId
+    string? EccId
 ) : IRequest<bool>;
 
 public class UpdateClinicalCaseHandler : IRequestHandler<UpdateClinicalCaseCommand, bool>
@@ -37,18 +37,67 @@ public class UpdateClinicalCaseHandler : IRequestHandler<UpdateClinicalCaseComma
             return false;
         }
 
-        clinicalCase.Title = request.Title;
-        clinicalCase.Description = request.Description;
-        clinicalCase.CaseType = request.CaseType;
-        clinicalCase.Status = request.Status;
-        clinicalCase.Pe = request.Pe;
-        clinicalCase.Symptom = request.Symptom;
-        clinicalCase.MedicalHistory = request.MedicalHistory;
-        if (!string.IsNullOrWhiteSpace(request.CreatedBy))
+        var hasChanges = false;
+
+        if (!string.Equals(clinicalCase.Title, request.Title, StringComparison.Ordinal))
         {
-            clinicalCase.CreatedBy = request.CreatedBy;
+            clinicalCase.Title = request.Title;
+            hasChanges = true;
         }
-        clinicalCase.EccId = request.EccId;
+
+        if (!string.Equals(clinicalCase.Description, request.Description, StringComparison.Ordinal))
+        {
+            clinicalCase.Description = request.Description;
+            hasChanges = true;
+        }
+
+        if (!string.Equals(clinicalCase.CaseType, request.CaseType, StringComparison.Ordinal))
+        {
+            clinicalCase.CaseType = request.CaseType;
+            hasChanges = true;
+        }
+
+        if (!string.Equals(clinicalCase.Status, request.Status, StringComparison.Ordinal))
+        {
+            clinicalCase.Status = request.Status;
+            hasChanges = true;
+        }
+
+        if (!string.Equals(clinicalCase.Pe, request.Pe, StringComparison.Ordinal))
+        {
+            clinicalCase.Pe = request.Pe;
+            hasChanges = true;
+        }
+
+        if (!string.Equals(clinicalCase.Symptom, request.Symptom, StringComparison.Ordinal))
+        {
+            clinicalCase.Symptom = request.Symptom;
+            hasChanges = true;
+        }
+
+        if (
+            !string.Equals(
+                clinicalCase.MedicalHistory,
+                request.MedicalHistory,
+                StringComparison.Ordinal
+            )
+        )
+        {
+            clinicalCase.MedicalHistory = request.MedicalHistory;
+            hasChanges = true;
+        }
+
+        if (!string.Equals(clinicalCase.EccId, request.EccId, StringComparison.Ordinal))
+        {
+            clinicalCase.EccId = request.EccId;
+            hasChanges = true;
+        }
+
+        if (!hasChanges)
+        {
+            return true;
+        }
+
         clinicalCase.UpdatedAt = DateTime.UtcNow;
 
         await _repo.UpdateAsync(clinicalCase);

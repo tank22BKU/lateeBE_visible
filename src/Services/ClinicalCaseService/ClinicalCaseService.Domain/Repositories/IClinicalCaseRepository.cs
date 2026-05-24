@@ -7,6 +7,8 @@ public interface IClinicalCaseRepository
     Task<List<ClinicalCase>> GetAllAsync();
     Task<ClinicalCase?> GetByIdAsync(string caseId);
     Task<string?> GetExpertNameAsync(string expertId);
+    Task<bool> ExpertExistsAsync(string expertId);
+    Task<bool> EvaluationCriteriaExistsAsync(string eccId);
     Task<List<ClinicalCaseLab>> GetLabsByCaseIdAsync(string caseId);
     Task<List<ClinicalCaseRadiology>> GetRadiologyByCaseIdAsync(string caseId);
     Task<List<ClinicalCaseVirtualPatient>> GetVirtualPatientsByCaseIdAsync(string caseId);
