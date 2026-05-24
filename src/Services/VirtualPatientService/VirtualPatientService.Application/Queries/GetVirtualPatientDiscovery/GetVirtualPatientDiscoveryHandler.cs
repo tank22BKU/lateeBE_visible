@@ -8,16 +8,11 @@ namespace VirtualPatientService.Application.Queries.GetVirtualPatientDiscovery;
 public class GetVirtualPatientDiscoveryHandler
     : IRequestHandler<GetVirtualPatientDiscoveryQuery, GetVirtualPatientDiscoveryResponse>
 {
-    private readonly IVirtualPatientRepository _vpRepo;
-    private readonly IPracticeAttemptRepository _attemptRepo;
+    private readonly ILearnerDiscoveryPoolRepository _poolRepo;
 
-    public GetVirtualPatientDiscoveryHandler(
-        IVirtualPatientRepository vpRepo,
-        IPracticeAttemptRepository attemptRepo
-    )
+    public GetVirtualPatientDiscoveryHandler(ILearnerDiscoveryPoolRepository poolRepo)
     {
-        _vpRepo = vpRepo;
-        _attemptRepo = attemptRepo;
+        _poolRepo = poolRepo;
     }
 
     public async Task<GetVirtualPatientDiscoveryResponse> Handle(
@@ -28,55 +23,22 @@ public class GetVirtualPatientDiscoveryHandler
         if (string.IsNullOrWhiteSpace(request.LearnerId))
             throw new ArgumentException("learnerId is required");
 
-        var page = request.Page < 1 ? 1 : request.Page;
-        var pageSize =
-            request.PageSize <= 0 || request.PageSize > VirtualPatientConstants.MaxPageSize
-                ? VirtualPatientConstants.DefaultDiscoveryPageSize
-                : request.PageSize;
-
         var sortBy = NormalizeSortBy(request.SortBy);
 
-        var (rawItems, total) = await _vpRepo.GetPagedForDiscoveryAsync(
-            page,
-            pageSize,
-            request.Level,
-            request.Occupation,
-            request.ExpertId,
-            request.Gender,
-            request.Specialty,
-            request.CaseType,
-            request.Search,
+        var poolItems = await _poolRepo.GetPoolItemsAsync(
+            request.LearnerId,
             sortBy,
             cancellationToken
         );
 
-        if (rawItems.Count == 0)
+        if (poolItems.Count == 0)
         {
-            var emptyFilters = await _vpRepo.GetDiscoveryFiltersAsync(cancellationToken);
-            return BuildEmptyResponse(page, pageSize, emptyFilters);
+            return BuildEmptyResponse(1, request.PageSize);
         }
 
-        var patientIds = rawItems.Select(x => x.PatientId).Distinct().ToList();
-
-        var expertsByPatient = await _vpRepo.GetExpertsByPatientIdsAsync(
-            patientIds,
-            cancellationToken
-        );
-
-        var attemptSummaries = await _attemptRepo.GetAttemptSummariesAsync(
-            request.LearnerId,
-            patientIds,
-            cancellationToken
-        );
-
-        var filters = await _vpRepo.GetDiscoveryFiltersAsync(cancellationToken);
-
-        var items = rawItems
+        var items = poolItems
             .Select(x =>
             {
-                expertsByPatient.TryGetValue(x.PatientId, out var experts);
-                attemptSummaries.TryGetValue(x.PatientId, out var attempt);
-
                 return new VirtualPatientDiscoveryItemDto
                 {
                     PatientId = x.PatientId,
@@ -92,26 +54,17 @@ public class GetVirtualPatientDiscoveryHandler
                     TimeSetting = x.TimeSetting,
                     ArgumentTime = x.ArgumentTime,
                     CreatedAt = x.CreatedAt,
-                    FeedbackCount = attempt?.AttemptCount ?? 0,
-                    AttemptSummary = attempt is null
-                        ? new AttemptSummaryDto
-                        {
-                            Attempted = false,
-                            AttemptCount = 0,
-                            MaxAttempts = VirtualPatientConstants.MaxAttemptsAllowed,
-                            BestScore = null,
-                            LatestScore = null,
-                        }
-                        : new AttemptSummaryDto
-                        {
-                            Attempted = attempt.Attempted,
-                            AttemptCount = attempt.AttemptCount,
-                            MaxAttempts = VirtualPatientConstants.MaxAttemptsAllowed,
-                            BestScore = attempt.BestScore,
-                            LatestScore = attempt.LatestScore,
-                        },
-                    Experts = (experts ?? new())
-                        .Select(e => new ExpertPreviewDto
+                    FeedbackCount = x.AttemptSummary.AttemptCount,
+                    AttemptSummary = new AttemptSummaryDto
+                    {
+                        Attempted = x.AttemptSummary.Attempted,
+                        AttemptCount = x.AttemptSummary.AttemptCount,
+                        MaxAttempts = VirtualPatientConstants.MaxAttemptsAllowed,
+                        BestScore = x.AttemptSummary.BestScore,
+                        LatestScore = x.AttemptSummary.LatestScore,
+                    },
+                    Experts = x
+                        .Experts.Select(e => new ExpertPreviewDto
                         {
                             ExpertId = e.ExpertId,
                             Name = e.Name,
@@ -126,15 +79,25 @@ public class GetVirtualPatientDiscoveryHandler
         return new GetVirtualPatientDiscoveryResponse
         {
             Items = items,
-            Total = total,
-            Page = page,
-            PageSize = pageSize,
+            Total = poolItems.Count,
+            Page = 1,
+            PageSize = request.PageSize,
             Filters = new DiscoveryFiltersDto
             {
-                AvailableLevels = filters.AvailableLevels,
-                AvailableGenders = filters.AvailableGenders,
-                AvailableSpecialties = filters.AvailableSpecialties,
-                AvailableCaseTypes = filters.AvailableCaseTypes,
+                AvailableLevels = poolItems
+                    .Select(x => x.Level)
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(x => x)
+                    .ToList()!,
+                AvailableGenders = poolItems
+                    .Select(x => x.Gender)
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(x => x)
+                    .ToList()!,
+                AvailableSpecialties = new(),
+                AvailableCaseTypes = new(),
             },
         };
     }
@@ -145,11 +108,7 @@ public class GetVirtualPatientDiscoveryHandler
             ? sortBy
             : VirtualPatientConstants.SortOptions.Newest;
 
-    private static GetVirtualPatientDiscoveryResponse BuildEmptyResponse(
-        int page,
-        int pageSize,
-        DiscoveryFiltersProjection filters
-    ) =>
+    private static GetVirtualPatientDiscoveryResponse BuildEmptyResponse(int page, int pageSize) =>
         new()
         {
             Items = new(),
@@ -158,10 +117,10 @@ public class GetVirtualPatientDiscoveryHandler
             PageSize = pageSize,
             Filters = new DiscoveryFiltersDto
             {
-                AvailableLevels = filters.AvailableLevels,
-                AvailableGenders = filters.AvailableGenders,
-                AvailableSpecialties = filters.AvailableSpecialties,
-                AvailableCaseTypes = filters.AvailableCaseTypes,
+                AvailableLevels = new(),
+                AvailableGenders = new(),
+                AvailableSpecialties = new(),
+                AvailableCaseTypes = new(),
             },
         };
 }

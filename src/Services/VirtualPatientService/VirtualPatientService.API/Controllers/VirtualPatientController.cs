@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using VirtualPatientService.Application.Commands.FetchVirtualPatientCases;
+using VirtualPatientService.Application.Commands.FetchDiscoveryCases;
 using VirtualPatientService.Application.Commands.SaveLearnerDiscoveryState;
 using VirtualPatientService.Application.Queries.GetLearnerDiscoveryState;
 using VirtualPatientService.Application.Queries.GetVirtualPatientById;
@@ -38,7 +38,7 @@ public class VirtualPatientController : ControllerBase
     public async Task<IActionResult> GetDiscovery(
         [FromQuery] string learnerId,
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 9,
+        [FromQuery] int pageSize = 200,
         [FromQuery] string? level = null,
         [FromQuery] string? occupation = null,
         [FromQuery] string? expertId = null,
@@ -56,7 +56,7 @@ public class VirtualPatientController : ControllerBase
                 new GetVirtualPatientDiscoveryQuery
                 {
                     LearnerId = learnerId,
-                    Page = page,
+                    Page = 1,
                     PageSize = pageSize,
                     Level = level,
                     Occupation = occupation,
@@ -80,7 +80,7 @@ public class VirtualPatientController : ControllerBase
 
     [HttpPost("discovery/fetch-cases")]
     public async Task<IActionResult> FetchCases(
-        [FromBody] FetchVirtualPatientCasesCommand command,
+        [FromBody] FetchDiscoveryCasesCommand command,
         CancellationToken cancellationToken = default
     )
     {

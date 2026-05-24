@@ -7,7 +7,7 @@ public class GetVirtualPatientDiscoveryQuery : IRequest<GetVirtualPatientDiscove
 {
     public string LearnerId { get; set; } = default!;
     public int Page { get; set; } = 1;
-    public int PageSize { get; set; } = 9;
+    public int PageSize { get; set; } = 200;
     public string? Level { get; set; }
     public string? Occupation { get; set; }
     public string? ExpertId { get; set; }

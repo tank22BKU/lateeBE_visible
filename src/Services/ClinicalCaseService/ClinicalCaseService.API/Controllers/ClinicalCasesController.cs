@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ClinicalCaseService.API.Controllers;
 
 [ApiController]
-[Route("api/clinical-cases")]
+[Route("api/expert/clinical-cases")]
 public class ClinicalCasesController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -21,12 +21,19 @@ public class ClinicalCasesController : ControllerBase
 
     [HttpGet]
     public async Task<IActionResult> GetPaged(
+        [FromQuery] string? search,
         [FromQuery] string? status,
+        [FromQuery] string? type,
+        [FromQuery] string? eccid,
+        [FromQuery] string? sortBy,
+        [FromQuery] string? sortDir,
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20
+        [FromQuery] int pageSize = 12
     )
     {
-        var result = await _mediator.Send(new GetClinicalCasesQuery(status, page, pageSize));
+        var result = await _mediator.Send(
+            new GetClinicalCasesQuery(search, status, type, eccid, sortBy, sortDir, page, pageSize)
+        );
 
         return Ok(result);
     }
@@ -47,9 +54,25 @@ public class ClinicalCasesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateClinicalCaseCommand command)
     {
-        var result = await _mediator.Send(command);
+        if (string.IsNullOrWhiteSpace(command.CreatedBy))
+        {
+            return BadRequest(new { message = "createdBy is required in the request body." });
+        }
 
-        return CreatedAtAction(nameof(GetById), new { id = result.CaseId }, result);
+        try
+        {
+            var result = await _mediator.Send(command);
+
+            return CreatedAtAction(nameof(GetById), new { id = result.CaseId }, result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpPut("{id}")]
@@ -61,6 +84,39 @@ public class ClinicalCasesController : ControllerBase
         }
 
         var updated = await _mediator.Send(command);
+
+        if (!updated)
+        {
+            return NotFound(new { message = $"Không tìm thấy clinical case với ID: {id}" });
+        }
+
+        return NoContent();
+    }
+
+    [HttpPatch("{id}/status")]
+    public async Task<IActionResult> UpdateStatus(string id, [FromBody] UpdateClinicalCaseStatusRequest request)
+    {
+        var current = await _mediator.Send(new GetClinicalCaseByIdQuery(id));
+
+        if (current == null)
+        {
+            return NotFound(new { message = $"Không tìm thấy clinical case với ID: {id}" });
+        }
+
+        var updated = await _mediator.Send(
+            new UpdateClinicalCaseCommand(
+                id,
+                current.Title ?? string.Empty,
+                current.Description,
+                current.CaseType,
+                request.Status,
+                current.Pe,
+                current.Symptom,
+                current.MedicalHistory,
+                current.CreatedBy,
+                current.EccId
+            )
+        );
 
         if (!updated)
         {
@@ -82,4 +138,10 @@ public class ClinicalCasesController : ControllerBase
 
         return NoContent();
     }
+
+}
+
+public sealed class UpdateClinicalCaseStatusRequest
+{
+    public string Status { get; set; } = null!;
 }
