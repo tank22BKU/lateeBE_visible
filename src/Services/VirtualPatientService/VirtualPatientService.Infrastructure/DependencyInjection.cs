@@ -18,6 +18,7 @@ public static class DependencyInjection
         services.AddScoped<IVirtualPatientFetchRepository, VirtualPatientFetchRepository>();
         services.AddScoped<IClinicalCaseRepository, ClinicalCaseRepository>();
         services.AddScoped<ILearnerDiscoveryStateRepository, LearnerDiscoveryStateRepository>();
+        services.AddScoped<ILearnerDiscoveryPoolRepository, LearnerDiscoveryPoolRepository>();
         services.AddScoped<IPracticeAttemptRepository, PracticeAttemptRepository>();
 
         return services;

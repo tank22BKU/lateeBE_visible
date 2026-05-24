@@ -393,11 +393,244 @@ Response:
     "overallAttempt": "Good effort",
     "overallLabel": "GOOD",
     "strength": "Focused abdominal pain history",
-    "improvement": "Ask onset details earlier",
+    "improvement": "EPA 1: Information Gathering — The student did not conduct a thorough history-taking process. They should have asked more detailed questions about the patient's respiratory and gastrointestinal symptoms, including onset, duration, and any exacerbating or alleviating factors.\nEPA 2: Diagnosis Reasoning — There was no evidence of considering a differential diagnosis. The student should have linked the patient's symptoms and medical history to potential conditions such as CVID, bronchiectasis, or recurrent infections.\nEPA 3: Diagnosis Testing — The tests ordered were not appropriate for the symptoms presented. The student should have considered ordering immunoglobulin levels or a CT scan of the chest to evaluate for CVID or bronchiectasis.\nEPA 4: Management Plan — There was no management plan formulated. The student should have discussed potential modifications to the patient's current treatment regimen or additional interventions.\nOverall: The learner should prioritize systematic history-taking and differential generation, then align investigations and a clear management plan based on the highest-probability diagnoses.",
     "createdAt": "2026-05-15T09:31:00Z"
   }
 }
 ```
+
+## ClinicalCaseService (Expert APIs)
+
+Below are the expert-facing endpoints for managing clinical cases.
+
+### API-1: List Clinical Cases (Paginated + Filtered)
+GET /api/expert/clinical-cases
+Query Params:
+- page : number (default: 1)
+- pageSize : number (default: 12)
+- search : string (filter by title, caseId)
+- status : string (active | draft | archived | published)
+- type : string (APPENDICITIS | ABDOMINAL_PAIN | ...)
+- eccid : string (evaluation criteria ID)
+- sortBy : string (createdAt | updatedAt | title)
+- sortDir : string (asc | desc)
+Response:
+```json
+{
+  "items": [
+    {
+      "caseId": "27892518",
+      "title": "Acute Appendicitis Presentation",
+      "description": "A patient came to the hospital...",
+      "type": "APPENDICITIS",
+      "status": "active",
+      "eccid": "CRIT-001",
+      "createdBy": "USR-EXP-001",
+      "createdByName": "Dr. Andrew Nguyen",
+      "createdAt": "2026-05-15T09:00:00Z",
+      "updatedAt": "2026-05-15T09:12:00Z",
+      "virtualPatientCount": 2,
+      "attemptCount": 14,
+      "avgScore": 84.5
+    }
+  ],
+  "total": 42,
+  "page": 1,
+  "pageSize": 12,
+  "totalPages": 4,
+  "filters": {
+    "availableStatuses": ["active", "draft", "archived", "published"],
+    "availableTypes": ["APPENDICITIS", "ABDOMINAL_PAIN", "CHEST_PAIN"],
+    "availableEccids": ["CRIT-001", "CRIT-002"]
+  }
+}
+```
+
+
+### API-2: Get Case Detail
+GET /api/expert/clinical-cases/{id}
+Response:
+```json
+{
+  "caseId": "27892518",
+  "title": "Acute Appendicitis Presentation",
+  "description": "...",
+  "type": "APPENDICITIS",
+  "status": "active",
+  "pe": "Admission Vitals: Temp: 98 ...",
+  "symptom": "Patient presents with...",
+  "medicalhistory": "Past Medical History: Asthma...",
+  "createdBy": "USR-EXP-001",
+  "createdByName": "Dr. Andrew Nguyen",
+  "eccid": "CRIT-001",
+  "createdAt": "2026-05-15T09:00:00Z",
+  "updatedAt": "2026-05-15T09:12:00Z",
+  "labs": [
+    {
+      "id": 1,
+      "itemId": 51301,
+      "label": "White Blood Cells",
+      "fluid": "Blood",
+      "category": "Hematology",
+      "value": "19.2 K/uL",
+      "rangeLower": "4.0",
+      "rangeUpper": "11.0"
+    }
+  ],
+  "radiology": [
+    {
+      "id": 1,
+      "noteId": "10070247-RR",
+      "modality": "CT",
+      "region": "Abdomen",
+      "examName": "CT ABD & PELVIS WITH CONTRAST",
+      "text": "Enlarged and fluid-filled appendix measuring up to 2.1 cm..."
+    }
+  ],
+  "virtualPatients": [
+    {
+      "patientId": "10070247",
+      "name": "Richard Anderson",
+      "age": 43,
+      "gender": "MALE",
+      "level": "Intermediate",
+      "status": "active"
+    }
+  ],
+  "stats": {
+    "totalAttempts": 14,
+    "avgScore": 84.5,
+    "completionRate": 0.78
+  }
+}
+```
+
+GET /api/expert/clinical-cases/{id}
+
+### API-3: Create Clinical Case
+POST /api/expert/clinical-cases
+Request:
+```json
+{
+  "title": "New Clinical Case",
+  "description": "Case description",
+  "type": "APPENDICITIS",
+  "status": "draft",
+  "pe": "Admission Vitals: ...",
+  "symptom": "Patient presents with...",
+  "medicalhistory": "Past Medical History: ...",
+  "eccid": "CRIT-001"
+}
+```
+Response:
+```json
+{
+  "caseId": "28000001",
+  "title": "New Clinical Case",
+  "status": "draft",
+  "createdAt": "2026-05-24T10:00:00Z"
+}
+```
+
+### API-4: Update Clinical Case
+PUT /api/expert/clinical-cases/{id}
+Request: (same shape as POST, all fields required by current implementation)
+```json
+{
+  "caseId": "27892518",
+  "title": "Acute Appendicitis Presentation (Updated)",
+  "description": "Updated case description",
+  "type": "APPENDICITIS",
+  "status": "active",
+  "pe": "Admission Vitals: Temp: 38.1 ...",
+  "symptom": "RLQ pain with nausea",
+  "medicalhistory": "Past Medical History: Asthma...",
+  "createdBy": "USR-EXP-001",
+  "eccid": "CRIT-001"
+}
+```
+Response:
+```json
+{
+  "caseId": "27892518",
+  "updatedAt": "2026-05-24T11:00:00Z"
+}
+```
+
+### API-5: Update Case Status
+PATCH /api/expert/clinical-cases/{id}/status
+Request:
+```json
+{
+  "status": "published"
+}
+```
+Supported values: active | draft | archived | published
+Response:
+```json
+{
+  "caseId": "27892518",
+  "status": "published",
+  "updatedAt": "2026-05-24T11:00:00Z"
+}
+```
+
+### API-6: Delete Clinical Case
+DELETE /api/expert/clinical-cases/{id}
+Response:
+```json
+{
+  "success": true,
+  "caseId": "27892518"
+}
+```
+
+### API-7: Duplicate Clinical Case
+POST /api/expert/clinical-cases/{id}/duplicate
+Response:
+```json
+{
+  "caseId": "28000099",
+  "title": "Acute Appendicitis Presentation (Copy)",
+  "status": "draft",
+  "createdAt": "2026-05-24T11:30:00Z"
+}
+```
+
+### API-8: Update Lab Test Value
+PATCH /api/expert/clinical-cases/{id}/labs/{labId}
+Request:
+```json
+{
+  "value": "21.0 K/uL"
+}
+```
+Response:
+```json
+{
+  "id": 1,
+  "value": "21.0 K/uL",
+  "updatedAt": "2026-05-24T11:00:00Z"
+}
+```
+
+### API-9: Update Radiology Text
+PATCH /api/expert/clinical-cases/{id}/radiology/{radId}
+Request:
+```json
+{
+  "text": "Updated radiology finding text..."
+}
+```
+Response:
+```json
+{
+  "id": 1,
+  "text": "Updated radiology finding text...",
+  "updatedAt": "2026-05-24T11:00:00Z"
+}
+```
+
 
 EpaScore response fields (types):
 - epaId: string
@@ -516,6 +749,154 @@ Request fields (types):
   "label": "Clinical Logic",
   "description": "The dosage seems high.",
   "itemType": "Practice"
+}
+```
+
+
+## VirtualPatientService
+
+### GET /api/virtual-patients/discovery?learnerId={learnerId}&sortBy=newest&pageSize=200
+Response:
+```json
+{
+  "items": [
+    {
+      "patientId": "VP-10070247",
+      "caseId": "CASE-APP-001",
+      "name": "Mia Tran",
+      "age": 22,
+      "gender": "FEMALE",
+      "occupation": "University student",
+      "chiefConcern": "Right lower quadrant abdominal pain",
+      "symptom": "Pain started around the umbilicus and migrated to the RLQ.",
+      "level": "Intermediate",
+      "avatarImage": "https://cdn.example.com/vp/mia-tran.png",
+      "timeSetting": 18,
+      "argumentTime": 20,
+      "createdAt": "2026-05-15T09:00:00Z",
+      "feedbackCount": 2,
+      "attemptSummary": {
+        "attempted": true,
+        "attemptCount": 2,
+        "maxAttempts": 3,
+        "bestScore": 88.5,
+        "latestScore": 84.0
+      },
+      "experts": [
+        {
+          "expertId": "EXP-001",
+          "name": "Dr. Alexander Pierce",
+          "role": "Emergency Medicine",
+          "avatarUrl": "https://cdn.example.com/experts/alexander-pierce.png"
+        }
+      ]
+    },
+    {
+      "patientId": "VP-10070248",
+      "caseId": "CASE-RESP-004",
+      "name": "Hao Nguyen",
+      "age": 31,
+      "gender": "MALE",
+      "occupation": "Delivery driver",
+      "chiefConcern": "Shortness of breath and cough",
+      "symptom": "Wheezing for three days, worse at night.",
+      "level": "Beginner",
+      "avatarImage": "https://cdn.example.com/vp/hao-nguyen.png",
+      "timeSetting": 15,
+      "argumentTime": 18,
+      "createdAt": "2026-05-14T07:30:00Z",
+      "feedbackCount": 0,
+      "attemptSummary": {
+        "attempted": false,
+        "attemptCount": 0,
+        "maxAttempts": 3,
+        "bestScore": null,
+        "latestScore": null
+      },
+      "experts": []
+    }
+  ],
+  "total": 14,
+  "page": 1,
+  "pageSize": 200,
+  "filters": {
+    "availableLevels": ["Beginner", "Intermediate"],
+    "availableGenders": ["MALE", "FEMALE"],
+    "availableSpecialties": [],
+    "availableCaseTypes": []
+  }
+}
+```
+
+### POST /api/virtual-patients/discovery/fetch-cases
+Request:
+Request fields (types):
+- learnerId: string
+- level: string|null
+- gender: string|null
+- fetchCount: number
+```json
+{
+  "learnerId": "USR-LRN-08",
+  "level": "Intermediate",
+  "gender": "MALE",
+  "fetchCount": 5
+}
+```
+Response:
+```json
+{
+  "success": true,
+  "message": "Successfully fetched 5 new virtual patient cases.",
+  "data": {
+    "learnerId": "USR-LRN-08",
+    "fetchedCount": 5,
+    "currentPoolTotal": 14,
+    "fetchedItems": [
+      {
+        "patientId": "VP-10080111",
+        "caseId": "CASE-REN-002",
+        "name": "Bao Le",
+        "level": "Intermediate"
+      },
+      {
+        "patientId": "VP-10080122",
+        "caseId": "CASE-CARD-006",
+        "name": "Duc Pham",
+        "level": "Intermediate"
+      }
+    ]
+  }
+}
+```
+
+Partial load:
+```json
+{
+  "success": true,
+  "message": "Only 3 new cases were available matching your criteria.",
+  "data": {
+    "learnerId": "USR-LRN-08",
+    "fetchedCount": 3,
+    "currentPoolTotal": 12,
+    "fetchedItems": [
+      {
+        "patientId": "VP-10080201",
+        "caseId": "CASE-GI-003",
+        "name": "Linh Tran",
+        "level": "Intermediate"
+      }
+    ]
+  }
+}
+```
+
+No more cases available:
+```json
+{
+  "success": false,
+  "errorCode": "NO_MORE_CASES_AVAILABLE",
+  "message": "No new patient cases match your criteria. Try changing filters."
 }
 ```
 Response:

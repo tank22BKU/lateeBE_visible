@@ -129,6 +129,19 @@ CREATE TABLE virtual_patient
     CONSTRAINT fk_virtual_patient_clinical_case FOREIGN KEY (case_id) REFERENCES clinical_case (case_id)
 );
 
+CREATE TABLE learner_discovery_pool
+(
+    id           VARCHAR(36) PRIMARY KEY,
+    learner_id   VARCHAR(50) NOT NULL,
+    patient_id   VARCHAR(50) NOT NULL,
+    fetched_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fetch_level  VARCHAR(20),
+    fetch_gender VARCHAR(10),
+    UNIQUE KEY uq_learner_discovery_pool_learner_patient (learner_id, patient_id),
+    CONSTRAINT fk_learner_discovery_pool_learner FOREIGN KEY (learner_id) REFERENCES users (userid),
+    CONSTRAINT fk_learner_discovery_pool_patient FOREIGN KEY (patient_id) REFERENCES virtual_patient (patient_id)
+);
+
 CREATE TABLE expert_virtual_patient_management
 (
     expert_id  VARCHAR(50) NOT NULL,
@@ -480,3 +493,5 @@ CREATE TABLE learner_discovery_state (
     CONSTRAINT fk_discovery_learner
         FOREIGN KEY (learner_id) REFERENCES users(userid) ON DELETE CASCADE
 );
+
+

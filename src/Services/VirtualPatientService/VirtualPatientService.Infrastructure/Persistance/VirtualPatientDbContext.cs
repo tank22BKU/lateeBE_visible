@@ -3,7 +3,6 @@ using VirtualPatientService.Domain.Entities;
 
 namespace VirtualPatientService.Infrastructure.Persistance;
 
-
 public class VirtualPatientDbContext : DbContext
 {
     public VirtualPatientDbContext(DbContextOptions<VirtualPatientDbContext> options)
@@ -12,9 +11,10 @@ public class VirtualPatientDbContext : DbContext
     public DbSet<VirtualPatient> VirtualPatients => Set<VirtualPatient>();
     public DbSet<ClinicalCase> ClinicalCases => Set<ClinicalCase>();
     public DbSet<Expert> Experts => Set<Expert>();
-    public DbSet<ExpertVirtualPatientManagement> ExpertVirtualPatientManagements
-        => Set<ExpertVirtualPatientManagement>();
+    public DbSet<ExpertVirtualPatientManagement> ExpertVirtualPatientManagements =>
+        Set<ExpertVirtualPatientManagement>();
     public DbSet<LearnerDiscoveryState> LearnerDiscoveryStates => Set<LearnerDiscoveryState>();
+    public DbSet<LearnerDiscoveryPool> LearnerDiscoveryPools => Set<LearnerDiscoveryPool>();
     public DbSet<PracticeSessionRef> PracticeSessionRefs => Set<PracticeSessionRef>();
     public DbSet<EvaluationRef> EvaluationRefs => Set<EvaluationRef>();
     public DbSet<UserRef> UserRefs => Set<UserRef>();
@@ -41,7 +41,8 @@ public class VirtualPatientDbContext : DbContext
             e.Property(x => x.Instructions).HasColumnName("instructions").HasColumnType("TEXT");
             e.Property(x => x.Behaviors).HasColumnName("behaviors").HasColumnType("TEXT");
             e.Property(x => x.LearningObjectives)
-                .HasColumnName("learning_objectives").HasColumnType("TEXT");
+                .HasColumnName("learning_objectives")
+                .HasColumnType("TEXT");
             e.Property(x => x.TimeSetting).HasColumnName("time_setting");
             e.Property(x => x.ArgumentTime).HasColumnName("argument_time");
             e.Property(x => x.Level).HasColumnName("level").HasMaxLength(20);
@@ -78,10 +79,12 @@ public class VirtualPatientDbContext : DbContext
             e.Property(x => x.Ssn).HasColumnName("ssn").HasMaxLength(20);
             e.Property(x => x.BioQuote).HasColumnName("bio_quote").HasColumnType("TEXT");
             e.Property(x => x.EducationDetail)
-                .HasColumnName("education_detail").HasColumnType("TEXT");
+                .HasColumnName("education_detail")
+                .HasColumnType("TEXT");
             e.Property(x => x.TitlePosition).HasColumnName("title_position").HasMaxLength(255);
             e.Property(x => x.ExpertiseSkill)
-                .HasColumnName("expertise_skill").HasColumnType("TEXT");
+                .HasColumnName("expertise_skill")
+                .HasColumnType("TEXT");
             e.Property(x => x.SocialLink).HasColumnName("social_link").HasMaxLength(255);
             e.Ignore(x => x.Name);
             e.Ignore(x => x.AvatarUrl);
@@ -106,6 +109,23 @@ public class VirtualPatientDbContext : DbContext
             e.Property(x => x.LastAccessed).HasColumnName("last_accessed");
         });
 
+        b.Entity<LearnerDiscoveryPool>(e =>
+        {
+            e.ToTable("learner_discovery_pool");
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.LearnerId, x.PatientId }).IsUnique();
+            e.Property(x => x.Id).HasColumnName("id").HasMaxLength(36);
+            e.Property(x => x.LearnerId).HasColumnName("learner_id").HasMaxLength(50);
+            e.Property(x => x.PatientId).HasColumnName("patient_id").HasMaxLength(50);
+            e.Property(x => x.FetchedAt).HasColumnName("fetched_at");
+            e.Property(x => x.FetchLevel).HasColumnName("fetch_level").HasMaxLength(20);
+            e.Property(x => x.FetchGender).HasColumnName("fetch_gender").HasMaxLength(10);
+            e.HasOne(x => x.VirtualPatient)
+                .WithMany()
+                .HasForeignKey(x => x.PatientId)
+                .HasPrincipalKey(x => x.PatientId);
+        });
+
         b.Entity<PracticeSessionRef>(e =>
         {
             e.ToTable("practice_sessions");
@@ -123,7 +143,8 @@ public class VirtualPatientDbContext : DbContext
             e.HasKey(x => x.Id);
             e.Property(x => x.Id).HasColumnName("id").HasMaxLength(50);
             e.Property(x => x.PracticeSessionId)
-                .HasColumnName("practice_session_id").HasMaxLength(50);
+                .HasColumnName("practice_session_id")
+                .HasMaxLength(50);
             e.Property(x => x.Score).HasColumnName("score").HasColumnType("decimal(5,2)");
         });
 
@@ -139,7 +160,6 @@ public class VirtualPatientDbContext : DbContext
         });
     }
 }
-
 
 public class PracticeSessionRef
 {

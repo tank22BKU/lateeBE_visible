@@ -1,15 +1,17 @@
-﻿using ClinicalCaseService.Application.Commands.CreateClinicalCase;
+﻿using System.IdentityModel.Tokens.Jwt;
+using ClinicalCaseService.Application.Commands.CreateClinicalCase;
 using ClinicalCaseService.Application.Commands.DeleteClinicalCase;
 using ClinicalCaseService.Application.Commands.UpdateClinicalCase;
 using ClinicalCaseService.Application.Queries.GetClinicalCaseById;
 using ClinicalCaseService.Application.Queries.GetClinicalCases;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicalCaseService.API.Controllers;
 
 [ApiController]
-[Route("api/clinical-cases")]
+[Route("api/expert/clinical-cases")]
 public class ClinicalCasesController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -21,12 +23,19 @@ public class ClinicalCasesController : ControllerBase
 
     [HttpGet]
     public async Task<IActionResult> GetPaged(
+        [FromQuery] string? search,
         [FromQuery] string? status,
+        [FromQuery] string? type,
+        [FromQuery] string? eccid,
+        [FromQuery] string? sortBy,
+        [FromQuery] string? sortDir,
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20
+        [FromQuery] int pageSize = 12
     )
     {
-        var result = await _mediator.Send(new GetClinicalCasesQuery(status, page, pageSize));
+        var result = await _mediator.Send(
+            new GetClinicalCasesQuery(search, status, type, eccid, sortBy, sortDir, page, pageSize)
+        );
 
         return Ok(result);
     }
@@ -47,7 +56,19 @@ public class ClinicalCasesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateClinicalCaseCommand command)
     {
-        var result = await _mediator.Send(command);
+        var createdBy = ResolveExpertId(command.CreatedBy);
+
+        if (string.IsNullOrWhiteSpace(createdBy))
+        {
+            return BadRequest(
+                new
+                {
+                    message = "CreatedBy is required when no authenticated expert identity is available.",
+                }
+            );
+        }
+
+        var result = await _mediator.Send(command with { CreatedBy = createdBy });
 
         return CreatedAtAction(nameof(GetById), new { id = result.CaseId }, result);
     }
@@ -60,7 +81,8 @@ public class ClinicalCasesController : ControllerBase
             return BadRequest(new { message = "ID trên route và body phải khớp nhau." });
         }
 
-        var updated = await _mediator.Send(command);
+        var createdBy = ResolveExpertId(command.CreatedBy);
+        var updated = await _mediator.Send(command with { CreatedBy = createdBy });
 
         if (!updated)
         {
@@ -81,5 +103,17 @@ public class ClinicalCasesController : ControllerBase
         }
 
         return NoContent();
+    }
+
+    private string? ResolveExpertId(string? fallback)
+    {
+        var claimValue = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+        if (!string.IsNullOrWhiteSpace(claimValue))
+        {
+            return claimValue;
+        }
+
+        return string.IsNullOrWhiteSpace(fallback) ? null : fallback;
     }
 }
