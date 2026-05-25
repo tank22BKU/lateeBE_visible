@@ -159,7 +159,7 @@ services:
   # =========================================================
   # AI Assistant, Gateway, Redis...
   # =========================================================
-
+  
   # ollama:
   #   image: ollama/ollama:latest
   #   container_name: ollama
@@ -191,7 +191,7 @@ services:
   #     timeout: 5s
   #     retries: 5
   #     start_period: 30s
-
+  
   # ollama-warmup:
   #   image: ollama/ollama:latest
   #   container_name: ollama-warmup
@@ -206,23 +206,23 @@ services:
   #     - |
   #       echo "Waiting for Ollama API..."
   #       until ollama list > /dev/null 2>&1; do sleep 2; done
-
+        
   #       if ! ollama list | grep -q "llama3.1:8b"; then
   #           ollama pull llama3.1:8b
   #       else
   #         echo "Model already exists"
   #       fi
-
+  
   #       echo "Verifying model is available..."
   #       until ollama list | grep -q "llama3.1:8b"; do
   #         sleep 2
   #       done
-
+  
   #       echo "Warmup model..."
   #       ollama run llama3.1:8b "hello"
-
+  
   #       echo "Warmup completed successfully!"
-
+      
   #   restart: "no"
   #   networks:
   #     - latee-network
@@ -277,13 +277,12 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
+      DOTNET_USE_POLLING_FILE_WATCHER: "1"
       ConnectionStrings__RoadmapDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
       <<: *auth-env
-    # Use `dotnet run` inside container instead of `dotnet watch` to avoid scanning whole repo
-    command: dotnet run --project src/Services/RoadmapService/RoadmapService.API/RoadmapService.API.csproj --no-launch-profile --urls http://0.0.0.0:8080
+    command: dotnet watch --project src/Services/RoadmapService/RoadmapService.API/RoadmapService.API.csproj run --no-launch-profile --urls http://0.0.0.0:8080
     volumes:
-      # Mount only the Services folder to reduce number of files watched inside container
-      - ../src/Services:/src/src/Services
+      - ../src:/src/src
       - roadmap_nuget_cache:/root/.nuget/packages
     networks:
       - latee-network
@@ -303,11 +302,12 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
+      DOTNET_USE_POLLING_FILE_WATCHER: "1"
       ConnectionStrings__KnowledgeResourceDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
       <<: *auth-env
-    command: dotnet run --project src/Services/KnowledgeResourceService/KnowledgeResourceService.API/KnowledgeResourceService.API.csproj --no-launch-profile --urls http://0.0.0.0:8080
+    command: dotnet watch --project src/Services/KnowledgeResourceService/KnowledgeResourceService.API/KnowledgeResourceService.API.csproj run --no-launch-profile --urls http://0.0.0.0:8080
     volumes:
-      - ../src/Services:/src/src/Services
+      - ../src:/src/src
       - knowledge_nuget_cache:/root/.nuget/knowledge_packages
     networks:
       - latee-network
@@ -327,11 +327,12 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
+      DOTNET_USE_POLLING_FILE_WATCHER: "1"
       ConnectionStrings__UserDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
       <<: *auth-env
-    command: dotnet run --project src/Services/UserService/UserService.API/UserService.API.csproj --no-launch-profile --urls http://0.0.0.0:8080
+    command: dotnet watch --project src/Services/UserService/UserService.API/UserService.API.csproj run --no-launch-profile --urls http://0.0.0.0:8080
     volumes:
-      - ../src/Services:/src/src/Services
+      - ../src:/src/src
       - user_nuget_cache:/root/.nuget/user_packages
     networks:
       - latee-network
@@ -398,6 +399,7 @@ services:
       <<: *auth-env
     networks:
       - latee-network
+
   # redis:
   #   image: redis:7
   #   container_name: redis
@@ -414,7 +416,7 @@ volumes:
   roadmap_nuget_cache:
   knowledge_nuget_cache:
   user_nuget_cache:
-
+    
 networks:
   latee-network:
     driver: bridge

@@ -1,4 +1,4 @@
 FROM llama3.1:8b
-ADAPTER /root/.ollama/adapters_setup/vp_adapter.gguf
+ADAPTER /root/.ollama/adapters_setup/vp_adapter_v4.gguf
 PARAMETER temperature 0.1
 PARAMETER top_p 0.9

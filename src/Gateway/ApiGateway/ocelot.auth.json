@@ -37,6 +37,7 @@
         "GET",
         "POST",
         "PUT",
+        "PATCH",
         "DELETE"
       ],
       "SwaggerKey": "virtualpatient",
@@ -487,6 +488,7 @@
         "GET",
         "POST",
         "PUT",
+        "PATCH",
         "DELETE"
       ],
       "SwaggerKey": "practice-session",

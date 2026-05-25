@@ -1052,7 +1052,9 @@ Response (200):
 { "patientId": "VP-abc123", "status": "published", "updatedAt": "2026-05-24T12:11:00Z" }
 ```
 
-### DELETE /api/expert/virtual-patients/{id}?confirm=true
+### DELETE /api/expert/virtual-patients/{id}
+Query params:
+- confirm: boolean (required, must be true)
 Response (200):
 ```json
 { "success": true, "patientId": "VP-abc123" }
@@ -1500,3 +1502,108 @@ Response:
   "full_raw": "{\"dimension\":\"missing_info\",\"question\":\"What additional exam finding would increase your confidence?\",\"stop\":false}"
 }
 ```
+
+## UserService
+
+Gọi qua API Gateway: `/user/api/{everything}`. Controller nội bộ đang map ở `/api/users`.
+
+### GET /api/users
+Response:
+```json
+[
+  {
+    "userId": "USR-001",
+    "name": "Dr. Andrew Nguyen",
+    "email": "andrew.nguyen@latee.com",
+    "phone": "+1-555-0101",
+    "birthday": "1985-04-12T00:00:00Z",
+    "password": null,
+    "gender": "male",
+    "address": "Hudson, Wisconsin",
+    "role": "expert",
+    "status": "active",
+    "avatarUrl": "/images/users/andrew.png",
+    "isDeleted": false,
+    "createdAt": "2026-05-20T10:00:00Z",
+    "updatedAt": "2026-05-24T12:10:00Z"
+  }
+]
+```
+
+### GET /api/users/{id}
+Response:
+```json
+{
+  "userId": "USR-001",
+  "name": "Dr. Andrew Nguyen",
+  "email": "andrew.nguyen@latee.com",
+  "phone": "+1-555-0101",
+  "birthday": "1985-04-12T00:00:00Z",
+  "gender": "male",
+  "address": "Hudson, Wisconsin",
+  "status": "active",
+  "role": "expert",
+  "avatarUrl": "/images/users/andrew.png",
+  "createdAt": "2026-05-20T10:00:00Z",
+  "updatedAt": "2026-05-24T12:10:00Z",
+  "profile": {
+    "id": "EXP-001",
+    "ssn": "123-45-6789",
+    "bioQoute": "Leading expert in complex clinical case analysis...",
+    "educationDetail": "MD Internal Medicine, Johns Hopkins University",
+    "titlePosition": "Specialist in Diagnostic Reasoning",
+    "expertiseSkill": "Clinical Reasoning, Diagnostic Strategy",
+    "socialLink": "https://linkedin.com/in/andrew-nguyen"
+  }
+}
+```
+
+### GET /api/users/dashboard-stats
+Response:
+```json
+{
+  "increaseUser": 12,
+  "totalLearners": 842,
+  "increaseLearners": 8,
+  "totalExperts": 24,
+  "totalAdmins": 3,
+  "totalActiveUsers": 615
+}
+```
+
+### POST /api/users
+Request:
+```json
+{
+  "userId": "USR-002",
+  "name": "Jane Doe",
+  "email": "jane.doe@example.com",
+  "password": "P@ssw0rd!",
+  "phone": "+1-555-0102",
+  "birthday": "1996-08-15T00:00:00Z",
+  "gender": "female",
+  "address": "Bangkok",
+  "status": "active",
+  "role": "learner",
+  "avatarUrl": "/images/users/jane.png"
+}
+```
+Response:
+```json
+{
+  "userId": "USR-002",
+  "name": "Jane Doe",
+  "email": "jane.doe@example.com",
+  "role": "learner",
+  "status": "active",
+  "createdAt": "2026-05-25T10:00:00Z",
+  "updatedAt": "2026-05-25T10:00:00Z"
+}
+```
+
+### PUT /api/users/{id}
+Request: same shape as POST /api/users
+Response: 204 No Content
+
+### DELETE /api/users/{id}
+Response: 204 No Content
