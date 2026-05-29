@@ -177,7 +177,7 @@ public class LearnerDiscoveryPoolRepository : ILearnerDiscoveryPoolRepository
         var query =
             from vp in _db.VirtualPatients.AsNoTracking()
             join cc in _db.ClinicalCases.AsNoTracking() on vp.CaseId equals cc.CaseId
-            where vp.Status == VirtualPatientConstants.Status.Active
+            where vp.Status == VirtualPatientConstants.Status.Published
             select new
             {
                 vp.PatientId,

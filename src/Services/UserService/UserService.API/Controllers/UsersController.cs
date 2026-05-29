@@ -5,8 +5,8 @@ using UserService.Application.Users.Commands.CreateUser;
 using UserService.Application.Users.Commands.UpdateAvatarImage;
 using UserService.Application.Users.Commands.DeleteUser;
 using UserService.Application.Users.Commands.UpdateUser;
-using UserService.Application.Users.Queries.GetDashboardStatistics;
 using UserService.Application.Users.Queries.GetAllUsers;
+using UserService.Application.Users.Queries.GetDashboardStatistics;
 using UserService.Application.Users.Queries.GetUserById;
 
 namespace UserService.API.Controllers;
@@ -48,20 +48,22 @@ public class UsersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(UserDto req)
     {
-        var created = await _mediator.Send(new CreateUserCommand
-        {
-            UserId = req.UserId,
-            Name = req.Name,
-            Email = req.Email,
-            Password = req.Password,
-            Phone = req.Phone,
-            Birthday = req.Birthday,
-            Gender = req.Gender,
-            Address = req.Address,
-            AvatarUrl = req.AvatarUrl,
-            Status = req.Status,
-            Role = req.Role
-        });
+        var created = await _mediator.Send(
+            new CreateUserCommand
+            {
+                UserId = req.UserId,
+                Name = req.Name,
+                Email = req.Email,
+                Password = req.Password,
+                Phone = req.Phone,
+                Birthday = req.Birthday,
+                Gender = req.Gender,
+                Address = req.Address,
+                AvatarUrl = req.AvatarUrl,
+                Status = req.Status,
+                Role = req.Role,
+            }
+        );
 
         return CreatedAtAction(nameof(Get), new { id = created.UserId }, created);
     }
@@ -69,20 +71,22 @@ public class UsersController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(string id, UserDto req)
     {
-        var updated = await _mediator.Send(new UpdateUserCommand
-        {
-            UserId = id,
-            Name = req.Name,
-            Email = req.Email,
-            Phone = req.Phone,
-            Role = req.Role,
-            Password = req.Password,
-            Birthday = req.Birthday,
-            Gender = req.Gender,
-            Address = req.Address,
-            AvatarUrl = req.AvatarUrl,
-            Status = req.Status
-        });
+        var updated = await _mediator.Send(
+            new UpdateUserCommand
+            {
+                UserId = id,
+                Name = req.Name,
+                Email = req.Email,
+                Phone = req.Phone,
+                Role = req.Role,
+                Password = req.Password,
+                Birthday = req.Birthday,
+                Gender = req.Gender,
+                Address = req.Address,
+                AvatarUrl = req.AvatarUrl,
+                Status = req.Status,
+            }
+        );
 
         return updated is null ? NotFound() : NoContent();
     }

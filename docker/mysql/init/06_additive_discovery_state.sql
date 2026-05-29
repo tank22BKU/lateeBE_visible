@@ -11,3 +11,5 @@ CREATE INDEX idx_ps_status          ON practice_sessions(status);
 CREATE INDEX idx_eval_session ON evaluation(practice_session_id);
 
 CREATE INDEX idx_pf_session ON practice_feedback(practice_session_id);
+
+CREATE INDEX idx_vp_owner ON virtual_patient(owner_expert_id);

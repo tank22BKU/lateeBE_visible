@@ -90,7 +90,6 @@ public class VirtualPatientExpertController : ControllerBase
             TotalPages = (int)Math.Ceiling(total / (double)pageSize),
             Filters = await BuildFiltersAsync(cancellationToken),
         };
-
         return Ok(response);
     }
 
@@ -169,7 +168,7 @@ public class VirtualPatientExpertController : ControllerBase
 
         try
         {
-            await ReplaceExpertsAsync(entity.PatientId, request.ExpertIds, cancellationToken);
+            await ReplaceExpertsAsync(entity.PatientId, request.ExpertIds ?? [], cancellationToken);
             await _db.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         }
@@ -179,15 +178,31 @@ public class VirtualPatientExpertController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
 
+        var expertIds = await GetExpertIdsByPatientIdAsync(entity.PatientId, cancellationToken);
+        var experts = await GetExpertsByPatientIdAsync(entity.PatientId, cancellationToken);
+        var ownerExpertId = request
+            .ExpertIds?.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x))
+            ?.Trim();
+
         return CreatedAtAction(
             nameof(GetById),
             new { id = entity.PatientId },
             new
             {
                 patientId = entity.PatientId,
+                ownerExpertId = ownerExpertId,
                 name = entity.Name,
                 status = NormalizeStatusForResponse(entity.Status),
                 createdAt = entity.CreatedAt,
+                expertIds = expertIds,
+                experts = experts,
+                stats = new
+                {
+                    totalAttempts = 0,
+                    avgScore = (decimal?)null,
+                    completionRate = 0m,
+                    expertCount = expertIds.Count,
+                },
             }
         );
     }
@@ -240,7 +255,8 @@ public class VirtualPatientExpertController : ControllerBase
 
         try
         {
-            await ReplaceExpertsAsync(entity.PatientId, request.ExpertIds, cancellationToken);
+            if (request.ExpertIds is not null)
+                await ReplaceExpertsAsync(entity.PatientId, request.ExpertIds, cancellationToken);
         }
         catch (InvalidOperationException ex)
         {
@@ -250,6 +266,136 @@ public class VirtualPatientExpertController : ControllerBase
         await _db.SaveChangesAsync(cancellationToken);
 
         return Ok(new { patientId = entity.PatientId, updatedAt = entity.UpdatedAt });
+    }
+
+    [HttpPut("{id}/experts")]
+    public async Task<IActionResult> ReplaceExperts(
+        string id,
+        [FromBody] VirtualPatientExpertManagementRequest request,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var entity = await _db.VirtualPatients.FirstOrDefaultAsync(
+            x => x.PatientId == id,
+            cancellationToken
+        );
+        if (entity is null)
+            return NotFound(new { message = $"Không tìm thấy virtual patient với ID: {id}" });
+
+        try
+        {
+            await ReplaceExpertsAsync(id, request.ExpertIds, cancellationToken);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+
+        entity.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(cancellationToken);
+
+        return Ok(
+            new
+            {
+                patientId = entity.PatientId,
+                expertIds = await GetExpertIdsByPatientIdAsync(id, cancellationToken),
+                updatedAt = entity.UpdatedAt,
+            }
+        );
+    }
+
+    [HttpPost("{id}/experts")]
+    public async Task<IActionResult> AddExperts(
+        string id,
+        [FromBody] VirtualPatientExpertManagementRequest request,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var entity = await _db.VirtualPatients.FirstOrDefaultAsync(
+            x => x.PatientId == id,
+            cancellationToken
+        );
+        if (entity is null)
+            return NotFound(new { message = $"Không tìm thấy virtual patient với ID: {id}" });
+
+        var ids = NormalizeExpertIds(request.ExpertIds);
+        if (ids.Count == 0)
+        {
+            return Ok(
+                new
+                {
+                    patientId = entity.PatientId,
+                    expertIds = await GetExpertIdsByPatientIdAsync(id, cancellationToken),
+                    updatedAt = entity.UpdatedAt,
+                }
+            );
+        }
+
+        await ValidateExpertIdsExistAsync(ids, cancellationToken);
+
+        var existingIds = await GetExpertIdsByPatientIdAsync(id, cancellationToken);
+        var newIds = ids.Except(existingIds, StringComparer.OrdinalIgnoreCase).ToList();
+
+        if (newIds.Count > 0)
+        {
+            _db.ExpertVirtualPatientManagements.AddRange(
+                newIds.Select(x => new ExpertVirtualPatientManagement
+                {
+                    ExpertId = x,
+                    VirtualId = id,
+                })
+            );
+
+            entity.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(cancellationToken);
+        }
+
+        return Ok(
+            new
+            {
+                patientId = entity.PatientId,
+                expertIds = await GetExpertIdsByPatientIdAsync(id, cancellationToken),
+                updatedAt = entity.UpdatedAt,
+            }
+        );
+    }
+
+    [HttpDelete("{id}/experts/{expertId}")]
+    public async Task<IActionResult> RemoveExpert(
+        string id,
+        string expertId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var entity = await _db.VirtualPatients.FirstOrDefaultAsync(
+            x => x.PatientId == id,
+            cancellationToken
+        );
+        if (entity is null)
+            return NotFound(new { message = $"Không tìm thấy virtual patient với ID: {id}" });
+
+        var normalizedExpertId = expertId.Trim();
+        var link = await _db.ExpertVirtualPatientManagements.FirstOrDefaultAsync(
+            x => x.VirtualId == id && x.ExpertId == normalizedExpertId,
+            cancellationToken
+        );
+        if (link is null)
+            return NotFound(
+                new { message = $"Không tìm thấy expert {normalizedExpertId} cho case {id}" }
+            );
+
+        _db.ExpertVirtualPatientManagements.Remove(link);
+        entity.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(cancellationToken);
+
+        return Ok(
+            new
+            {
+                patientId = entity.PatientId,
+                expertIds = await GetExpertIdsByPatientIdAsync(id, cancellationToken),
+                updatedAt = entity.UpdatedAt,
+            }
+        );
     }
 
     [HttpPatch("{id}/status")]
@@ -531,6 +677,13 @@ public class VirtualPatientExpertController : ControllerBase
             .ClinicalCases.AsNoTracking()
             .FirstOrDefaultAsync(x => x.CaseId == patient.CaseId, cancellationToken);
 
+        var ownerExpertId = await _db
+            .ExpertVirtualPatientManagements.AsNoTracking()
+            .Where(x => x.VirtualId == patientId)
+            .Select(x => x.ExpertId)
+            .OrderBy(x => x)
+            .FirstOrDefaultAsync(cancellationToken);
+
         var experts = await GetExpertsByPatientIdAsync(patientId, cancellationToken);
         var statsByPatient = await GetStatsByPatientIdsAsync(
             new[] { patientId },
@@ -541,6 +694,7 @@ public class VirtualPatientExpertController : ControllerBase
         return new VirtualPatientExpertDetailDto
         {
             PatientId = patient.PatientId,
+            OwnerExpertId = ownerExpertId,
             CaseId = patient.CaseId,
             Name = patient.Name,
             Age = patient.Age,
@@ -719,30 +873,15 @@ public class VirtualPatientExpertController : ControllerBase
 
     private async Task ReplaceExpertsAsync(
         string patientId,
-        IReadOnlyCollection<string> expertIds,
+        IReadOnlyCollection<string>? expertIds,
         CancellationToken cancellationToken
     )
     {
-        var ids = expertIds
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Select(x => x.Trim())
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
+        var ids = NormalizeExpertIds(expertIds);
 
         if (ids.Count > 0)
         {
-            var validExpertIds = await _db
-                .Experts.AsNoTracking()
-                .Where(x => ids.Contains(x.ExpertId))
-                .Select(x => x.ExpertId)
-                .ToListAsync(cancellationToken);
-
-            var missingExpertIds = ids.Except(validExpertIds, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-            if (missingExpertIds.Count > 0)
-                throw new InvalidOperationException(
-                    $"Không tìm thấy expert: {string.Join(", ", missingExpertIds)}"
-                );
+            await ValidateExpertIdsExistAsync(ids, cancellationToken);
         }
 
         var existingLinks = await _db
@@ -761,6 +900,50 @@ public class VirtualPatientExpertController : ControllerBase
                 VirtualId = patientId,
             })
         );
+    }
+
+    private async Task<List<string>> GetExpertIdsByPatientIdAsync(
+        string patientId,
+        CancellationToken cancellationToken
+    )
+    {
+        return await _db
+            .ExpertVirtualPatientManagements.AsNoTracking()
+            .Where(x => x.VirtualId == patientId)
+            .Select(x => x.ExpertId)
+            .OrderBy(x => x)
+            .ToListAsync(cancellationToken);
+    }
+
+    private async Task ValidateExpertIdsExistAsync(
+        IReadOnlyCollection<string> expertIds,
+        CancellationToken cancellationToken
+    )
+    {
+        var validExpertIds = await _db
+            .Experts.AsNoTracking()
+            .Where(x => expertIds.Contains(x.ExpertId))
+            .Select(x => x.ExpertId)
+            .ToListAsync(cancellationToken);
+
+        var missingExpertIds = expertIds
+            .Except(validExpertIds, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        if (missingExpertIds.Count > 0)
+            throw new InvalidOperationException(
+                $"Không tìm thấy expert: {string.Join(", ", missingExpertIds)}"
+            );
+    }
+
+    private static List<string> NormalizeExpertIds(IReadOnlyCollection<string>? expertIds)
+    {
+        return expertIds is null
+            ? new List<string>()
+            : expertIds
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
     }
 
     private async Task<string> GenerateUniquePatientIdAsync(CancellationToken cancellationToken)

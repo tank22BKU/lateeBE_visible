@@ -2,6 +2,29 @@
 
 Tài liệu này cung cấp ví dụ request/response fake data cho các API đang có trong các service bên dưới.
 
+## UserService
+
+### GET /api/experts
+Trả về danh sách expert tối giản để FE populate dropdown / autocomplete.
+Query params:
+- keyword: string|null
+Response:
+```json
+[
+  { "expertId": "EXP-001", "name": "Dr. Anna Nguyen" },
+  { "expertId": "EXP-002", "name": "Dr. Minh Tran" }
+]
+```
+
+### GET /api/experts/search?keyword={keyword}
+Tìm expert theo `expertId` hoặc `name`.
+Response:
+```json
+[
+  { "expertId": "EXP-001", "name": "Dr. Anna Nguyen" }
+]
+```
+
 ## PracticeSessionService
 
 ### POST /api/practice-sessions
@@ -446,6 +469,31 @@ Response:
 }
 ```
 
+### FE Quick Contract: Search Cases For VP Create Modal
+GET /api/expert/clinical-cases?search={q}&pageSize=10
+
+Example request:
+GET /api/expert/clinical-cases?search=appendicitis&pageSize=10
+
+Example response:
+```json
+{
+  "items": [
+    {
+      "caseId": "27892518",
+      "title": "Acute Appendicitis Presentation",
+      "type": "APPENDICITIS",
+      "status": "active",
+      "createdByName": "Dr. Andrew Nguyen"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "pageSize": 10,
+  "totalPages": 1
+}
+```
+
 
 ### API-2: Get Case Detail
 GET /api/expert/clinical-cases/{id}
@@ -843,6 +891,7 @@ Request fields (types):
   "fetchCount": 5
 }
 ```
+Note: Each returned item in `fetchedItems` includes a `status` field (string). The server sets `status` to "published" for newly fetched cases.
 Response:
 ```json
 {
@@ -857,13 +906,15 @@ Response:
         "patientId": "VP-10080111",
         "caseId": "CASE-REN-002",
         "name": "Bao Le",
-        "level": "Intermediate"
+        "level": "Intermediate",
+        "status": "published"
       },
       {
         "patientId": "VP-10080122",
         "caseId": "CASE-CARD-006",
         "name": "Duc Pham",
-        "level": "Intermediate"
+        "level": "Intermediate",
+        "status": "published"
       }
     ]
   }
@@ -884,7 +935,8 @@ Partial load:
         "patientId": "VP-10080201",
         "caseId": "CASE-GI-003",
         "name": "Linh Tran",
-        "level": "Intermediate"
+        "level": "Intermediate",
+        "status": "published"
       }
     ]
   }
@@ -948,6 +1000,7 @@ Response (200):
 ```json
 {
   "patientId": "VP-abc123",
+  "ownerExpertId": "EXP-01",
   "caseId": "CASE-001",
   "name": "John Doe",
   "age": 45,
@@ -997,7 +1050,6 @@ Response (200):
 Request (201 Created) example body:
 ```json
 {
-  "patientId": "optional-VP-xyz",
   "caseId": "CASE-001",
   "name": "New Patient",
   "age": 30,
@@ -1005,31 +1057,93 @@ Request (201 Created) example body:
   "pronouns": "she/her",
   "occupation": "Teacher",
   "chiefConcern": "Headache",
-  "persona": {"notes":"calm"},
-  "vitalSigns": {"bp":"110/70"},
+  "medicalHistory": "No significant medical history",
+  "symptom": "Intermittent headache",
+  "persona": { "notes": "calm" },
+  "vitalSigns": { "bp": "110/70", "hr": 72, "temp": 36.6, "spo2": "98%", "rr": 16 },
   "timeSetting": 10,
   "argumentTime": 2,
-  "learningObjectives": {"obj":"Practice history taking"},
+  "learningObjectives": ["Practice history taking"],
   "level": "beginner",
   "avatarImage": null,
   "caseRule": null,
-  "expertIds": ["EXP-01","EXP-02"]
+  "expertIds": ["EXP-01"]
 }
 ```
 Response (201):
 ```json
 {
   "patientId": "VP-unique-123",
+  "ownerExpertId": "EXP-01",
   "name": "New Patient",
   "status": "draft",
-  "createdAt": "2026-05-24T12:00:00Z"
+  "createdAt": "2026-05-24T12:00:00Z",
+  "expertIds": ["EXP-01"],
+  "experts": [
+    {
+      "expertId": "EXP-01",
+      "name": "Dr. Alice",
+      "role": "Consultant",
+      "avatarUrl": null
+    }
+  ],
+  "stats": {
+    "totalAttempts": 0,
+    "avgScore": null,
+    "completionRate": 0,
+    "expertCount": 1
+  }
 }
 ```
 
+Note: backend may include additional expert fields in each `experts` item (`bioQuote`, `educationDetail`, `expertiseSkill`, `phone`, `email`, `location`).
+
 ### PUT /api/expert/virtual-patients/{id}
-Request body: same as POST. Response (200):
+Request body: same as POST, but `expertIds` is optional. If omitted, existing expert links are preserved.
+Response (200):
 ```json
 { "patientId": "VP-abc123", "updatedAt": "2026-05-24T12:10:00Z" }
+```
+
+### PUT /api/expert/virtual-patients/{id}/experts
+Replace the full expert list for a virtual patient.
+Request body:
+```json
+{ "expertIds": ["EXP-01", "EXP-02"] }
+```
+Response (200):
+```json
+{
+  "patientId": "VP-abc123",
+  "expertIds": ["EXP-01", "EXP-02"],
+  "updatedAt": "2026-05-24T12:10:00Z"
+}
+```
+
+### POST /api/expert/virtual-patients/{id}/experts
+Append experts to the existing list for a virtual patient.
+Request body:
+```json
+{ "expertIds": ["EXP-03"] }
+```
+Response (200):
+```json
+{
+  "patientId": "VP-abc123",
+  "expertIds": ["EXP-01", "EXP-02", "EXP-03"],
+  "updatedAt": "2026-05-24T12:10:00Z"
+}
+```
+
+### DELETE /api/expert/virtual-patients/{id}/experts/{expertId}
+Remove a single expert from the virtual patient.
+Response (200):
+```json
+{
+  "patientId": "VP-abc123",
+  "expertIds": ["EXP-01", "EXP-02"],
+  "updatedAt": "2026-05-24T12:10:00Z"
+}
 ```
 
 ### PATCH /api/expert/virtual-patients/{id}/status
@@ -1059,6 +1173,16 @@ Response (200):
 ```json
 { "success": true, "patientId": "VP-abc123" }
 ```
+
+### POST /api/expert/virtual-patients/{id}
+Delete alias for clients that cannot send `DELETE` with query confirmation.
+Request: no body.
+Response (200): same as `DELETE /api/expert/virtual-patients/{id}`.
+
+### POST /api/expert/virtual-patients/{id}/delete
+Delete alias for clients that cannot send `DELETE` with query confirmation.
+Request: no body.
+Response (200): same as `DELETE /api/expert/virtual-patients/{id}`.
 
 ### POST /api/expert/virtual-patients/{id}/duplicate
 Response (201):
@@ -1292,6 +1416,7 @@ Request fields (types):
   "fetchCount": 5
 }
 ```
+Note: Each returned item in `fetchedItems` includes a `status` field (string). The server sets `status` to "active" for newly fetched cases.
 Response:
 ```json
 {
@@ -1302,11 +1427,11 @@ Response:
     "fetchedCount": 5,
     "currentPoolTotal": 14,
     "fetchedItems": [
-      { "patientId": "10070247", "caseId": "27892518", "name": "Richard Anderson", "level": "Intermediate" },
-      { "patientId": "10070248", "caseId": "27892520", "name": "John Doe", "level": "Intermediate" },
-      { "patientId": "10070249", "caseId": "27892521", "name": "Robert Smith", "level": "Intermediate" },
-      { "patientId": "10070250", "caseId": "27892522", "name": "Michael Johnson", "level": "Intermediate" },
-      { "patientId": "10070251", "caseId": "27892523", "name": "William David", "level": "Intermediate" }
+      { "patientId": "10070247", "caseId": "27892518", "name": "Richard Anderson", "level": "Intermediate", "status": "published" },
+      { "patientId": "10070248", "caseId": "27892520", "name": "John Doe", "level": "Intermediate", "status": "published" },
+      { "patientId": "10070249", "caseId": "27892521", "name": "Robert Smith", "level": "Intermediate", "status": "published" },
+      { "patientId": "10070250", "caseId": "27892522", "name": "Michael Johnson", "level": "Intermediate", "status": "published" },
+      { "patientId": "10070251", "caseId": "27892523", "name": "William David", "level": "Intermediate", "status": "published" }
     ]
   }
 }

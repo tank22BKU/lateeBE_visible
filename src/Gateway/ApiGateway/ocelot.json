@@ -93,6 +93,40 @@
       "SwaggerKey": "user"
     },
     {
+      "DownstreamPathTemplate": "/api/experts",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "user",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/api/experts",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST"
+      ],
+      "SwaggerKey": "user"
+    },
+    {
+      "DownstreamPathTemplate": "/api/experts/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "user",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/api/experts/{everything}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "PUT",
+        "DELETE",
+        "POST"
+      ],
+      "SwaggerKey": "user"
+    },
+    {
       "DownstreamPathTemplate": "/swagger/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
