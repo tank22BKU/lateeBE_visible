@@ -13,4 +13,10 @@ public record FetchDiscoveryCasesData(
     IReadOnlyList<FetchedPatientSummary> FetchedItems
 );
 
-public record FetchedPatientSummary(string PatientId, string CaseId, string Name, string Level);
+public record FetchedPatientSummary(
+    string PatientId,
+    string CaseId,
+    string Name,
+    string Level,
+    string Status
+);

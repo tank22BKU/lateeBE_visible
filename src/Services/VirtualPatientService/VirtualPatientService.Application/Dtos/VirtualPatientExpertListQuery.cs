@@ -36,6 +36,11 @@ public class VirtualPatientExpertUpsertRequest
     public string? Level { get; set; }
     public string? AvatarImage { get; set; }
     public JsonElement? CaseRule { get; set; }
+    public List<string>? ExpertIds { get; set; }
+}
+
+public class VirtualPatientExpertManagementRequest
+{
     public List<string> ExpertIds { get; set; } = new();
 }
 
@@ -83,6 +88,7 @@ public class VirtualPatientExpertListItemDto
 public class VirtualPatientExpertDetailDto
 {
     public string PatientId { get; set; } = string.Empty;
+    public string? OwnerExpertId { get; set; }
     public string CaseId { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public int? Age { get; set; }

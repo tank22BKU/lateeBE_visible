@@ -1063,16 +1063,12 @@ VALUES ('KR-001',
 -- EXPERT_RESOURCE
 -- (expert_knowledge)
 -- ==========================
-
-INSERT INTO expert_knowledge
-(expert_id,
- knowledge_resource_id)
-VALUES ('USR-EXP-001', 'KR-002'),
-
-       ('USR-EXP-002', 'KR-003'),
-
-       ('USR-EXP-003', 'KR-001'),
-       ('USR-EXP-003', 'KR-005'),
-
-       ('USR-EXP-004', 'KR-004'),
-       ('USR-EXP-004', 'KR-006');
+INSERT INTO
+        expert_knowledge (expert_id, knowledge_resource_id)
+VALUES
+        ('USR-EXP-001', 'KR-002'),
+        ('USR-EXP-002', 'KR-003'),
+        ('USR-EXP-003', 'KR-001'),
+        ('USR-EXP-003', 'KR-005'),
+        ('USR-EXP-004', 'KR-004'),
+        ('USR-EXP-004', 'KR-006');

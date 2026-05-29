@@ -97,7 +97,8 @@ public class FetchDiscoveryCasesHandler
                         x.PatientId,
                         x.CaseId,
                         x.Name,
-                        x.Level ?? string.Empty
+                        x.Level ?? string.Empty,
+                        "published"
                     ))
                     .ToList()
             )

@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.EntityFrameworkCore;
+using UserService.Domain.DTOs;
 using UserService.Domain.Entities;
 using UserService.Domain.Repositories;
 using UserService.Infrastructure.Persistence;
@@ -28,6 +29,76 @@ public class UserRepository : IUserRepository
     public Task<Expert?> GetExpertByIdAsync(string expertId)
     {
         return _db.Experts.AsNoTracking().FirstOrDefaultAsync(x => x.ExpertId == expertId);
+    }
+
+    public async Task<List<ExpertLookupDto>> GetExpertLookupsAsync(string? keyword = null)
+    {
+        var query =
+            from expert in _db.Experts.AsNoTracking()
+            join user in _db.Users.AsNoTracking() on expert.ExpertId equals user.UserId
+            where !user.IsDeleted
+            select new ExpertLookupDto
+            {
+                ExpertId = expert.ExpertId,
+                Name = user.Name ?? string.Empty,
+            };
+
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            var normalized = keyword.Trim().ToLowerInvariant();
+            query = query.Where(x =>
+                x.ExpertId.ToLower().Contains(normalized) || x.Name.ToLower().Contains(normalized)
+            );
+        }
+
+        return await query.OrderBy(x => x.Name).ThenBy(x => x.ExpertId).ToListAsync();
+    }
+
+    public async Task<Expert?> CreateExpertAsync(Expert expert)
+    {
+        // ensure user exists
+        var user = await _db.Users.FindAsync(expert.ExpertId);
+        if (user is null)
+            return null;
+
+        expert.ExpertId = expert.ExpertId.Trim();
+        _db.Experts.Add(expert);
+        await _db.SaveChangesAsync();
+        return expert;
+    }
+
+    public async Task<Expert?> UpdateExpertAsync(Expert expert)
+    {
+        var existing = await _db.Experts.FindAsync(expert.ExpertId);
+        if (existing is null)
+            return null;
+
+        if (!string.IsNullOrWhiteSpace(expert.Ssn))
+            existing.Ssn = expert.Ssn;
+        if (!string.IsNullOrWhiteSpace(expert.BioQuote))
+            existing.BioQuote = expert.BioQuote;
+        if (!string.IsNullOrWhiteSpace(expert.EducationDetail))
+            existing.EducationDetail = expert.EducationDetail;
+        if (!string.IsNullOrWhiteSpace(expert.TitlePosition))
+            existing.TitlePosition = expert.TitlePosition;
+        if (!string.IsNullOrWhiteSpace(expert.ExpertiseSkill))
+            existing.ExpertiseSkill = expert.ExpertiseSkill;
+        if (!string.IsNullOrWhiteSpace(expert.SocialLink))
+            existing.SocialLink = expert.SocialLink;
+
+        await _db.SaveChangesAsync();
+        return existing;
+    }
+
+    public async Task<bool> DeleteExpertAsync(string expertId)
+    {
+        var existing = await _db.Experts.FindAsync(expertId);
+        if (existing is null)
+            return false;
+
+        _db.Experts.Remove(existing);
+        await _db.SaveChangesAsync();
+        return true;
     }
 
     public async Task<UserDashboardStatistics> GetDashboardStatisticsAsync()
