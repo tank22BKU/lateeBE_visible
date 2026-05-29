@@ -204,6 +204,48 @@
       }
     },
     {
+      "DownstreamPathTemplate": "/api/experts",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "user",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/api/experts",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST"
+      ],
+      "SwaggerKey": "user",
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/experts/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "user",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/api/experts/{everything}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "PUT",
+        "DELETE",
+        "POST"
+      ],
+      "SwaggerKey": "user",
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
       "DownstreamPathTemplate": "/api/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [

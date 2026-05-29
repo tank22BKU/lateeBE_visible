@@ -106,6 +106,7 @@ CREATE TABLE virtual_patient
 (
     patient_id   VARCHAR(50) PRIMARY KEY,
     case_id      VARCHAR(50)  NOT NULL,
+    owner_expert_id VARCHAR(50) NULL,
     name         VARCHAR(100) NOT NULL,
     age          INT,
     gender       VARCHAR(10),
@@ -126,7 +127,8 @@ CREATE TABLE virtual_patient
     avatar_image VARCHAR(255),
     created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_virtual_patient_clinical_case FOREIGN KEY (case_id) REFERENCES clinical_case (case_id) ON DELETE CASCADE
+    CONSTRAINT fk_virtual_patient_clinical_case FOREIGN KEY (case_id) REFERENCES clinical_case (case_id) ON DELETE CASCADE,
+    CONSTRAINT fk_vp_owner_expert FOREIGN KEY (owner_expert_id) REFERENCES expert(eid) ON DELETE SET NULL
 );
 
 CREATE TABLE learner_discovery_pool
