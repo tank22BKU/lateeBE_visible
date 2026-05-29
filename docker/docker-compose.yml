@@ -113,14 +113,8 @@ services:
       - OLLAMA_NUM_PARALLEL=1
       - OLLAMA_FLASH_ATTENTION=1
       - OLLAMA_MAX_LOADED_MODELS=1
-      - OLLAMA_NUM_GPU=1
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
+      - OLLAMA_NUM_GPU=0
+      - OLLAMA_KEEP_ALIVE=24h
 
   ollama-warmup-vp:
     image: ollama/ollama:latest
@@ -151,6 +145,7 @@ services:
 
         echo "Applying adapter via Modelfile..."
         ollama create virtual-patient-model -f /root/.ollama/setup/Modelfile.VP
+        ollama run virtual-patient-model "hello"
         echo "Warmup Done Successfully!"
     restart: "no"
     networks:
@@ -159,7 +154,7 @@ services:
   # =========================================================
   # AI Assistant, Gateway, Redis...
   # =========================================================
-  
+
   # ollama:
   #   image: ollama/ollama:latest
   #   container_name: ollama
@@ -174,7 +169,7 @@ services:
   #     - OLLAMA_FLASH_ATTENTION=1
   #     - OLLAMA_NUM_GPU=1
   #     - OLLAMA_MAX_LOADED_MODELS=1
-  #     - OLLAMA_KEEP_ALIVE=15m
+  #     - OLLAMA_KEEP_ALIVE=15m 
   #     - OLLAMA_NUM_THREAD=2
   #     - OLLAMA_NUM_CTX=4096
   #     - OLLAMA_LOG_LEVEL=warn
@@ -191,7 +186,7 @@ services:
   #     timeout: 5s
   #     retries: 5
   #     start_period: 30s
-  
+
   # ollama-warmup:
   #   image: ollama/ollama:latest
   #   container_name: ollama-warmup
@@ -206,23 +201,23 @@ services:
   #     - |
   #       echo "Waiting for Ollama API..."
   #       until ollama list > /dev/null 2>&1; do sleep 2; done
-        
+
   #       if ! ollama list | grep -q "llama3.1:8b"; then
   #           ollama pull llama3.1:8b
   #       else
   #         echo "Model already exists"
   #       fi
-  
+
   #       echo "Verifying model is available..."
   #       until ollama list | grep -q "llama3.1:8b"; do
   #         sleep 2
   #       done
-  
+
   #       echo "Warmup model..."
   #       ollama run llama3.1:8b "hello"
-  
+
   #       echo "Warmup completed successfully!"
-      
+
   #   restart: "no"
   #   networks:
   #     - latee-network
@@ -248,17 +243,13 @@ services:
     #        condition: service_started
     #      ollama-warmup:
     #        condition: service_completed_successfully
-    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn app:app --host 0.0.0.0 --port 8000
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
       interval: 120s
       timeout: 5s
       retries: 5
       start_period: 30s
-    develop:
-      watch:
-        - action: rebuild
-          path: ../src/Services/AIAssistantService/python_api
     networks:
       - latee-network
 
@@ -277,10 +268,9 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      DOTNET_USE_POLLING_FILE_WATCHER: "1"
       ConnectionStrings__RoadmapDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
       <<: *auth-env
-    command: dotnet watch --project src/Services/RoadmapService/RoadmapService.API/RoadmapService.API.csproj run --no-launch-profile --urls http://0.0.0.0:8080
+    command: dotnet run --project src/Services/RoadmapService/RoadmapService.API/RoadmapService.API.csproj --no-launch-profile --urls http://0.0.0.0:8080
     volumes:
       - ../src:/src/src
       - roadmap_nuget_cache:/root/.nuget/packages
@@ -302,10 +292,9 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      DOTNET_USE_POLLING_FILE_WATCHER: "1"
       ConnectionStrings__KnowledgeResourceDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
       <<: *auth-env
-    command: dotnet watch --project src/Services/KnowledgeResourceService/KnowledgeResourceService.API/KnowledgeResourceService.API.csproj run --no-launch-profile --urls http://0.0.0.0:8080
+    command: dotnet run --project src/Services/KnowledgeResourceService/KnowledgeResourceService.API/KnowledgeResourceService.API.csproj --no-launch-profile --urls http://0.0.0.0:8080
     volumes:
       - ../src:/src/src
       - knowledge_nuget_cache:/root/.nuget/knowledge_packages
@@ -327,10 +316,9 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      DOTNET_USE_POLLING_FILE_WATCHER: "1"
       ConnectionStrings__UserDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
       <<: *auth-env
-    command: dotnet watch --project src/Services/UserService/UserService.API/UserService.API.csproj run --no-launch-profile --urls http://0.0.0.0:8080
+    command: dotnet run --project src/Services/UserService/UserService.API/UserService.API.csproj --no-launch-profile --urls http://0.0.0.0:8080
     volumes:
       - ../src:/src/src
       - user_nuget_cache:/root/.nuget/user_packages
@@ -399,7 +387,6 @@ services:
       <<: *auth-env
     networks:
       - latee-network
-
   # redis:
   #   image: redis:7
   #   container_name: redis
@@ -416,7 +403,7 @@ volumes:
   roadmap_nuget_cache:
   knowledge_nuget_cache:
   user_nuget_cache:
-    
+
 networks:
   latee-network:
     driver: bridge

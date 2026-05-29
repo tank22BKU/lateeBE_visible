@@ -325,6 +325,7 @@
         "OPTIONS"
       ],
       "SwaggerKey": "vppython",
+      "Timeout": 300000,
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
