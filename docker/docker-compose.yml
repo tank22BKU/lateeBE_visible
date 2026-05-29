@@ -129,7 +129,7 @@ services:
       ollama-vp:
         condition: service_started
     volumes:
-      - ollama_data:/root/.ollama
+      - ollama_vp_data:/root/.ollama
       - ./Llama-3.1-Virtual-Patient-MimicIV_Ver2.0:/root/.ollama/adapters_setup:ro
       - ./ollama_vp_setup:/root/.ollama/setup:ro
     environment:

@@ -1,25 +1,25 @@
 ﻿-- User
 INSERT INTO users (userid, name, email, phone, birthday, password, gender, address, role, avatar_url)
 VALUES ('USR-EXP-001', 'Tachibana Hana', 'hana.tachibana@latee.com', '(568) 333-111-222', '1990-05-15', 'expert1',
-        'Female', 'Shibuya, Tokyo, Japan', 'Expert', '/images/doctorFEMALE.jpeg'),
+        'Female', 'Shibuya, Tokyo, Japan', 'Expert', 'https://latee-cloud-bucket.s3.ap-southeast-2.amazonaws.com/expert-default-logo.jpg'),
        ('USR-EXP-002', 'Andrew Nguyen', 'andrew.nguyen@latee.com', '(568) 367-987-237', '1982-11-20', 'expert2', 'Male',
-        'Hudson, Wisconsin (WI), 54016', 'Expert', '/images/d22.jpg');
+        'Hudson, Wisconsin (WI), 54016', 'Expert', 'https://latee-cloud-bucket.s3.ap-southeast-2.amazonaws.com/expert-default-logo.jpg');
 
-INSERT INTO users (userid, name, email, phone, birthday, password, gender, address, role, status)
+INSERT INTO users (userid, name, email, phone, birthday, password, gender, address, role, status, avatar_url)
 VALUES ('USR-ADM-01', 'Nguyen Quan Tri', 'admin.system@latee.com', '0901234567', '1985-01-01', 'admin1', 'Male',
-        'Hanoi, Vietnam', 'Admin', 'active'),
+        'Hanoi, Vietnam', 'Admin', 'active', 'https://latee-cloud-bucket.s3.ap-southeast-2.amazonaws.com/admin-default-logo.avif'),
        ('USR-LRN-01', 'Tran Van Hoc', 'hoc.tran@student.com', '0912345678', '2002-09-20', 'learner1', 'Male',
-        'Ho Chi Minh City, Vietnam', 'Learner', 'active');
+        'Ho Chi Minh City, Vietnam', 'Learner', 'active', 'https://latee-cloud-bucket.s3.ap-southeast-2.amazonaws.com/learner-default-logo.jpg');
 
 INSERT INTO users
 (userid, name, email, phone, birthday, password, gender, address, role, avatar_url)
-VALUES ('USR-EXP-003','Emily Carter','emily.carter@latee.com','0908111222','1987-04-18','expert3','Female','Boston, USA','Expert','/images/d23.jpg'),
+VALUES ('USR-EXP-003','Emily Carter','emily.carter@latee.com','0908111222','1987-04-18','expert3','Female','Boston, USA','Expert','https://latee-cloud-bucket.s3.ap-southeast-2.amazonaws.com/expert-default-logo.jpg'),
 
-       ('USR-EXP-004','Le Minh Duc','duc.le@latee.com','0908333444','1985-08-22','expert4','Male','Ho Chi Minh City, Vietnam','Expert','/images/d24.jpg'),
+       ('USR-EXP-004','Le Minh Duc','duc.le@latee.com','0908333444','1985-08-22','expert4','Male','Ho Chi Minh City, Vietnam','Expert','https://latee-cloud-bucket.s3.ap-southeast-2.amazonaws.com/expert-default-logo.jpg'),
 
-       ('USR-LRN-002','Nguyen Thanh Long','long.nguyen@student.com','0911222333','2001-06-02','learner2','Male','Da Nang, Vietnam','Learner','/images/student1.jpg'),
+       ('USR-LRN-002','Nguyen Thanh Long','long.nguyen@student.com','0911222333','2001-06-02','learner2','Male','Da Nang, Vietnam','Learner','https://latee-cloud-bucket.s3.ap-southeast-2.amazonaws.com/learner-default-logo.jpg'),
 
-       ('USR-LRN-003','Pham Bao Anh','baoanh@student.com','0911555666','2003-12-10','learner3','Female','Hanoi, Vietnam','Learner','/images/student2.jpg');
+       ('USR-LRN-003','Pham Bao Anh','baoanh@student.com','0911555666','2003-12-10','learner3','Female','Hanoi, Vietnam','Learner','https://latee-cloud-bucket.s3.ap-southeast-2.amazonaws.com/learner-default-logo.jpg');
 
 -- Admin
 INSERT INTO admin (aid, ssn)
