@@ -5,6 +5,7 @@ using UserService.Application.Users.Commands.DeleteExpert;
 using UserService.Application.Users.Commands.UpdateExpert;
 using UserService.Application.Users.Queries.GetExpertById;
 using UserService.Domain.Entities;
+using UserService.Domain.Repositories;
 
 namespace UserService.API.Controllers;
 
@@ -13,8 +14,27 @@ namespace UserService.API.Controllers;
 public class ExpertsController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly IUserRepository _repository;
 
-    public ExpertsController(IMediator mediator) => _mediator = mediator;
+    public ExpertsController(IMediator mediator, IUserRepository repository)
+    {
+        _mediator = mediator;
+        _repository = repository;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll([FromQuery] string? keyword = null)
+    {
+        var experts = await _repository.GetExpertLookupsAsync(keyword);
+        return Ok(experts);
+    }
+
+    [HttpGet("search")]
+    public async Task<IActionResult> Search([FromQuery] string keyword)
+    {
+        var experts = await _repository.GetExpertLookupsAsync(keyword);
+        return Ok(experts);
+    }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(string id)

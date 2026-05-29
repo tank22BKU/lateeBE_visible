@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.EntityFrameworkCore;
+using UserService.Domain.DTOs;
 using UserService.Domain.Entities;
 using UserService.Domain.Repositories;
 using UserService.Infrastructure.Persistence;
@@ -30,6 +31,29 @@ public class UserRepository : IUserRepository
     public Task<Expert?> GetExpertByIdAsync(string expertId)
     {
         return _db.Experts.AsNoTracking().FirstOrDefaultAsync(x => x.ExpertId == expertId);
+    }
+
+    public async Task<List<ExpertLookupDto>> GetExpertLookupsAsync(string? keyword = null)
+    {
+        var query =
+            from expert in _db.Experts.AsNoTracking()
+            join user in _db.Users.AsNoTracking() on expert.ExpertId equals user.UserId
+            where !user.IsDeleted
+            select new ExpertLookupDto
+            {
+                ExpertId = expert.ExpertId,
+                Name = user.Name ?? string.Empty,
+            };
+
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            var normalized = keyword.Trim().ToLowerInvariant();
+            query = query.Where(x =>
+                x.ExpertId.ToLower().Contains(normalized) || x.Name.ToLower().Contains(normalized)
+            );
+        }
+
+        return await query.OrderBy(x => x.Name).ThenBy(x => x.ExpertId).ToListAsync();
     }
 
     public async Task<Expert?> CreateExpertAsync(Expert expert)

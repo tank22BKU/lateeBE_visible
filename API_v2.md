@@ -2,6 +2,29 @@
 
 Tài liệu này cung cấp ví dụ request/response fake data cho các API đang có trong các service bên dưới.
 
+## UserService
+
+### GET /api/experts
+Trả về danh sách expert tối giản để FE populate dropdown / autocomplete.
+Query params:
+- keyword: string|null
+Response:
+```json
+[
+  { "expertId": "EXP-001", "name": "Dr. Anna Nguyen" },
+  { "expertId": "EXP-002", "name": "Dr. Minh Tran" }
+]
+```
+
+### GET /api/experts/search?keyword={keyword}
+Tìm expert theo `expertId` hoặc `name`.
+Response:
+```json
+[
+  { "expertId": "EXP-001", "name": "Dr. Anna Nguyen" }
+]
+```
+
 ## PracticeSessionService
 
 ### POST /api/practice-sessions
