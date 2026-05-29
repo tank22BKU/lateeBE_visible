@@ -136,6 +136,8 @@ public class UserRepository : IUserRepository
         {
             existing.AvatarUrl = user.AvatarUrl;
         }
+
+        existing.UpdatedAt = DateTime.UtcNow;
         
         await _db.SaveChangesAsync();
         return existing;

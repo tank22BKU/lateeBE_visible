@@ -87,6 +87,8 @@ dotnet add src/Services/EvaluationService/EvaluationService.Infrastructure packa
 dotnet add src/Services/EvaluationService/EvaluationService.Infrastructure package Microsoft.EntityFrameworkCore.Design --version 9.0.0
 dotnet add src/Services/EvaluationService/EvaluationService.Infrastructure package Microsoft.EntityFrameworkCore.Tools --version 9.0.0
 
+Add AWS :
+- dotnet add package AWSSDK.S3
 
 ### add .sln for detail service
 cd src/Services/EvaluationService
