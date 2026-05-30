@@ -131,6 +131,23 @@ var app = builder.Build();
 
 app.UseRouting();
 
+app.Use(async (context, next) =>
+{
+    var origin = context.Request.Headers.Origin.ToString();
+
+    if (!string.IsNullOrWhiteSpace(origin))
+    {
+        context.Response.OnStarting(() =>
+        {
+            context.Response.Headers["Access-Control-Allow-Origin"] = origin;
+            context.Response.Headers["Vary"] = "Origin";
+            return Task.CompletedTask;
+        });
+    }
+
+    await next();
+});
+
 app.UseCors("AllowAll");
 
 app.UseAuthentication();

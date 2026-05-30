@@ -11,7 +11,7 @@ public static class PracticeSessionStatuses
 
     public static readonly string[] ActiveStatuses = [Practicing, VpCompleted, ReasoningStarted];
 
-    public static readonly string[] AttemptStatuses = [Practicing, Completed];
+    public static readonly string[] AttemptStatuses = [Completed, Abandoned];
 
     public static readonly string[] AllStatuses =
     [
