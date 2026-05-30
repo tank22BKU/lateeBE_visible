@@ -29,6 +29,7 @@ public class VirtualPatientDbContext : DbContext
             e.HasKey(x => x.PatientId);
             e.Property(x => x.PatientId).HasColumnName("patient_id").HasMaxLength(50);
             e.Property(x => x.CaseId).HasColumnName("case_id").HasMaxLength(50);
+            e.Property(x => x.OwnerExpertId).HasColumnName("owner_expert_id").HasMaxLength(50);
             e.Property(x => x.Name).HasColumnName("name").HasMaxLength(100);
             e.Property(x => x.Age).HasColumnName("age");
             e.Property(x => x.Gender).HasColumnName("gender").HasMaxLength(10);

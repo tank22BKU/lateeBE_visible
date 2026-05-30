@@ -4,6 +4,7 @@ public class VirtualPatient
 {
     public string PatientId { get; set; } = null!;
     public string CaseId { get; set; } = null!;
+    public string? OwnerExpertId { get; set; }
     public string Name { get; set; } = null!;
     public int? Age { get; set; }
     public string? Gender { get; set; }
