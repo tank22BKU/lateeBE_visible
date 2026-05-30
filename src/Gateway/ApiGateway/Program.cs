@@ -129,7 +129,13 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+app.UseRouting();
+
 app.UseCors("AllowAll");
+
+app.UseAuthentication();
+
+app.UseAuthorization();
 
 // ===== CRITICAL: Swagger middleware MUST run before authentication/authorization
 // to serve static files without JWT token requirement =====
@@ -148,12 +154,6 @@ app.UseSwaggerForOcelotUI(opt =>
 {
     opt.PathToSwaggerGenerator = "/swagger/docs";
 });
-
-app.UseRouting();
-
-app.UseAuthentication();
-
-app.UseAuthorization();
 
 app.UseEndpoints(endpoints =>
 {
