@@ -451,7 +451,7 @@ VALUES ('10070247', '27892518', 'Richard Anderson', 43, 'MALE', 'he/him', 'Worke
 '{"role": "Medical Learner", "task": "Evaluate and diagnose", "procedure": ["Enter room", "Interaction", "Reasoning"]}',
 '["Uses painkillers excessively", "Frequent ED visits", "Low pain tolerance"]',
 '["Distinguish acute abdominal pain from chronic lower back pain", "Identify peritoneal irritation via Psoas and Rovsing signs", "Assess the impact of painkiller overuse on symptom presentation"]',
-30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'active', 'https://example.com/avatars/richard_anderson.png');
+30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'published', 'https://example.com/avatars/richard_anderson.png');
 
 -- Case 2: 21807759 (Anthony Garcia)
 INSERT INTO virtual_patient (patient_id, case_id, name, age, gender, pronouns, occupation, ethnicity, persona, chief_concern, vital_signs, instructions, behaviors, learning_objectives, time_setting, argument_time, level, case_rule, status, avatar_image)
@@ -462,7 +462,7 @@ VALUES ('10073256', '21807759', 'Anthony Garcia', 68, 'MALE', 'he/him', 'Manager
 '{"role": "Medical Learner", "task": "Evaluate and diagnose", "procedure": ["Enter room", "Interaction", "Reasoning"]}',
 '["Chronic alcohol consumption", "High pain tolerance", "Delayed hospital presentation"]',
 '["Recognize appendicitis in elderly patients with high pain thresholds", "Analyze high fever (38.9) and right-sided guarding", "Evaluate appendicitis complications in patients with prior malignancy"]',
-30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'active', 'https://example.com/avatars/anthony_garcia.png');
+30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'published', 'https://example.com/avatars/anthony_garcia.png');
 
 -- Case 3: 20345216 (Richard Jackson)
 INSERT INTO virtual_patient (patient_id, case_id, name, age, gender, pronouns, occupation, ethnicity, persona, chief_concern, vital_signs, instructions, behaviors, learning_objectives, time_setting, argument_time, level, case_rule, status, avatar_image)
@@ -473,7 +473,7 @@ VALUES ('10080679', '20345216', 'Richard Jackson', 28, 'MALE', 'he/him', 'Engine
 '{"role": "Medical Learner", "task": "Evaluate and diagnose", "procedure": ["Enter room", "Interaction", "Reasoning"]}',
 '["Avoids medical care", "High work-related stress", "Continues eating despite nausea"]',
 '["Map the migration of pain from periumbilical to RLQ", "Interpret a positive Obturator sign during physical exam", "Manage health anxiety in young patients who avoid medical care"]',
-30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'active', 'https://example.com/avatars/richard_jackson.png');
+30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'published', 'https://example.com/avatars/richard_jackson.png');
 
 -- Case 4: 24078130 (Donald Rodriguez)
 INSERT INTO virtual_patient (patient_id, case_id, name, age, gender, pronouns, occupation, ethnicity, persona, chief_concern, vital_signs, instructions, behaviors, learning_objectives, time_setting, argument_time, level, case_rule, status, avatar_image)
@@ -484,7 +484,7 @@ VALUES ('10085111', '24078130', 'Donald Rodriguez', 18, 'MALE', 'he/him', 'Teach
 '{"role": "Medical Learner", "task": "Evaluate and diagnose", "procedure": ["Enter room", "Interaction", "Reasoning"]}',
 '["High work-related stress", "Irregular meal patterns", "Delays seeking consultation"]',
 '["Evaluate suprapubic pain radiating to the groin in young males", "Correlate history of cryptorchidism with current abdominal symptoms", "Identify appendiceal dilation and fat stranding on imaging results"]',
-30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'active', 'https://example.com/avatars/donald_rodriguez.png');
+30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'published', 'https://example.com/avatars/donald_rodriguez.png');
 
 -- Case 5: 23919775 (Richard Lopez)
 INSERT INTO virtual_patient (patient_id, case_id, name, age, gender, pronouns, occupation, ethnicity, persona, chief_concern, vital_signs, instructions, behaviors, learning_objectives, time_setting, argument_time, level, case_rule, status, avatar_image)
@@ -495,7 +495,7 @@ VALUES ('10139369', '23919775', 'Richard Lopez', 22, 'MALE', 'he/him', 'Salesper
 '{"role": "Medical Learner", "task": "Evaluate and diagnose", "procedure": ["Enter room", "Interaction", "Reasoning"]}',
 '["Avoids medical care", "Stress-related symptoms", "Alcohol consumption"]',
 '["Assess acute infra-umbilical pain migrating to RLQ", "Differentiate surgical abdomen from common flu symptoms", "Practice history taking with patients having limited healthcare access"]',
-30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'active', 'https://example.com/avatars/richard_lopez.png');
+30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'published', 'https://example.com/avatars/richard_lopez.png');
 
 -- Case 6: 27022201 (Donna Davis)
 INSERT INTO virtual_patient (patient_id, case_id, name, age, gender, pronouns, occupation, ethnicity, persona, chief_concern, vital_signs, instructions, behaviors, learning_objectives, time_setting, argument_time, level, case_rule, status, avatar_image)
@@ -506,7 +506,7 @@ VALUES ('10154376', '27022201', 'Donna Davis', 19, 'FEMALE', 'she/her', 'Nurse',
 '{"role": "Medical Learner", "task": "Evaluate and diagnose", "procedure": ["Enter room", "Interaction", "Reasoning"]}',
 '["Uses painkillers excessively", "Poor medication adherence", "Physically active"]',
 '["Identify clinical signs of perforated appendicitis and early peritonitis", "Interpret CT findings of appendicolith and terminal ileum thickening", "Manage a diagnostic workup for pelvic pain in female patients"]',
-30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'active', 'https://example.com/avatars/donna_davis.png');
+30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'published', 'https://example.com/avatars/donna_davis.png');
 
 -- Case 7: 24238743 (William Martinez)
 INSERT INTO virtual_patient (patient_id, case_id, name, age, gender, pronouns, occupation, ethnicity, persona, chief_concern, vital_signs, instructions, behaviors, learning_objectives, time_setting, argument_time, level, case_rule, status, avatar_image)
@@ -517,7 +517,7 @@ VALUES ('10156068', '24238743', 'William Martinez', 21, 'MALE', 'he/him', 'Progr
 '{"role": "Medical Learner", "task": "Evaluate and diagnose", "procedure": ["Enter room", "Interaction", "Reasoning"]}',
 '["Avoids medical care", "Sedentary lifestyle", "Poor insight into illness"]',
 '["Differentiate crampy periumbilical pain from typical GERD symptoms", "Confirm obstructing appendicolith using pelvic CT imaging", "Assess the relevance of subjective fever and chills in young adults"]',
-30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'active', 'https://example.com/avatars/william_martinez.png');
+30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'published', 'https://example.com/avatars/william_martinez.png');
 
 -- Case 8: 26687335 (Michael Smith)
 INSERT INTO virtual_patient (patient_id, case_id, name, age, gender, pronouns, occupation, ethnicity, persona, chief_concern, vital_signs, instructions, behaviors, learning_objectives, time_setting, argument_time, level, case_rule, status, avatar_image)
@@ -528,7 +528,7 @@ VALUES ('10185476', '26687335', 'Michael Smith', 40, 'MALE', 'he/him', 'Salesper
 '{"role": "Medical Learner", "task": "Evaluate and diagnose", "procedure": ["Enter room", "Interaction", "Reasoning"]}',
 '["High work-related stress", "Self-medication", "Heavy smoker"]',
 '["Evaluate abdominal pain in patients with Chronic Kidney Disease (CKD)", "Interpret cecal thickening at the appendiceal orifice on non-contrast CT", "Analyze the risk of appendicitis in patients with prior adrenal RFA"]',
-30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'active', 'https://example.com/avatars/michael_smith.png');
+30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'published', 'https://example.com/avatars/michael_smith.png');
 
 -- Case 9: 21409557 (Sandra Jackson)
 INSERT INTO virtual_patient (patient_id, case_id, name, age, gender, pronouns, occupation, ethnicity, persona, chief_concern, vital_signs, instructions, behaviors, learning_objectives, time_setting, argument_time, level, case_rule, status, avatar_image)
@@ -539,7 +539,7 @@ VALUES ('10205542', '21409557', 'Sandra Jackson', 50, 'FEMALE', 'she/her', 'Mana
 '{"role": "Medical Learner", "task": "Evaluate and diagnose", "procedure": ["Enter room", "Interaction", "Reasoning"]}',
 '["Former smoker", "Delays seeking consultation", "Low pain tolerance"]',
 '["Analyze epigastric pain progressing to RLQ in patients with Multiple Sclerosis", "Identify appendiceal dilation (9mm) and fat stranding on contrast CT", "Evaluate the clinical significance of nausea and chills without emesis"]',
-30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'active', 'https://example.com/avatars/sandra_jackson.png');
+30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'published', 'https://example.com/avatars/sandra_jackson.png');
 
 -- Case 10: 25514003 (Matthew Jones)
 INSERT INTO virtual_patient (patient_id, case_id, name, age, gender, pronouns, occupation, ethnicity, persona, chief_concern, vital_signs, instructions, behaviors, learning_objectives, time_setting, argument_time, level, case_rule, status, avatar_image)
@@ -550,7 +550,7 @@ VALUES ('10071659', '25514003', 'Matthew Jones', 34, 'MALE', 'he/him', 'Manager'
 '{"role": "Medical Learner", "task": "Evaluate and diagnose", "procedure": ["Enter room", "Interaction", "Reasoning"]}',
 '["Avoids medical care", "High anxiety", "Former smoker", "Ignores early pain"]',
 '["Diagnose postprandial RUQ pain in patients with a laparoscopic gastric band", "Distinguish gastric band malposition from acute cholecystitis", "Analyze gallbladder wall thickening (5mm) in the setting of fatty liver"]',
-30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'active', 'https://example.com/avatars/matthew_jones.png');
+30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'published', 'https://example.com/avatars/matthew_jones.png');
 
 -- Case 11: 27553284 (Jessica Gonzalez)
 INSERT INTO virtual_patient (patient_id, case_id, name, age, gender, pronouns, occupation, ethnicity, persona, chief_concern, vital_signs, instructions, behaviors, learning_objectives, time_setting, argument_time, level, case_rule, status, avatar_image)
@@ -561,7 +561,7 @@ VALUES ('10069551', '27553284', 'Jessica Gonzalez', 33, 'FEMALE', 'she/her', 'Sh
 '{"role": "Medical Learner", "task": "Evaluate and diagnose", "procedure": ["Enter room", "Interaction", "Reasoning"]}',
 '["High work-related stress", "Continues eating despite nausea", "Former smoker"]',
 '["Identify recurrent RUQ pain following sphincterotomy and ERCP", "Analyze gallbladder sludge and small shadowing stones on ultrasound", "Evaluate post-partum risk factors for gallbladder disease"]',
-30, 15, 'Beginner', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'active', 'https://example.com/avatars/jessica_gonzalez.png');
+30, 15, 'Beginner', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'published', 'https://example.com/avatars/jessica_gonzalez.png');
 
 -- Case 12: 29328838 (Emily Rodriguez)
 INSERT INTO virtual_patient (patient_id, case_id, name, age, gender, pronouns, occupation, ethnicity, persona, chief_concern, vital_signs, instructions, behaviors, learning_objectives, time_setting, argument_time, level, case_rule, status, avatar_image)
@@ -572,7 +572,7 @@ VALUES ('10058856', '29328838', 'Emily Rodriguez', 73, 'FEMALE', 'she/her', 'Wor
 '{"role": "Medical Learner", "task": "Evaluate and diagnose", "procedure": ["Enter room", "Interaction", "Reasoning"]}',
 '["High work-related stress", "High-fat diet", "Delayed hospital presentation"]',
 '["Evaluate LLQ tenderness in elderly patients with a history of endarterectomy", "Interpret sigmoid wall thickening as a sign of chronic diverticular disease", "Assess groin pain and fluid collection following surgical intervention"]',
-30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'active', 'https://example.com/avatars/emily_rodriguez.png');
+30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'published', 'https://example.com/avatars/emily_rodriguez.png');
 
 -- Case 13: 20535755 (William Miller)
 INSERT INTO virtual_patient (patient_id, case_id, name, age, gender, pronouns, occupation, ethnicity, persona, chief_concern, vital_signs, instructions, behaviors, learning_objectives, time_setting, argument_time, level, case_rule, status, avatar_image)
@@ -583,7 +583,7 @@ VALUES ('10056223', '20535755', 'William Miller', 48, 'MALE', 'he/him', 'Student
 '{"role": "Medical Learner", "task": "Evaluate and diagnose", "procedure": ["Enter room", "Interaction", "Reasoning"]}',
 '["High anxiety", "Sedentary lifestyle", "Low socioeconomic status"]',
 '["Identify acute cholecystitis in patients with portal hypertension and ascites", "Analyze CBD dilation (10mm) and thickened GB wall in a cirrhotic liver", "Assess liver function tests (Bilirubin, Alk Phos) to confirm biliary obstruction"]',
-30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'active', 'https://example.com/avatars/william_miller.png');
+30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'published', 'https://example.com/avatars/william_miller.png');
 
 -- Case 14: 27361644 (Daniel Thomas)
 INSERT INTO virtual_patient (patient_id, case_id, name, age, gender, pronouns, occupation, ethnicity, persona, chief_concern, vital_signs, instructions, behaviors, learning_objectives, time_setting, argument_time, level, case_rule, status, avatar_image)
@@ -594,7 +594,7 @@ VALUES ('10052530', '27361644', 'Daniel Thomas', 22, 'MALE', 'he/him', 'Teacher'
 '{"role": "Medical Learner", "task": "Evaluate and diagnose", "procedure": ["Enter room", "Interaction", "Reasoning"]}',
 '["High anxiety", "Ignores early abdominal pain", "Limited family support"]',
 '["Recognize sudden onset of periumbilical pain radiating to RLQ", "Confirm early appendicitis via retrocecal fluid and hyperemic walls on CT", "Evaluate the significance of localized rebound tenderness and Psoas sign"]',
-30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'active', 'https://example.com/avatars/daniel_thomas.png');
+30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'published', 'https://example.com/avatars/daniel_thomas.png');
 
 -- Case 15: 24019757 (Michael Hernandez)
 INSERT INTO virtual_patient (patient_id, case_id, name, age, gender, pronouns, occupation, ethnicity, persona, chief_concern, vital_signs, instructions, behaviors, learning_objectives, time_setting, argument_time, level, case_rule, status, avatar_image)
@@ -605,7 +605,7 @@ VALUES ('10046241', '24019757', 'Michael Hernandez', 53, 'MALE', 'he/him', 'Mana
 '{"role": "Medical Learner", "task": "Evaluate and diagnose", "procedure": ["Enter room", "Interaction", "Reasoning"]}',
 '["Depressive mood", "Limited access to healthcare", "Irregular meal patterns"]',
 '["Identify necrotizing pancreatitis in a patient with chronic alcoholism", "Analyze severe lab abnormalities (Cr 6.2, Na 129) and transaminitis", "Evaluate thrombosed mesenteric veins and portal vein occlusion on CT"]',
-30, 15, 'Expert', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'active', 'https://example.com/avatars/michael_hernandez.png');
+30, 15, 'Expert', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'published', 'https://example.com/avatars/michael_hernandez.png');
 
 -- Case 16: 28694648 (Thomas Lopez)
 INSERT INTO virtual_patient (patient_id, case_id, name, age, gender, pronouns, occupation, ethnicity, persona, chief_concern, vital_signs, instructions, behaviors, learning_objectives, time_setting, argument_time, level, case_rule, status, avatar_image)
@@ -616,7 +616,7 @@ VALUES ('10042037', '28694648', 'Thomas Lopez', 55, 'MALE', 'he/him', 'Manager',
 '{"role": "Medical Learner", "task": "Evaluate and diagnose", "procedure": ["Enter room", "Interaction", "Reasoning"]}',
 '["Physically demanding job", "Stress-related symptoms", "Regular medical checkups"]',
 '["Recognize perforated sigmoid diverticulitis via extraluminal gas on CT", "Evaluate point tenderness on LLQ with mild rebound and constipation", "Analyze the impact of work-related stress on gastrointestinal symptoms"]',
-30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'active', 'https://example.com/avatars/thomas_lopez.png');
+30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'published', 'https://example.com/avatars/thomas_lopez.png');
 
 -- Case 17: 20890008 (Susan Thomas)
 INSERT INTO virtual_patient (patient_id, case_id, name, age, gender, pronouns, occupation, ethnicity, persona, chief_concern, vital_signs, instructions, behaviors, learning_objectives, time_setting, argument_time, level, case_rule, status, avatar_image)
@@ -627,7 +627,7 @@ VALUES ('10040626', '20890008', 'Susan Thomas', 29, 'FEMALE', 'she/her', 'Studen
 '{"role": "Medical Learner", "task": "Evaluate and diagnose", "procedure": ["Enter room", "Interaction", "Reasoning"]}',
 '["Avoids medical care", "High-fat diet", "Health anxiety"]',
 '["Identify acute appendicitis with associated enlarged mesenteric lymph nodes", "Analyze anorexia as a primary symptom in young adult females", "Evaluate CT findings of mucosal hyperenhancement in the appendix"]',
-30, 15, 'Beginner', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'active', 'https://example.com/avatars/susan_thomas.png');
+30, 15, 'Beginner', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'published', 'https://example.com/avatars/susan_thomas.png');
 
 -- Case 18: 27850323 (William Brown)
 INSERT INTO virtual_patient (patient_id, case_id, name, age, gender, pronouns, occupation, ethnicity, persona, chief_concern, vital_signs, instructions, behaviors, learning_objectives, time_setting, argument_time, level, case_rule, status, avatar_image)
@@ -638,7 +638,7 @@ VALUES ('10040056', '27850323', 'William Brown', 31, 'MALE', 'he/him', 'Retired'
 '{"role": "Medical Learner", "task": "Evaluate and diagnose", "procedure": ["Enter room", "Interaction", "Reasoning"]}',
 '["Depressive mood", "Ignores early abdominal pain", "Low-fiber diet"]',
 '["Identify epigastric fire-like pain radiating to the back as acute pancreatitis", "Assess pancreatic necrosis and hemorrhage on MRCP/MRI imaging", "Manage hypertension and medication non-compliance in acute clinical settings"]',
-30, 15, 'Advanced', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'active', 'https://example.com/avatars/william_brown.png');
+30, 15, 'Advanced', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'published', 'https://example.com/avatars/william_brown.png');
 
 -- Case 19: 21166109 (Michael Miller)
 INSERT INTO virtual_patient (patient_id, case_id, name, age, gender, pronouns, occupation, ethnicity, persona, chief_concern, vital_signs, instructions, behaviors, learning_objectives, time_setting, argument_time, level, case_rule, status, avatar_image)
@@ -649,7 +649,7 @@ VALUES ('10034272', '21166109', 'Michael Miller', 69, 'MALE', 'he/him', 'Teacher
 '{"role": "Medical Learner", "task": "Evaluate and diagnose", "procedure": ["Enter room", "Interaction", "Reasoning"]}',
 '["High work-related stress", "Non-compliant with dietary restriction", "Social smoker"]',
 '["Recognize recurrent RUQ pain in a patient with a prior biliary stent", "Interpret significant gallbladder wall thickening (1.2 cm) and sludge", "Analyze clinical risks of cholecystitis in patients with Coronary Artery Disease"]',
-30, 15, 'Advanced', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'active', 'https://example.com/avatars/michael_miller.png');
+30, 15, 'Advanced', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'published', 'https://example.com/avatars/michael_miller.png');
 
 -- Case 20: 29897948 (Mary Taylor)
 INSERT INTO virtual_patient (patient_id, case_id, name, age, gender, pronouns, occupation, ethnicity, persona, chief_concern, vital_signs, instructions, behaviors, learning_objectives, time_setting, argument_time, level, case_rule, status, avatar_image)
@@ -660,7 +660,7 @@ VALUES ('10031940', '29897948', 'Mary Taylor', 58, 'FEMALE', 'she/her', 'Enginee
 '{"role": "Medical Learner", "task": "Evaluate and diagnose", "procedure": ["Enter room", "Interaction", "Reasoning"]}',
 '["Uses painkillers excessively", "High-fat diet", "Health anxiety"]',
 '["Diagnose acute gallbladder disease in a patient with a 2.5cm gallstone", "Identify hepatic steatosis and mesenteric nodes on contrast CT", "Manage acute abdominal pain in patients with HTN and hypothyroidism"]',
-30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'active', 'https://example.com/avatars/mary_taylor.png');
+30, 15, 'Intermediate', '{"rules": ["Chief Concern", "HPI", "Diagnostic Impression"], "totalTime": "45"}', 'published', 'https://example.com/avatars/mary_taylor.png');
 
 
 
