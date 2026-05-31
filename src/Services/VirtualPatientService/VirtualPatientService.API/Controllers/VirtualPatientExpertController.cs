@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -124,6 +125,18 @@ public class VirtualPatientExpertController : ControllerBase
                 new { message = $"Không tìm thấy clinical case với ID: {request.CaseId}" }
             );
 
+        var ownerExpertId = GetCurrentUserId();
+        if (string.IsNullOrWhiteSpace(ownerExpertId))
+            return Unauthorized(new { message = "Không xác định được owner expert từ token." });
+
+        ownerExpertId = ownerExpertId.Trim();
+
+        var ownerExists = await _db
+            .Experts.AsNoTracking()
+            .AnyAsync(x => x.ExpertId == ownerExpertId, cancellationToken);
+        if (!ownerExists)
+            return BadRequest(new { message = $"ownerExpertId không hợp lệ: {ownerExpertId}" });
+
         var patientId = string.IsNullOrWhiteSpace(request.PatientId)
             ? await GenerateUniquePatientIdAsync(cancellationToken)
             : request.PatientId.Trim();
@@ -139,6 +152,7 @@ public class VirtualPatientExpertController : ControllerBase
         {
             PatientId = patientId,
             CaseId = request.CaseId.Trim(),
+            OwnerExpertId = ownerExpertId,
             Name = request.Name.Trim(),
             Age = request.Age,
             Gender = NormalizeNullableText(request.Gender),
@@ -180,9 +194,6 @@ public class VirtualPatientExpertController : ControllerBase
 
         var expertIds = await GetExpertIdsByPatientIdAsync(entity.PatientId, cancellationToken);
         var experts = await GetExpertsByPatientIdAsync(entity.PatientId, cancellationToken);
-        var ownerExpertId = request
-            .ExpertIds?.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x))
-            ?.Trim();
 
         return CreatedAtAction(
             nameof(GetById),
@@ -190,7 +201,7 @@ public class VirtualPatientExpertController : ControllerBase
             new
             {
                 patientId = entity.PatientId,
-                ownerExpertId = ownerExpertId,
+                ownerExpertId = entity.OwnerExpertId,
                 name = entity.Name,
                 status = NormalizeStatusForResponse(entity.Status),
                 createdAt = entity.CreatedAt,
@@ -311,11 +322,12 @@ public class VirtualPatientExpertController : ControllerBase
         CancellationToken cancellationToken = default
     )
     {
-        var entity = await _db.VirtualPatients.FirstOrDefaultAsync(
-            x => x.PatientId == id,
-            cancellationToken
-        );
-        if (entity is null)
+        var patient = await _db
+            .VirtualPatients.AsNoTracking()
+            .Where(x => x.PatientId == id)
+            .Select(x => new { x.PatientId, x.UpdatedAt })
+            .FirstOrDefaultAsync(cancellationToken);
+        if (patient is null)
             return NotFound(new { message = $"Không tìm thấy virtual patient với ID: {id}" });
 
         var ids = NormalizeExpertIds(request.ExpertIds);
@@ -324,9 +336,9 @@ public class VirtualPatientExpertController : ControllerBase
             return Ok(
                 new
                 {
-                    patientId = entity.PatientId,
+                    patientId = patient.PatientId,
                     expertIds = await GetExpertIdsByPatientIdAsync(id, cancellationToken),
-                    updatedAt = entity.UpdatedAt,
+                    updatedAt = patient.UpdatedAt,
                 }
             );
         }
@@ -345,17 +357,15 @@ public class VirtualPatientExpertController : ControllerBase
                     VirtualId = id,
                 })
             );
-
-            entity.UpdatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync(cancellationToken);
         }
 
         return Ok(
             new
             {
-                patientId = entity.PatientId,
+                patientId = patient.PatientId,
                 expertIds = await GetExpertIdsByPatientIdAsync(id, cancellationToken),
-                updatedAt = entity.UpdatedAt,
+                updatedAt = patient.UpdatedAt,
             }
         );
     }
@@ -677,12 +687,7 @@ public class VirtualPatientExpertController : ControllerBase
             .ClinicalCases.AsNoTracking()
             .FirstOrDefaultAsync(x => x.CaseId == patient.CaseId, cancellationToken);
 
-        var ownerExpertId = await _db
-            .ExpertVirtualPatientManagements.AsNoTracking()
-            .Where(x => x.VirtualId == patientId)
-            .Select(x => x.ExpertId)
-            .OrderBy(x => x)
-            .FirstOrDefaultAsync(cancellationToken);
+        var ownerExpertId = patient.OwnerExpertId;
 
         var experts = await GetExpertsByPatientIdAsync(patientId, cancellationToken);
         var statsByPatient = await GetStatsByPatientIdsAsync(
@@ -1034,6 +1039,15 @@ public class VirtualPatientExpertController : ControllerBase
             return null;
 
         return value.Trim();
+    }
+
+    private string? GetCurrentUserId()
+    {
+        return User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? User.FindFirstValue("sub")
+            ?? User.FindFirstValue("userid")
+            ?? User.FindFirstValue("userId")
+            ?? User.FindFirstValue("uid");
     }
 
     private static string? SerializeJson(JsonElement? value)
