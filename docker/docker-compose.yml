@@ -114,6 +114,7 @@ services:
       - OLLAMA_FLASH_ATTENTION=1
       - OLLAMA_MAX_LOADED_MODELS=1
       - OLLAMA_NUM_GPU=1
+      - OLLAMA_KEEP_ALIVE=24h
     deploy:
       resources:
         reservations:
