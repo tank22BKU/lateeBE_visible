@@ -8,6 +8,7 @@ public class RoadmapDbContext : DbContext
     public RoadmapDbContext(DbContextOptions<RoadmapDbContext> options)
         : base(options) { }
     public DbSet<Roadmap> Roadmaps => Set<Roadmap>();
+    public DbSet<SummarizeRoadmap> SummarizeRoadmaps => Set<SummarizeRoadmap>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -41,6 +42,23 @@ public class RoadmapDbContext : DbContext
             entity.Property(x => x.CreatedAt)
                 .HasColumnName("created_at")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
+        });
+
+        b.Entity<SummarizeRoadmap>(entity =>
+        {
+            entity.ToTable("summarize_roadmap");
+
+            entity.HasKey(x => new { x.RoadmapId, x.EvaluationId });
+
+            entity.Property(x => x.RoadmapId)
+                .HasColumnName("roadmap_id")
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(x => x.EvaluationId)
+                .HasColumnName("evaluation_id")
+                .HasMaxLength(50)
+                .IsRequired();
         });
     }
 }

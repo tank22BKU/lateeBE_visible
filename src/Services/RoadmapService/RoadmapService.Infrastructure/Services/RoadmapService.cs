@@ -105,7 +105,7 @@ public class RoadmapService : IRoadmapService
                    - Progress strictly: Foundation → Assessment Skills → Diagnosis → Management.
                    - Skip any topic already mastered in history_practice.
                    - Each item covers exactly ONE learning objective.
-                   - detailed_explain: ≤80 words — include WHY clinically important + HOW to study it.
+                   - detailed_explain: ≤150 words — include WHY clinically important + HOW to study it.
 
                    Time allocation rule (CRITICAL):
                    - Assign amount_of_time_days to each item based on topic complexity:
@@ -120,7 +120,7 @@ public class RoadmapService : IRoadmapService
                  <output_schema>
                  {
                     "roadmap_title": "<Roadmap Title>",
-                    "goal": "<Learning Objective>",
+                    "goal": "<overall competency learner should achieve after completing the roadmap>",
                     "total_days": {{amountOfTime}},
                     "roadmap": [
                      {
@@ -128,10 +128,15 @@ public class RoadmapService : IRoadmapService
                        "recommended_content": "<topic name>",
                        "detailed_explain": "<why clinically important + how to study>",
                        "amount_of_time_days": <integer, days allocated to this item>
-                     }
+                     }, ....
                    ]
                  }
                  </output_schema>
+                 <output_requirements>
+                     - Return ONLY valid JSON.
+                     - Do not include markdown.
+                     - Do not wrap JSON inside code fences.
+                 </output_requirements>
 
                  <constraint_check>
                    Before returning, verify: sum of all roadmap[*].amount_of_time_days == {{amountOfTime}}.
