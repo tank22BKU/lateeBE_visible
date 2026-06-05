@@ -10,7 +10,7 @@ VALUES ('USR-ADM-01', 'Nguyen Quan Tri', 'admin.system@latee.com', '0901234567',
         'Hanoi, Vietnam', 'Admin', 'active', 'https://latee-cloud-bucket.s3.ap-southeast-2.amazonaws.com/admin-default-logo.avif'),
        ('USR-LRN-01', 'Tran Van Hoc', 'hoc.tran@student.com', '0912345678', '2002-09-20', 'learner1', 'Male',
         'Ho Chi Minh City, Vietnam', 'Learner', 'active', 'https://latee-cloud-bucket.s3.ap-southeast-2.amazonaws.com/learner-default-logo.jpg'),
-       ('USR-LRN-04', 'Nguyen Minh Tu', 'minhtupm123@gmail.com', '0934870910', '2004-11-18', '123456789', 'Male',
+        ('USR-LRN-004', 'Nguyen Minh Tu', 'minhtupm123@gmail.com', '0934870910', '2004-11-18', '123456789', 'Male',
         'Ho Chi Minh City, Vietnam', 'Learner', 'active', 'https://latee-cloud-bucket.s3.ap-southeast-2.amazonaws.com/0341999c-9af0-4294-8e8a-1bda044a15dd_mtu.png');
 
 INSERT INTO users
