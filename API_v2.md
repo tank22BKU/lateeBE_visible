@@ -27,6 +27,9 @@ Response:
 
 ## PracticeSessionService
 
+Note: `maxAttempts` for a practice session defaults to 3 (service constant). There is no public API exposed to change `maxAttempts` for an existing session — the service uses the internal default (`PracticeSessionRules.MaxAttempts`) to compute `canAttempt`. The current `maxAttempts` value is returned by `GET /api/practice-sessions/attempt-count` and included in `GET /api/practice-sessions/{id}` responses.
+
+
 ### POST /api/practice-sessions
 Request:
 Request fields (types):

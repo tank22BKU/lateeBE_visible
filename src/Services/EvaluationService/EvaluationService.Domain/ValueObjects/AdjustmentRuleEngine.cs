@@ -2,19 +2,17 @@ using EvaluationService.Domain.Repositories;
 
 namespace EvaluationService.Domain.ValueObjects;
 
-/// <summary>
 /// Tách hoàn toàn khỏi EPA scoring.
 /// finalScore = CLAMP(pureEpaScore + adjustments.AdjustmentTotal, 0, 110)
 ///
-/// WARNING LABELS (từ FE warnings[]) — KHÔNG liên quan đến validation categories của AI:
+/// WARNING LABELS (từ FE warnings[])
 ///   RED_FLAG_MISSED, DANGEROUS_MISDIAGNOSIS, PREMATURE_CLOSURE,
 ///   PATIENT_SAFETY_BREACH, OVERCONFIDENCE, ANCHORING_BIAS, COMMUNICATION_VIOLATION
 ///
-/// VALIDATION CATEGORIES (AI classify từng turn trong transcript) — chỉ nằm trong
+/// VALIDATION CATEGORIES (AI classify từng turn trong transcript)
 ///   failurePatterns[] của EpaScore, KHÔNG đi qua engine này:
 ///   valid, ethics_violation, workflow_violation, unsafe_question,
 ///   irrelevant_question, clinical_reasoning_issue
-/// </summary>
 public static class AdjustmentRuleEngine
 {
     public static ScoringAdjustments Calculate(
@@ -50,14 +48,14 @@ public static class AdjustmentRuleEngine
         );
 
         // ── 2. Time modifier ─────────────────────────────────────────────
-        ApplyTimeAdjustment(
-            actualDurationMinutes,
-            allottedTotalMinutes,
-            pureEpaScore,
-            explanation?.Time,
-            positive,
-            negative
-        );
+        // ApplyTimeAdjustment(
+        //     actualDurationMinutes,
+        //     allottedTotalMinutes,
+        //     pureEpaScore,
+        //     explanation?.Time,
+        //     positive,
+        //     negative
+        // );
 
         // ── 3. Warning penalties ─────────────────────────────────────────
         var (safetyEscalation, warningPenaltyTotal) = ApplyWarningAdjustments(
@@ -205,104 +203,104 @@ public static class AdjustmentRuleEngine
         }
     }
 
-    private static void ApplyTimeAdjustment(
-        int actualMinutes,
-        int allottedMinutes,
-        int pureEpaScore,
-        string? aiReason,
-        List<ScoringAdjustment> positive,
-        List<ScoringAdjustment> negative
-    )
-    {
-        if (allottedMinutes <= 0)
-            return;
+    // private static void ApplyTimeAdjustment(
+    //     int actualMinutes,
+    //     int allottedMinutes,
+    //     int pureEpaScore,
+    //     string? aiReason,
+    //     List<ScoringAdjustment> positive,
+    //     List<ScoringAdjustment> negative
+    // )
+    // {
+    //     if (allottedMinutes <= 0)
+    //         return;
 
-        var ratio = (double)actualMinutes / allottedMinutes;
+    //     var ratio = (double)actualMinutes / allottedMinutes;
 
-        string TimeReason(string context) =>
-            string.IsNullOrWhiteSpace(aiReason)
-                ? $"{context} Session used {actualMinutes} min out of {allottedMinutes} min allotted (ratio: {ratio:F2})."
-                : aiReason;
+    //     // string TimeReason(string context) =>
+    //     //     string.IsNullOrWhiteSpace(aiReason)
+    //     //         ? $"{context} Session used {actualMinutes} min out of {allottedMinutes} min allotted (ratio: {ratio:F2})."
+    //     //         : aiReason;
 
-        if (ratio < 0.40)
-        {
-            negative.Add(
-                new(
-                    Code: "TIME_TOO_SHORT",
-                    Title: "Session suspiciously short",
-                    Score: -3,
-                    Reason: TimeReason(
-                        "Session completed in less than 40% of allotted time, suggesting incomplete evaluation."
-                    ),
-                    Source: "time",
-                    Severity: "medium"
-                )
-            );
-        }
-        else if (ratio < 0.60)
-        {
-            if (pureEpaScore >= 60)
-                positive.Add(
-                    new(
-                        Code: "TIME_EFFICIENT",
-                        Title: "High time efficiency",
-                        Score: +3,
-                        Reason: TimeReason(
-                            "Learner completed the session efficiently with high clinical performance."
-                        ),
-                        Source: "time",
-                        Severity: "positive"
-                    )
-                );
-        }
-        else if (ratio < 0.80)
-        {
-            positive.Add(
-                new(
-                    Code: "TIME_GOOD",
-                    Title: "Good time management",
-                    Score: +2,
-                    Reason: TimeReason(
-                        "Learner completed the session within a well-managed time frame."
-                    ),
-                    Source: "time",
-                    Severity: "positive"
-                )
-            );
-        }
-        else if (ratio <= 1.00)
-        {
-            // On time
-        }
-        else if (ratio <= 1.20)
-        {
-            negative.Add(
-                new(
-                    Code: "TIME_OVER_SLIGHT",
-                    Title: "Slightly over time",
-                    Score: -1,
-                    Reason: TimeReason("Session exceeded allotted time by up to 20%."),
-                    Source: "time",
-                    Severity: "low"
-                )
-            );
-        }
-        else
-        {
-            negative.Add(
-                new(
-                    Code: "TIME_OVER_SIGNIFICANT",
-                    Title: "Significantly over time",
-                    Score: -3,
-                    Reason: TimeReason(
-                        "Session exceeded allotted time by more than 20%, indicating poor time management."
-                    ),
-                    Source: "time",
-                    Severity: "medium"
-                )
-            );
-        }
-    }
+    //     // if (ratio < 0.40)
+    //     // {
+    //     //     negative.Add(
+    //     //         new(
+    //     //             Code: "TIME_TOO_SHORT",
+    //     //             Title: "Session suspiciously short",
+    //     //             Score: -3,
+    //     //             Reason: TimeReason(
+    //     //                 "Session completed in less than 40% of allotted time, suggesting incomplete evaluation."
+    //     //             ),
+    //     //             Source: "time",
+    //     //             Severity: "medium"
+    //     //         )
+    //     //     );
+    //     // }
+    //     // else if (ratio < 0.60)
+    //     // {
+    //     //     if (pureEpaScore >= 60)
+    //     //         positive.Add(
+    //     //             new(
+    //     //                 Code: "TIME_EFFICIENT",
+    //     //                 Title: "High time efficiency",
+    //     //                 Score: +3,
+    //     //                 Reason: TimeReason(
+    //     //                     "Learner completed the session efficiently with high clinical performance."
+    //     //                 ),
+    //     //                 Source: "time",
+    //     //                 Severity: "positive"
+    //     //             )
+    //     //         );
+    //     // }
+    //     // else if (ratio < 0.80)
+    //     // {
+    //     //     positive.Add(
+    //     //         new(
+    //     //             Code: "TIME_GOOD",
+    //     //             Title: "Good time management",
+    //     //             Score: +2,
+    //     //             Reason: TimeReason(
+    //     //                 "Learner completed the session within a well-managed time frame."
+    //     //             ),
+    //     //             Source: "time",
+    //     //             Severity: "positive"
+    //     //         )
+    //     //     );
+    //     // }
+    //     // else if (ratio <= 1.00)
+    //     // {
+    //     //     // On time
+    //     // }
+    //     // else if (ratio <= 1.20)
+    //     // {
+    //     //     negative.Add(
+    //     //         new(
+    //     //             Code: "TIME_OVER_SLIGHT",
+    //     //             Title: "Slightly over time",
+    //     //             Score: -1,
+    //     //             Reason: TimeReason("Session exceeded allotted time by up to 20%."),
+    //     //             Source: "time",
+    //     //             Severity: "low"
+    //     //         )
+    //     //     );
+    //     // }
+    //     // else
+    //     // {
+    //     //     negative.Add(
+    //     //         new(
+    //     //             Code: "TIME_OVER_SIGNIFICANT",
+    //     //             Title: "Significantly over time",
+    //     //             Score: -3,
+    //     //             Reason: TimeReason(
+    //     //                 "Session exceeded allotted time by more than 20%, indicating poor time management."
+    //     //             ),
+    //     //             Source: "time",
+    //     //             Severity: "medium"
+    //     //         )
+    //     //     );
+    //     // }
+    // }
 
     private static (bool safetyEscalation, int totalPenalty) ApplyWarningAdjustments(
         IReadOnlyList<string> labels,
