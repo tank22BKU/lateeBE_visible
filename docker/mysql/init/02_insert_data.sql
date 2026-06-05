@@ -34,7 +34,8 @@ VALUES ('USR-LRN-01', '052204022949');
 INSERT INTO learner (lid, ssn)
 VALUES
     ('USR-LRN-002','052204022950'),
-    ('USR-LRN-003','052204022951');
+    ('USR-LRN-003','052204022951'),
+    ('USR-LRN-004','052204022952');
 
 -- Expert
 INSERT INTO expert (eid, ssn, bio_quote, education_detail, title_position, expertise_skill, social_link)
