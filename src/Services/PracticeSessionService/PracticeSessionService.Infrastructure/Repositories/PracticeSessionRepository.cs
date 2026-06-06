@@ -82,6 +82,18 @@ public class PracticeSessionRepository : IPracticeSessionRepository
             .ToListAsync();
     }
 
+    public async Task<List<PracticeSession>> GetSessionsByPatientAsync(
+        string learnerId,
+        string patientId
+    )
+    {
+        return await _db
+            .PracticeSessions.AsNoTracking()
+            .Where(x => x.LearnerId == learnerId && x.PatientId == patientId)
+            .OrderByDescending(x => x.CreatedAt)
+            .ToListAsync();
+    }
+
     public async Task AddWarningsAsync(IEnumerable<Warning> warnings)
     {
         await _db.Warnings.AddRangeAsync(warnings);

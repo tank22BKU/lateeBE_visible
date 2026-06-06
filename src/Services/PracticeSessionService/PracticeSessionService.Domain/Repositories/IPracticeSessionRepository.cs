@@ -15,6 +15,8 @@ public interface IPracticeSessionRepository
     Task<string> AddSessionAsync(PracticeSession entity);
     Task UpdateSessionAsync(PracticeSession entity);
     Task<List<Warning>> GetWarningsBySessionIdAsync(string sessionId);
+    Task<List<PracticeSession>> GetSessionsByPatientAsync(string learnerId, string patientId);
     Task AddWarningsAsync(IEnumerable<Warning> warnings);
     Task SaveChangesAsync();
 }
+
