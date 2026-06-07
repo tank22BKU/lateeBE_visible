@@ -328,9 +328,13 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
       DOTNET_USE_POLLING_FILE_WATCHER: "1"
+      DOTNET_WATCH_SUPPRESS_MSBUILD_INCREMENTALISM: "1"
       ConnectionStrings__UserDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
       <<: *auth-env
-    command: dotnet watch --project src/Services/UserService/UserService.API/UserService.API.csproj run --no-launch-profile --urls http://0.0.0.0:8080
+    command: dotnet watch --project src/Services/UserService/UserService.API/UserService.API.csproj
+      run --no-launch-profile --urls http://0.0.0.0:8080
+      --exclude **/bin/**
+      --exclude **/obj/**
     volumes:
       - ../src:/src/src
       - user_nuget_cache:/root/.nuget/user_packages

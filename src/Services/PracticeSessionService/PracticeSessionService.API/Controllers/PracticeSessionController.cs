@@ -124,6 +124,35 @@ public class PracticeSessionController : ControllerBase
         }
     }
 
+    [HttpGet("by-patient")]
+    [ProducesResponseType(
+        typeof(PracticeSessionService.Application.Queries.GetPracticeSessionsByPatient.GetPracticeSessionsByPatientResponse),
+        StatusCodes.Status200OK
+    )]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetPracticeSessionsByPatient(
+        [FromQuery] string learnerId,
+        [FromQuery] string patientId
+    )
+    {
+        try
+        {
+            var result = await _mediator.Send(
+                new PracticeSessionService.Application.Queries.GetPracticeSessionsByPatient.GetPracticeSessionsByPatientRequest
+                {
+                    LearnerId = learnerId,
+                    PatientId = patientId,
+                }
+            );
+
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpPatch("{id}/status")]
     [ProducesResponseType(typeof(UpdatePracticeSessionStatusResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
