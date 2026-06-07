@@ -8,5 +8,6 @@ public interface IClinicalCaseRepository
 
     Task<Dictionary<string, ClinicalCase>> GetByIdsAsync(
         IEnumerable<string> caseIds,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 }

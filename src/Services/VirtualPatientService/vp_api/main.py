@@ -188,6 +188,9 @@ async def get_effective_prompt(patient_id: str, session_id: str):
     detail = await get_patient_detail_from_net(patient_id)
     if not detail:
         return None
+    print(f"DEBUG symptom: [{detail.get('symptom')}]")
+    print(f"DEBUG chiefConcern: [{detail.get('chiefConcern')}]")
+    print(f"DEBUG medicalHistory: [{detail.get('medicalHistory')}]")
     prompt_data = _build_system_prompt_from_detail(detail)
     PROMPT_CACHE[cache_key] = prompt_data
     return prompt_data
