@@ -1,0 +1,31 @@
+FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        software-properties-common curl \
+    && add-apt-repository ppa:deadsnakes/ppa \
+    && apt-get update && apt-get install -y --no-install-recommends \
+        python3.12 python3.12-dev python3.12-venv \
+    && curl -sS https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
+    && python3.12 get-pip.py \
+    && rm get-pip.py \
+    && ln -sf python3.12 /usr/bin/python3 \
+    && ln -sf python3.12 /usr/bin/python \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY src/Services/VirtualPatientService/vp_api/requirements.txt .
+
+RUN pip install --no-cache-dir \
+        torch==2.3.0 \
+        --index-url https://download.pytorch.org/whl/cu121
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY src/Services/VirtualPatientService/vp_api/ .
+
+EXPOSE 8080
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]

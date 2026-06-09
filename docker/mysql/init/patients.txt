@@ -1,0 +1,209 @@
+-- -- 1. Case: Acute Diverticulitis 
+-- INSERT INTO clinical_case (case_id, title, description, type, status, pe, symptom, medicalhistory, created_by, eccid)
+-- VALUES (
+--     '24911566', 
+--     'Acute Diverticulitis', 
+--     'A patient was admitted via EW Emer. for evaluation of abdominal symptoms, later diagnosed with diverticular disease.',
+--     'DIVERTICULITIS', 
+--     'active', 
+--     '[VITALS] Temp: 98.3 BP: 143/88 HR: 72 O2Sat: 98 Weight: 140.9kg. ABDOMEN - Obese. NABS+, soft/ND, TTP in the LLQ and inferior to umbilicus, no rebound/guarding.', 
+--     '65 year old Male presents with cramping pain localized to LLQ. Pain rated 8/10. Patient feels fatigued and dizzy, nausea present without vomiting. CT shows hypodense lesion in caudate lobe.', 
+--     'Atrial fibrillation s/p recent cardioversion, T2DM (insulin dependent), HTN, and HLD. Neuropathy, Insomnia.', 
+--     'USR-EXP-002', 
+--     'CRIT-002'
+-- );
+
+-- -- 2. Case: Gallstone Pancreatitis
+-- INSERT INTO clinical_case (case_id, title, description, type, status, pe, symptom, medicalhistory, created_by, eccid)
+-- VALUES (
+--     '29103261', 
+--     'Gallstone Pancreatitis', 
+--     'A patient was admitted via EW Emer. for evaluation of abdominal symptoms, later diagnosed with acute gallbladder disease.',
+--     'CHOLECYSTITIS', 
+--     'active', 
+--     'VS: stable, GEN: somnolent, ABD: soft, tender epigastrium and RUQ, nabs.', 
+--     '45 yo female presents with epigastric pain radiating to RUQ and back after fatty meal. Lipase elevated at 1200. US shows stone in bile duct.', 
+--     'Osteoporosis. Family history: Negative for pancreatic cancer.', 
+--     'USR-EXP-001',
+--     'CRIT-003'
+-- );
+
+-- -- 3. Case: Acute Cholecystitis
+-- INSERT INTO clinical_case (case_id, title, description, type, status, pe, symptom, medicalhistory, created_by, eccid)
+-- VALUES (
+--     '29897948', 
+--     'Acute Cholecystitis', 
+--     'A patient was admitted via EW Emer. for evaluation of abdominal symptoms, later diagnosed with acute gallbladder disease.',
+--     'CHOLECYSTITIS', 
+--     'active', 
+--     'Vitals: 98.8F, HR 73, BP 153/99. ABD: TTP RUQ, otherwise soft.', 
+--     '52 yo Female with h/o HTN, p/w sudden abdominal pain since yesterday. Positive nausea and bilious vomiting x1.', 
+--     'PMH: HTN. PSH: Supracervical hysterectomy, thyroidectomy. Family h/o MI.', 
+--     'USR-EXP-001', 
+--     'CRIT-003'
+-- );
+
+-- -- 4. Case: Appendicitis (Retrocecal)
+-- INSERT INTO clinical_case (case_id, title, description, type, status, pe, symptom, medicalhistory, created_by, eccid)
+-- VALUES (
+--     '27361644', 
+--     'Appendicitis', 
+--     'Evaluation of acute abdominal pain, diagnosed with acute appendicitis.',
+--     'APPENDICITIS', 
+--     'active', 
+--     'Vitals: 98.9, HR 60. ABD: Localized tenderness with rebound at RLQ. Positive Psoas sign.', 
+--     '28 yo Male presents with 12 hours of pain starting at periumbilical area radiating to RLQ. One episode of emesis. WBC: 15.4.', 
+--     'None. Social history: Non-contributory.', 
+--     'USR-EXP-002', 
+--     'CRIT-002'
+-- );
+
+-- -- 5. Case: Perforated Sigmoid Diverticulitis
+-- INSERT INTO clinical_case (case_id, title, description, type, status, pe, symptom, medicalhistory, created_by, eccid)
+-- VALUES (
+--     '28694648', 
+--     'Perforated Sigmoid Diverticulitis', 
+--     'Patient with 5 days of LLQ pain, later diagnosed with perforated diverticular disease.',
+--     'DIVERTICULITIS', 
+--     'active', 
+--     'T 99.0 HR 118 BP 131/93. ABD: Slightly firm, diffuse tenderness, point tenderness on LLQ with mild rebound.', 
+--     '55 yo male presenting with chills, diaphoresis, and progressive LLQ pain. Constipated but passing flatus.', 
+--     'History of headaches. Father died of heart problems.', 
+--     'USR-EXP-002', 
+--     'CRIT-002'
+-- );
+
+-- -- 6. Case: Acute Pancreatitis (Alcohol-induced)
+-- INSERT INTO clinical_case (case_id, title, description, type, status, pe, symptom, medicalhistory, created_by, eccid)
+-- VALUES (
+--     '24019757', 
+--     'Acute on Chronic Pancreatitis', 
+--     'Chronic alcoholic with 2 weeks of weakness and malaise, acute pancreatitis.',
+--     'PANCREATITIS', 
+--     'active', 
+--     'Vitals: 97.8, BP 110/60. ABD: Soft, tender, bowel sounds present. No stigmata of liver disease.', 
+--     '48 yo male with h/o alcoholism and HTN. Cr: 6.2, Na: 129, Bilirubin: 2.1. US shows ductal dilation.', 
+--     'Chronic Hypercholesterolemia, BPH, Fatty liver, Type 2 DM uncontrolled.', 
+--     'USR-EXP-002', 
+--     'CRIT-002'
+-- );
+
+-- -- 7. Case: Cholecystitis (Post-ERCP)
+-- INSERT INTO clinical_case (case_id, title, description, type, status, pe, symptom, medicalhistory, created_by, eccid)
+-- VALUES (
+--     '27553284', 
+--     'Acute Cholecystitis Post-ERCP', 
+--     '8 weeks postpartum female with recurring RUQ pain after ERCP.',
+--     'CHOLECYSTITIS', 
+--     'active', 
+--     'BP 97/51, HR 66. ABD: tenderness to deep palpation subcostal region, Murphy sign positive.', 
+--     '24 yo female, recurrent pain 1 hour after eating. Nausea and vomiting present. Passing gas, having diarrhea.', 
+--     'Asthma, Rheumatoid Arthritis, Anemia, Colon polyps.', 
+--     'USR-EXP-001', 
+--     'CRIT-001' 
+-- );
+
+-- -- 8. Case: Primary Diagnosis: Cholecystitis & CAD
+-- INSERT INTO clinical_case (case_id, title, description, type, status, pe, symptom, medicalhistory, created_by, eccid)
+-- VALUES (
+--     '21166109', 
+--     'Cholecystitis and Cholelithiasis', 
+--     'A patient with h/o CAD admitted for recurrent abdominal pain, diagnosed with acute gallbladder disease.',
+--     'CHOLECYSTITIS', 
+--     'active', 
+--     'Vitals: 98.4F, BP 144/84, HR 97. ABD: well healed RLQ scar, soft, NT, ND. CV: RRR, no mrg.', 
+--     '68 yo male, recurrent epigastric pain radiating to right chest. Fever noted last week. US shows gallstones and GB wall thickening.', 
+--     'NSTEMI s/p DES to RCA, Choledocholithasis s/p biliary stent. Family h/o MI (Father and 3 brothers).', 
+--     'USR-EXP-002', 
+--     'CRIT-002'
+-- );
+
+-- -- 9. Case: Acute Pancreatitis (Unclear etiology)
+-- INSERT INTO clinical_case (case_id, title, description, type, status, pe, symptom, medicalhistory, created_by, eccid)
+-- VALUES (
+--     '27850323', 
+--     'Acute Pancreatitis of unclear etiology', 
+--     'Patient with burning epigastric pain radiating to back, possible gallstones or sludge.',
+--     'PANCREATITIS', 
+--     'active', 
+--     'Vitals: 97.0F, O2Sat 97%. ABD: soft, nd, +epigastric and RUQ TTP. Neuro: no facial droop.', 
+--     '50 yo male, burning epigastric pain for 2 days. Nausea and vomiting, unable to eat. History of high water intake.', 
+--     'Longstanding HTN (non-compliant with meds), DVT/PE on anticoagulants, depression/anxiety.', 
+--     'USR-EXP-002', 
+--     'CRIT-002'
+-- );
+
+-- -- 10. Case: Acute Appendicitis (Anorexia)
+-- INSERT INTO clinical_case (case_id, title, description, type, status, pe, symptom, medicalhistory, created_by, eccid)
+-- VALUES (
+--     '20890008', 
+--     'Acute Appendicitis', 
+--     'Patient with no significant PMH presenting with acute onset of RLQ pain.',
+--     'APPENDICITIS', 
+--     'active', 
+--     'Vitals: Temp 97.6, HR 46 (bradycardia), BP 106/65. ABD: soft, non tender at time of exam, incisions c/d/i.', 
+--     '32 yo female, RLQ pain x 2 days, worsened at night. Endorses anorexia without nausea/vomiting. Right-sided flank pain.', 
+--     'PMH: none. PSH: none. Current IUD in place. Family h/o malignancy (Grandfather).', 
+--     'USR-EXP-001', 
+--     'CRIT-003'
+-- );
+
+-- -- 11. Case: Cholecystitis (Cirrhosis background)
+-- INSERT INTO clinical_case (case_id, title, description, type, status, pe, symptom, medicalhistory, created_by, eccid)
+-- VALUES (
+--     '20535755', 
+--     'Cholecystitis in Cirrhotic Patient', 
+--     'Male with ETOH/HCV related cirrhosis transferred for severe RUQ pain evaluation.',
+--     'CHOLECYSTITIS', 
+--     'active', 
+--     'Vitals: 127/61, HR 91. ABD: slightly distended, tender RUQ, no rebound. JVD halfway up neck.', 
+--     '58 yo male, sudden onset severe RUQ pain, postprandial. MRI shows large stone in GB, thickened wall. CBD dilated to 10mm.', 
+--     'HCC s/p RFA/TACE, ETOH/HCV cirrhosis, portal HTN, HTN, past Syphilis.', 
+--     'USR-EXP-002', 
+--     'CRIT-002'
+-- );
+
+-- -- 12. Case: Diverticulitis (Groin pain focus)
+-- INSERT INTO clinical_case (case_id, title, description, type, status, pe, symptom, medicalhistory, created_by, eccid)
+-- VALUES (
+--     '29328838', 
+--     'Diverticulitis with CFA collection', 
+--     'Patient s/p endarterectomy presenting with left groin pain, found to have diverticulitis.',
+--     'DIVERTICULITIS', 
+--     'active', 
+--     'T 98.1, BP 136/83, HR 64. ABD: Soft, focal mild TTP LLQ, no rebound. Left groin incision well healed.', 
+--     '62 yo female, 3 days of left groin pain. CT reveals 2cm fluid collection. Focal LLQ tenderness.', 
+--     'HTN, Migraines, IBS, OA, GERD, Borderline personality d/o, h/o narcotic abuse.', 
+--     'USR-EXP-002', 
+--     'CRIT-002'
+-- );
+
+-- -- 13. Case: Appendicitis (Chronic back pain distracter)
+-- INSERT INTO clinical_case (case_id, title, description, type, status, pe, symptom, medicalhistory, created_by, eccid)
+-- VALUES (
+--     '27892518', 
+--     'Acute Appendicitis', 
+--     'Male with history of chronic back pain now presenting with new RLQ/flank pain.',
+--     'APPENDICITIS', 
+--     'active', 
+--     'Temp 98, HR 112. ABD: acutely tender RLQ, (+) rebound, (+) Rovsing, (+) Psoas signs.', 
+--     '40 yo male, acute-onset back pain shifting to RLQ/flank. Mild nausea, hungry. Different from usual back pain.', 
+--     'Asthma, HTN, neuropathy, GERD. History of multiple back surgeries.', 
+--     'USR-EXP-001', 
+--     'CRIT-003'
+-- );
+
+-- -- 14. Case: Cholecystitis (Post-Bariatric surgery)
+-- INSERT INTO clinical_case (case_id, title, description, type, status, pe, symptom, medicalhistory, created_by, eccid)
+-- VALUES (
+--     '25514003', 
+--     'Cholecystitis post-gastric band', 
+--     'Male 8 months s/p lap gastric band with 2 month history of postprandial RUQ pain.',
+--     'CHOLECYSTITIS', 
+--     'active', 
+--     'Temp 97.9, HR 94. ABD: +BS, soft, ND, NT, no masses. Cor: RRR, no JVD.', 
+--     '42 yo male, RUQ pain radiating to epigastrum/back after fatty food. US shows gallstones. Lost 31lbs since surgery.', 
+--     'HTN, Obesity, PTSD, Anxiety, Ligament damage (Naproxen PRN).', 
+--     'USR-EXP-001', 
+--     'CRIT-003'
+-- );

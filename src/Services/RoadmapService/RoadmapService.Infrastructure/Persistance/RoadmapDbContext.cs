@@ -1,0 +1,64 @@
+﻿using Microsoft.EntityFrameworkCore;
+using RoadmapService.Domain.Entities;
+
+namespace RoadmapService.Infrastructure.Persistence;
+
+public class RoadmapDbContext : DbContext
+{
+    public RoadmapDbContext(DbContextOptions<RoadmapDbContext> options)
+        : base(options) { }
+    public DbSet<Roadmap> Roadmaps => Set<Roadmap>();
+    public DbSet<SummarizeRoadmap> SummarizeRoadmaps => Set<SummarizeRoadmap>();
+
+    protected override void OnModelCreating(ModelBuilder b)
+    {
+        base.OnModelCreating(b);
+
+        b.Entity<Roadmap>(entity =>
+        {
+            entity.ToTable("roadmaps");
+
+            entity.HasKey(x => x.RoadmapId);
+
+            entity.Property(x => x.RoadmapId)
+                .HasColumnName("id")
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(x => x.LearnerId)
+                .HasColumnName("learner_id")
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(x => x.Content)
+                .HasColumnName("content")
+                .HasColumnType("JSON")
+                .IsRequired();
+
+            entity.Property(x => x.Version)
+                .HasColumnName("version")
+                .HasMaxLength(20);
+
+            entity.Property(x => x.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+        });
+
+        b.Entity<SummarizeRoadmap>(entity =>
+        {
+            entity.ToTable("summarize_roadmap");
+
+            entity.HasKey(x => new { x.RoadmapId, x.EvaluationId });
+
+            entity.Property(x => x.RoadmapId)
+                .HasColumnName("roadmap_id")
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(x => x.EvaluationId)
+                .HasColumnName("evaluation_id")
+                .HasMaxLength(50)
+                .IsRequired();
+        });
+    }
+}

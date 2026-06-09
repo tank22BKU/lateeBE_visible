@@ -4,9 +4,26 @@ namespace ClinicalCaseService.Domain.Repositories;
 
 public interface IClinicalCaseRepository
 {
-    Task<ClinicalCase?> GetByIdAsync(string id);
-    Task<List<ClinicalCase>> GetActiveAsync(int limit);
-
-    Task<(List<ClinicalCase> Items, int Total)>
-        GetPagedAsync(string? status, int page, int pageSize);
+    Task<List<ClinicalCase>> GetAllAsync();
+    Task<ClinicalCase?> GetByIdAsync(string caseId);
+    Task<string?> GetExpertNameAsync(string expertId);
+    Task<bool> ExpertExistsAsync(string expertId);
+    Task<bool> EvaluationCriteriaExistsAsync(string eccId);
+    Task<List<ClinicalCaseLab>> GetLabsByCaseIdAsync(string caseId);
+    Task<List<ClinicalCaseRadiology>> GetRadiologyByCaseIdAsync(string caseId);
+    Task<List<ClinicalCaseVirtualPatient>> GetVirtualPatientsByCaseIdAsync(string caseId);
+    Task<ClinicalCaseStats?> GetStatsByCaseIdAsync(string caseId);
+    Task AddAsync(ClinicalCase clinicalCase);
+    Task UpdateAsync(ClinicalCase clinicalCase);
+    Task DeleteAsync(ClinicalCase clinicalCase);
+    Task<(List<ClinicalCase> Items, int Total)> GetPagedAsync(
+        string? search,
+        string? status,
+        string? caseType,
+        string? eccId,
+        string? sortBy,
+        string? sortDir,
+        int page,
+        int pageSize
+    );
 }

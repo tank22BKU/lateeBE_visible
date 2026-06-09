@@ -2,9 +2,12 @@ using VirtualPatientService.Domain.Entities;
 
 namespace VirtualPatientService.Domain.Repositories;
 
-public interface IVirtualPatientRepository
+public interface IClinicalCaseRepository
 {
-    Task<VirtualPatient?> GetByIdAsync(string patientId);
-    Task<List<VirtualPatient>> GetAllAsync();
-    Task<(List<VirtualPatient> Items, int Total)> GetPagedAsync(char? gender, int page, int pageSize);
+    Task<ClinicalCase?> GetByIdAsync(string caseId, CancellationToken cancellationToken = default);
+
+    Task<Dictionary<string, ClinicalCase>> GetByIdsAsync(
+        IEnumerable<string> caseIds,
+        CancellationToken cancellationToken = default
+    );
 }

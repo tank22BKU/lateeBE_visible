@@ -1,0 +1,301 @@
+﻿x-auth-env: &auth-env
+  Security__AuthorizationEnabled: ${AUTHORIZATION_ENABLED:-true}
+  Jwt__Issuer: ${JWT_ISSUER:-latee-auth}
+  Jwt__Audience: ${JWT_AUDIENCE:-latee-clients}
+  Jwt__SigningKey: ${JWT_SIGNING_KEY:-latee_super_secret_signing_key_2026_change_me}
+  Jwt__AccessTokenMinutes: ${JWT_ACCESS_TOKEN_MINUTES:-1440}
+  Jwt__RefreshTokenDays: ${JWT_REFRESH_TOKEN_DAYS:-7}
+
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: latee-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: latee
+      MYSQL_USER: user
+      MYSQL_PASSWORD: pass
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    networks:
+      - latee-network
+
+  clinicalcase:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.ClinicalCase
+    container_name: clinicalcase-api
+    ports:
+      - "8001:8080"
+    depends_on:
+      - mysql
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__ClinicalCaseDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      <<: *auth-env
+    networks:
+      - latee-network
+
+  assessment:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.Assessment
+    container_name: assessment-api
+    ports:
+      - "8004:8080"
+    depends_on:
+      - mysql
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__AssessmentDb: "Server=latee-mysql;Port=3306;Database=latee;Uid=user;Pwd=pass;AllowPublicKeyRetrieval=True"
+      GeminiAi__ApiKey: ${GEMINI_15_API_KEY}
+      <<: *auth-env
+    env_file:
+      - ../.env
+    networks:
+      - latee-network
+
+  virtualpatient:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.VirtualPatient
+    container_name: virtualpatient-api
+    ports:
+      - "8002:8080"
+    depends_on:
+      - mysql
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__VirtualPatientDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      <<: *auth-env
+    networks:
+      - latee-network
+
+  # =========================================================
+  # VIRTUAL PATIENT AI  –  HuggingFace base + LoRA adapter
+  #
+  #  • BASE_MODEL_ID  : HuggingFace repo (e.g. meta-llama/Llama-3.1-8B-Instruct)
+  #  • ADAPTER_PATH   : path INSIDE the container where the adapter folder is mounted
+  #  • HF_TOKEN       : needed only for gated / private models
+  #  • DEVICE         : "cuda" (GPU) or "cpu"
+  # =========================================================
+  virtualpatient-python:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.VirtualPatient.Python
+    container_name: vp-python-api
+    ports:
+      - "8005:8080"
+    depends_on:
+      virtualpatient:
+        condition: service_started
+    environment:
+      BASE_MODEL_ID: ${BASE_MODEL_ID:-meta-llama/Llama-3.1-8B-Instruct}
+      ADAPTER_PATH: /app/adapter
+      HF_TOKEN: ${HF_TOKEN:-}
+      DEVICE: ${DEVICE:-cuda}
+      MAX_NEW_TOKENS: ${MAX_NEW_TOKENS:-256}
+      VIRTUAL_PATIENT_API_URL: "http://virtualpatient:8080/api/virtual-patients"
+    volumes:
+      # Mount the fine-tuned LoRA adapter (read-only)
+      - ./Llama-3.1-Virtual-Patient-MimicIV_Ver4.0:/app/adapter:ro
+      # Cache HF model weights across restarts to avoid repeated downloads
+      - hf_model_cache:/root/.cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    networks:
+      - latee-network
+
+  # =========================================================
+  # AI Assistant, Gateway, Redis...
+  # =========================================================
+
+  ai-assistant:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.AIAssistant
+    container_name: ai-assistant-api
+    ports:
+      - "8003:8000"
+    environment:
+      EMBEDDING_MODEL: "jinaai/jina-embeddings-v2-small-en"
+      FASTEMBED_CACHE_PATH: /tmp/fastembed_cache
+    volumes:
+      - ../src/Services/AIAssistantService/python_api/data:/src/data:ro
+      - ../src/Services/AIAssistantService/python_api:/src
+      - ai_assistant_faiss:/src/faiss_index
+    env_file:
+      - ../.env
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 120s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    develop:
+      watch:
+        - action: rebuild
+          path: ../src/Services/AIAssistantService/python_api
+    networks:
+      - latee-network
+
+  roadmap:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.Roadmap
+      target: dev
+    container_name: roadmap-api
+    ports:
+      - "8006:8080"
+    env_file:
+      - ../.env
+    depends_on:
+      - mysql
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      DOTNET_USE_POLLING_FILE_WATCHER: "1"
+      ConnectionStrings__RoadmapDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      <<: *auth-env
+    command: dotnet watch --project src/Services/RoadmapService/RoadmapService.API/RoadmapService.API.csproj run --no-launch-profile --urls http://0.0.0.0:8080
+    volumes:
+      - ../src:/src/src
+      - roadmap_nuget_cache:/root/.nuget/packages
+    networks:
+      - latee-network
+
+  knowledgeresource:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.KnowledgeResource
+      target: dev
+    container_name: knowledgeresource-api
+    ports:
+      - "8009:8080"
+    env_file:
+      - ../.env
+    depends_on:
+      - mysql
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      DOTNET_USE_POLLING_FILE_WATCHER: "1"
+      ConnectionStrings__KnowledgeResourceDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      <<: *auth-env
+    command: dotnet watch --project src/Services/KnowledgeResourceService/KnowledgeResourceService.API/KnowledgeResourceService.API.csproj run --no-launch-profile --urls http://0.0.0.0:8080
+    volumes:
+      - ../src:/src/src
+      - knowledge_nuget_cache:/root/.nuget/knowledge_packages
+    networks:
+      - latee-network
+
+  user:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.UserService
+      target: dev
+    container_name: user-api
+    ports:
+      - "8010:8080"
+    env_file:
+      - ../.env
+    depends_on:
+      - mysql
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      DOTNET_USE_POLLING_FILE_WATCHER: "1"
+      ConnectionStrings__UserDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      <<: *auth-env
+    command: dotnet watch --project src/Services/UserService/UserService.API/UserService.API.csproj run --no-launch-profile --urls http://0.0.0.0:8080
+    volumes:
+      - ../src:/src/src
+      - user_nuget_cache:/root/.nuget/user_packages
+    networks:
+      - latee-network
+
+  evaluation:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.Evaluation
+    container_name: evaluation-api
+    ports:
+      - "8008:8080"
+    env_file:
+      - ../.env
+    depends_on:
+      - mysql
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__EvaluationDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      <<: *auth-env
+    networks:
+      - latee-network
+
+  practice-session:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.PracticeSession
+    container_name: practice-session-api
+    ports:
+      - "8007:8080"
+    env_file:
+      - ../.env
+    depends_on:
+      - mysql
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__PracticeSessionDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      <<: *auth-env
+    networks:
+      - latee-network
+
+  api-gateway:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.APIGateway
+    container_name: api-gateway
+    ports:
+      - "5000:8080"
+    volumes:
+      - ../src/Gateway/ApiGateway/ocelot.json:/app/ocelot.json:ro
+      - ../src/Gateway/ApiGateway/ocelot.auth.json:/app/ocelot.auth.json:ro
+      - ../src/Gateway/ApiGateway/ocelot.noauth.json:/app/ocelot.noauth.json:ro
+    depends_on:
+      - clinicalcase
+      - virtualpatient
+      - ai-assistant
+      - assessment
+      - roadmap
+      - evaluation
+      - practice-session
+      - user
+      - knowledgeresource
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__AuthDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      <<: *auth-env
+    networks:
+      - latee-network
+
+volumes:
+  mysql_data:
+  hf_model_cache:       
+  ai_assistant_faiss:
+  roadmap_nuget_cache:
+  knowledge_nuget_cache:
+  user_nuget_cache:
+
+networks:
+  latee-network:
+    driver: bridge
