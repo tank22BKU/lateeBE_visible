@@ -151,6 +151,33 @@ Response:
 }
 ```
 
+### GET /api/practice-sessions/by-patient?learnerId={learnerId}&patientId={patientId}
+Response:
+```json
+{
+  "learnerId": "USR-LRN-08",
+  "patientId": "10070247",
+  "items": [
+    {
+      "sessionId": "SESS_20260515090000",
+      "status": "Completed",
+      "startTime": "2026-05-15T09:00:00Z",
+      "endTime": "2026-05-15T09:27:00Z",
+      "createdAt": "2026-05-15T09:00:00Z",
+      "finalDiagnosis": "Acute appendicitis"
+    },
+    {
+      "sessionId": "SESS_20260420083000",
+      "status": "Submitted",
+      "startTime": "2026-04-20T08:30:00Z",
+      "endTime": "2026-04-20T08:48:00Z",
+      "createdAt": "2026-04-20T08:30:00Z",
+      "finalDiagnosis": null
+    }
+  ]
+}
+```
+
 ### GET /api/practice-sessions/attempt-count?learnerId={learnerId}&patientId={patientId}
 Response:
 ```json

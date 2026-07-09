@@ -1,4 +1,6 @@
-﻿x-auth-env: &auth-env
+﻿version: "3.8"
+
+x-auth-env: &auth-env
   Security__AuthorizationEnabled: ${AUTHORIZATION_ENABLED:-true}
   Jwt__Issuer: ${JWT_ISSUER:-latee-auth}
   Jwt__Audience: ${JWT_AUDIENCE:-latee-clients}
@@ -113,7 +115,7 @@ services:
       - OLLAMA_NUM_PARALLEL=1
       - OLLAMA_FLASH_ATTENTION=1
       - OLLAMA_MAX_LOADED_MODELS=1
-      - OLLAMA_NUM_GPU=1
+      - OLLAMA_KEEP_ALIVE=24h
     deploy:
       resources:
         reservations:
@@ -129,7 +131,7 @@ services:
       ollama-vp:
         condition: service_started
     volumes:
-      - ollama_data:/root/.ollama
+      - ollama_vp_data:/root/.ollama
       - ./Llama-3.1-Virtual-Patient-MimicIV_Ver2.0:/root/.ollama/adapters_setup:ro
       - ./ollama_vp_setup:/root/.ollama/setup:ro
     environment:
@@ -159,73 +161,6 @@ services:
   # =========================================================
   # AI Assistant, Gateway, Redis...
   # =========================================================
-  
-  # ollama:
-  #   image: ollama/ollama:latest
-  #   container_name: ollama
-  #   ports:
-  #     - "11434:11434"
-  #   volumes:
-  #     - ollama_data:/root/.ollama
-  #   networks:
-  #     - latee-network
-  #   environment:
-  #     - OLLAMA_NUM_PARALLEL=2
-  #     - OLLAMA_FLASH_ATTENTION=1
-  #     - OLLAMA_NUM_GPU=1
-  #     - OLLAMA_MAX_LOADED_MODELS=1
-  #     - OLLAMA_KEEP_ALIVE=15m
-  #     - OLLAMA_NUM_THREAD=2
-  #     - OLLAMA_NUM_CTX=4096
-  #     - OLLAMA_LOG_LEVEL=warn
-  #   deploy:
-  #     resources:
-  #       reservations:
-  #         devices:
-  #           - driver: nvidia
-  #             count: 1
-  #             capabilities: [ gpu ]
-  #   healthcheck:
-  #     test: [ "CMD", "ollama", "list" ]
-  #     interval: 120s
-  #     timeout: 5s
-  #     retries: 5
-  #     start_period: 30s
-  
-  # ollama-warmup:
-  #   image: ollama/ollama:latest
-  #   container_name: ollama-warmup
-  #   depends_on:
-  #     ollama:
-  #       condition: service_healthy
-  #   environment:
-  #     - OLLAMA_HOST=http://ollama:11434
-  #   entrypoint: [ "/bin/sh", "-c" ]
-  #   command:
-  #     - "-c"
-  #     - |
-  #       echo "Waiting for Ollama API..."
-  #       until ollama list > /dev/null 2>&1; do sleep 2; done
-        
-  #       if ! ollama list | grep -q "llama3.1:8b"; then
-  #           ollama pull llama3.1:8b
-  #       else
-  #         echo "Model already exists"
-  #       fi
-  
-  #       echo "Verifying model is available..."
-  #       until ollama list | grep -q "llama3.1:8b"; do
-  #         sleep 2
-  #       done
-  
-  #       echo "Warmup model..."
-  #       ollama run llama3.1:8b "hello"
-  
-  #       echo "Warmup completed successfully!"
-      
-  #   restart: "no"
-  #   networks:
-  #     - latee-network
 
   ai-assistant:
     build:
@@ -243,11 +178,6 @@ services:
       - ai_assistant_faiss:/src/faiss_index
     env_file:
       - ../.env
-    #    depends_on:
-    #      ollama:
-    #        condition: service_started
-    #      ollama-warmup:
-    #        condition: service_completed_successfully
     command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
@@ -278,7 +208,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
       DOTNET_USE_POLLING_FILE_WATCHER: "1"
-      ConnectionStrings__RoadmapDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      ConnectionStrings__RoadmapDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
       <<: *auth-env
     command: dotnet watch --project src/Services/RoadmapService/RoadmapService.API/RoadmapService.API.csproj run --no-launch-profile --urls http://0.0.0.0:8080
     volumes:
@@ -354,10 +284,11 @@ services:
       - mysql
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__EvaluationDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      ConnectionStrings__EvaluationDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
       <<: *auth-env
     networks:
       - latee-network
+
   practice-session:
     build:
       context: ..
@@ -371,7 +302,7 @@ services:
       - mysql
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__PracticeSessionDb: "Server=mysql;Port=3306;Database=latee;User=user;Password=pass;"
+      ConnectionStrings__PracticeSessionDb: "Server=latee-mysql;Port=3306;Database=latee;User=user;Password=pass;"
       <<: *auth-env
     networks:
       - latee-network
@@ -403,14 +334,6 @@ services:
       <<: *auth-env
     networks:
       - latee-network
-
-  # redis:
-  #   image: redis:7
-  #   container_name: redis
-  #   ports:
-  #     - "6379:6379"
-  #   networks:
-  #     - latee-network
 
 volumes:
   mysql_data:

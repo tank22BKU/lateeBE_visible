@@ -23,9 +23,7 @@ public class UserRepository : IUserRepository
 
     public Task<User?> GetUserByIdAsync(string userId)
     {
-        return _db
-            .Users.AsNoTracking()
-            .FirstOrDefaultAsync(x => x.UserId == userId && !x.IsDeleted);
+        return _db.Users.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userId && !x.IsDeleted);
     }
 
     public Task<Expert?> GetExpertByIdAsync(string expertId)
@@ -111,39 +109,25 @@ public class UserRepository : IUserRepository
 
         var users = _db.Users.AsNoTracking().Where(x => !x.IsDeleted);
 
-        var totalLearners = await users.CountAsync(x =>
-            x.Role != null && x.Role.ToLower() == "learner"
-        );
-        var totalExperts = await users.CountAsync(x =>
-            x.Role != null && x.Role.ToLower() == "expert"
-        );
-        var totalAdmins = await users.CountAsync(x =>
-            x.Role != null && x.Role.ToLower() == "admin"
-        );
-        var totalActiveUsers = await users.CountAsync(x =>
-            x.Status != null && x.Status.ToLower() == "active"
-        );
+        var totalLearners = await users.CountAsync(x => x.Role != null && x.Role.ToLower() == "learner");
+        var totalExperts = await users.CountAsync(x => x.Role != null && x.Role.ToLower() == "expert");
+        var totalAdmins = await users.CountAsync(x => x.Role != null && x.Role.ToLower() == "admin");
+        var totalActiveUsers = await users.CountAsync(x => x.Status != null && x.Status.ToLower() == "active");
 
-        var currentUsers = await users.CountAsync(x =>
-            x.CreatedAt >= currentWindowStart && x.CreatedAt < now
-        );
-        var previousUsers = await users.CountAsync(x =>
-            x.CreatedAt >= previousWindowStart && x.CreatedAt < currentWindowStart
-        );
+        var currentUsers = await users.CountAsync(x => x.CreatedAt >= currentWindowStart && x.CreatedAt < now);
+        var previousUsers = await users.CountAsync(x => x.CreatedAt >= previousWindowStart && x.CreatedAt < currentWindowStart);
 
         var currentLearners = await users.CountAsync(x =>
-            x.CreatedAt >= currentWindowStart
-            && x.CreatedAt < now
-            && x.Role != null
-            && x.Role.ToLower() == "learner"
-        );
+            x.CreatedAt >= currentWindowStart &&
+            x.CreatedAt < now &&
+            x.Role != null &&
+            x.Role.ToLower() == "learner");
 
         var previousLearners = await users.CountAsync(x =>
-            x.CreatedAt >= previousWindowStart
-            && x.CreatedAt < currentWindowStart
-            && x.Role != null
-            && x.Role.ToLower() == "learner"
-        );
+            x.CreatedAt >= previousWindowStart &&
+            x.CreatedAt < currentWindowStart &&
+            x.Role != null &&
+            x.Role.ToLower() == "learner");
 
         return new UserDashboardStatistics
         {
@@ -152,15 +136,13 @@ public class UserRepository : IUserRepository
             IncreaseLearners = currentLearners - previousLearners,
             TotalExperts = totalExperts,
             TotalAdmins = totalAdmins,
-            TotalActiveUsers = totalActiveUsers,
+            TotalActiveUsers = totalActiveUsers
         };
     }
 
     public async Task<User> CreateUserAsync(User user)
     {
-        user.UserId = string.IsNullOrWhiteSpace(user.UserId)
-            ? Guid.NewGuid().ToString()
-            : user.UserId.Trim();
+        user.UserId = string.IsNullOrWhiteSpace(user.UserId) ? Guid.NewGuid().ToString() : user.UserId.Trim();
         user.CreatedAt = DateTime.UtcNow;
         user.UpdatedAt = DateTime.UtcNow;
         user.IsDeleted = false;
@@ -180,12 +162,12 @@ public class UserRepository : IUserRepository
 
         if (!String.IsNullOrWhiteSpace(user.Name))
         {
-            existing.Name = user.Name;
+            existing.Name = user.Name;    
         }
-
+        
         // EMAIL CANNOT BE UPDATED
         //existing.Email = user.Email;
-
+        
         if (!String.IsNullOrWhiteSpace(user.Password))
         {
             existing.Password = user.Password;
@@ -193,32 +175,32 @@ public class UserRepository : IUserRepository
 
         if (!String.IsNullOrWhiteSpace(user.Phone))
         {
-            existing.Phone = user.Phone;
+            existing.Phone = user.Phone;    
         }
 
         if (user.Birthday.HasValue)
         {
-            existing.Birthday = user.Birthday;
+            existing.Birthday = user.Birthday;    
         }
 
         if (!String.IsNullOrWhiteSpace(user.Role))
         {
-            existing.Role = user.Role;
+            existing.Role = user.Role;    
         }
 
         if (!String.IsNullOrWhiteSpace(user.Status))
         {
-            existing.Status = user.Status;
+            existing.Status = user.Status;    
         }
 
         if (!String.IsNullOrWhiteSpace(user.Gender))
         {
-            existing.Gender = user.Gender;
+            existing.Gender = user.Gender;   
         }
 
         if (!String.IsNullOrWhiteSpace(user.Address))
         {
-            existing.Address = user.Address;
+            existing.Address = user.Address;  
         }
 
         if (!String.IsNullOrWhiteSpace(user.AvatarUrl))
@@ -226,6 +208,8 @@ public class UserRepository : IUserRepository
             existing.AvatarUrl = user.AvatarUrl;
         }
 
+        existing.UpdatedAt = DateTime.UtcNow;
+        
         await _db.SaveChangesAsync();
         return existing;
     }

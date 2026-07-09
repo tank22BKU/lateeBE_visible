@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using UserService.Application.DTOs;
 using UserService.Application.Users.Commands.CreateUser;
+using UserService.Application.Users.Commands.UpdateAvatarImage;
 using UserService.Application.Users.Commands.DeleteUser;
 using UserService.Application.Users.Commands.UpdateUser;
 using UserService.Application.Users.Queries.GetAllUsers;
@@ -9,6 +10,11 @@ using UserService.Application.Users.Queries.GetDashboardStatistics;
 using UserService.Application.Users.Queries.GetUserById;
 
 namespace UserService.API.Controllers;
+
+public sealed class UpdateAvatarRequest
+{
+    public IFormFile? File { get; set; }
+}
 
 [ApiController]
 [Route("api/users")]
@@ -83,6 +89,28 @@ public class UsersController : ControllerBase
         );
 
         return updated is null ? NotFound() : NoContent();
+    }
+
+    [HttpPost("{id}/avatar")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UpdateAvatar(string id, [FromForm] UpdateAvatarRequest request)
+    {
+        if (request.File is null || request.File.Length == 0)
+        {
+            return BadRequest("File is required.");
+        }
+
+        await using var stream = request.File.OpenReadStream();
+
+        var updated = await _mediator.Send(new UpdateAvatarImageCommand
+        {
+            UserId = id,
+            FileStream = stream,
+            FileName = request.File.FileName,
+            ContentType = request.File.ContentType
+        });
+
+        return updated is null ? NotFound() : Ok(new { imageUrl = updated.AvatarUrl });
     }
 
     [HttpDelete("{id}")]

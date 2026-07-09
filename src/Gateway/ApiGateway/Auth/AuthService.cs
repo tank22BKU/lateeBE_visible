@@ -17,10 +17,9 @@ public sealed class AuthService
     {
         _configuration = configuration;
 
-        _connectionString = _configuration.GetConnectionString("AuthDb")
-            ?? throw new InvalidOperationException(
-                "Missing connection string 'AuthDb'."
-            );
+        _connectionString =
+            _configuration.GetConnectionString("AuthDb")
+            ?? throw new InvalidOperationException("Missing connection string 'AuthDb'.");
     }
 
     public async Task<AuthResponse?> LoginAsync(
@@ -34,21 +33,18 @@ public sealed class AuthService
         {
             await using var connection = CreateConnection();
 
-            var user = await GetUserByIdentityAsync(
-                connection,
-                request.Email,
-                cancellationToken
-            );
+            var user = await GetUserByIdentityAsync(connection, request.Email, cancellationToken);
 
-            if (user is null || !string.Equals(user.IsActive, "active", StringComparison.OrdinalIgnoreCase) || user.IsDeleted)
+            if (
+                user is null
+                || !string.Equals(user.IsActive, "active", StringComparison.OrdinalIgnoreCase)
+                || user.IsDeleted
+            )
             {
                 return null;
             }
 
-            var passwordMatched = VerifyPassword(
-                request.Password,
-                user.PasswordHash
-            );
+            var passwordMatched = VerifyPassword(request.Password, user.PasswordHash);
 
             if (!passwordMatched)
             {
@@ -75,10 +71,7 @@ public sealed class AuthService
         }
         catch (Exception ex)
         {
-            throw new ApplicationException(
-                "Failed to login user.",
-                ex
-            );
+            throw new ApplicationException("Failed to login user.", ex);
         }
     }
 
@@ -105,7 +98,11 @@ public sealed class AuthService
                 tokenRecord is null
                 || tokenRecord.IsRevoked
                 || tokenRecord.ExpiresAt <= DateTime.UtcNow
-                || !string.Equals(tokenRecord.IsActive, "active", StringComparison.OrdinalIgnoreCase)
+                || !string.Equals(
+                    tokenRecord.IsActive,
+                    "active",
+                    StringComparison.OrdinalIgnoreCase
+                )
                 || tokenRecord.IsDeleted
             )
             {
@@ -140,10 +137,7 @@ public sealed class AuthService
         }
         catch (Exception ex)
         {
-            throw new ApplicationException(
-                "Failed to refresh token.",
-                ex
-            );
+            throw new ApplicationException("Failed to refresh token.", ex);
         }
     }
 
@@ -179,10 +173,7 @@ public sealed class AuthService
                 );
             }
 
-            if (
-                !string.IsNullOrWhiteSpace(accessTokenJti)
-                && accessTokenExpiresAt.HasValue
-            )
+            if (!string.IsNullOrWhiteSpace(accessTokenJti) && accessTokenExpiresAt.HasValue)
             {
                 await connection.ExecuteAsync(
                     new CommandDefinition(
@@ -211,7 +202,7 @@ public sealed class AuthService
                         {
                             Jti = accessTokenJti,
                             UserId = userId,
-                            ExpiresAt = accessTokenExpiresAt.Value
+                            ExpiresAt = accessTokenExpiresAt.Value,
                         },
                         cancellationToken: cancellationToken
                     )
@@ -220,10 +211,7 @@ public sealed class AuthService
         }
         catch (Exception ex)
         {
-            throw new ApplicationException(
-                "Failed to logout user.",
-                ex
-            );
+            throw new ApplicationException("Failed to logout user.", ex);
         }
     }
 
@@ -253,10 +241,7 @@ public sealed class AuthService
         }
         catch (Exception ex)
         {
-            throw new ApplicationException(
-                "Failed to validate revoked token.",
-                ex
-            );
+            throw new ApplicationException("Failed to validate revoked token.", ex);
         }
     }
 
@@ -267,61 +252,56 @@ public sealed class AuthService
     )
     {
         const string sql = """
-                           SELECT
-                               userid AS UserId,
-                               name AS Username,
-                               email AS Email,
-                               password AS PasswordHash,
-                               role AS Role,
-                               status AS IsActive,
-                               avatar_url AS AvatarUrl,
-                               is_deleted AS IsDeleted
-                           FROM users
-                           WHERE email = @Email
-                           LIMIT 1;
-                           """;
+            SELECT
+                userid AS UserId,
+                name AS Username,
+                email AS Email,
+                password AS PasswordHash,
+                role AS Role,
+                status AS IsActive,
+                avatar_url AS AvatarUrl,
+                is_deleted AS IsDeleted
+            FROM users
+            WHERE email = @Email
+            LIMIT 1;
+            """;
 
         return await connection.QueryFirstOrDefaultAsync<UserRecord>(
-            new CommandDefinition(
-                sql,
-                new { Email = email },
-                cancellationToken: cancellationToken
-            )
+            new CommandDefinition(sql, new { Email = email }, cancellationToken: cancellationToken)
         );
     }
 
-    private async Task<RefreshTokenUserRecord?>
-        GetRefreshTokenRecordAsync(
-            MySqlConnection connection,
-            string tokenHash,
-            CancellationToken cancellationToken
-        )
+    private async Task<RefreshTokenUserRecord?> GetRefreshTokenRecordAsync(
+        MySqlConnection connection,
+        string tokenHash,
+        CancellationToken cancellationToken
+    )
     {
         const string sql = """
-                           SELECT
-                               rt.token_id AS TokenId,
-                               rt.user_id AS UserId,
-                               rt.expires_at AS ExpiresAt,
-                               rt.is_revoked AS IsRevoked,
+            SELECT
+                rt.token_id AS TokenId,
+                rt.user_id AS UserId,
+                rt.expires_at AS ExpiresAt,
+                rt.is_revoked AS IsRevoked,
 
-                               u.name AS Username,
-                               u.email AS Email,
-                               u.password AS PasswordHash,
-                               u.role AS Role,
+                u.name AS Username,
+                u.email AS Email,
+                u.password AS PasswordHash,
+                u.role AS Role,
 
-                               u.status AS IsActive,
-                               u.avatar_url AS AvatarUrl,
-                               u.is_deleted AS IsDeleted
+                u.status AS IsActive,
+                u.avatar_url AS AvatarUrl,
+                u.is_deleted AS IsDeleted
 
-                           FROM user_refresh_tokens rt
+            FROM user_refresh_tokens rt
 
-                           INNER JOIN users u
-                               ON u.userid = rt.user_id
+            INNER JOIN users u
+                ON u.userid = rt.user_id
 
-                           WHERE rt.token_hash = @TokenHash
+            WHERE rt.token_hash = @TokenHash
 
-                           LIMIT 1;
-                           """;
+            LIMIT 1;
+            """;
 
         return await connection.QueryFirstOrDefaultAsync<RefreshTokenUserRecord>(
             new CommandDefinition(
@@ -348,18 +328,14 @@ public sealed class AuthService
                 SET password = @PasswordHash
                 WHERE userid = @UserId;
                 """,
-                new
-                {
-                    PasswordHash = upgradedHash,
-                    user.UserId
-                },
+                new { PasswordHash = upgradedHash, user.UserId },
                 cancellationToken: cancellationToken
             )
         );
 
         return user with
         {
-            PasswordHash = upgradedHash
+            PasswordHash = upgradedHash,
         };
     }
 
@@ -379,11 +355,7 @@ public sealed class AuthService
                     revoked_reason = @Reason
                 WHERE token_id = @TokenId;
                 """,
-                new
-                {
-                    TokenId = tokenId,
-                    Reason = reason
-                },
+                new { TokenId = tokenId, Reason = reason },
                 cancellationToken: cancellationToken
             )
         );
@@ -399,25 +371,16 @@ public sealed class AuthService
     {
         var now = DateTime.UtcNow;
 
-        var accessTokenMinutes =
-            _configuration.GetValue<int?>("Jwt:AccessTokenMinutes")
-            ?? 1440;
+        var accessTokenMinutes = _configuration.GetValue<int?>("Jwt:AccessTokenMinutes") ?? 1440;
 
-        var refreshTokenDays =
-            _configuration.GetValue<int?>("Jwt:RefreshTokenDays")
-            ?? 7;
+        var refreshTokenDays = _configuration.GetValue<int?>("Jwt:RefreshTokenDays") ?? 7;
 
         var accessExpiresAt = now.AddMinutes(accessTokenMinutes);
         var refreshExpiresAt = now.AddDays(refreshTokenDays);
 
         var jti = Guid.NewGuid().ToString("N");
 
-        var accessToken = GenerateAccessToken(
-            user,
-            jti,
-            now,
-            accessExpiresAt
-        );
+        var accessToken = GenerateAccessToken(user, jti, now, accessExpiresAt);
 
         var refreshToken = GenerateRefreshToken();
 
@@ -451,19 +414,13 @@ public sealed class AuthService
         DateTime expiresAt
     )
     {
-        var issuer =
-            _configuration["Jwt:Issuer"]
-            ?? "latee-auth";
+        var issuer = _configuration["Jwt:Issuer"] ?? "latee-auth";
 
-        var audience =
-            _configuration["Jwt:Audience"]
-            ?? "latee-clients";
+        var audience = _configuration["Jwt:Audience"] ?? "latee-clients";
 
         var signingKey =
             _configuration["Jwt:SigningKey"]
-            ?? throw new InvalidOperationException(
-                "Missing JWT signing key."
-            );
+            ?? throw new InvalidOperationException("Missing JWT signing key.");
 
         var claims = new List<Claim>
         {
@@ -471,13 +428,11 @@ public sealed class AuthService
             new(JwtRegisteredClaimNames.UniqueName, user.Username),
             new(JwtRegisteredClaimNames.Email, user.Email),
             new(ClaimTypes.Role, user.Role),
-            new(JwtRegisteredClaimNames.Jti, jti)
+            new(JwtRegisteredClaimNames.Jti, jti),
         };
 
         var credentials = new SigningCredentials(
-            new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(signingKey)
-            ),
+            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)),
             SecurityAlgorithms.HmacSha256
         );
 
@@ -490,8 +445,7 @@ public sealed class AuthService
             signingCredentials: credentials
         );
 
-        return new JwtSecurityTokenHandler()
-            .WriteToken(token);
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     private async Task SaveRefreshTokenAsync(
@@ -539,7 +493,7 @@ public sealed class AuthService
                     TokenHash = ComputeSha256(refreshToken),
                     ExpiresAt = expiresAt,
                     IpAddress = ipAddress,
-                    UserAgent = userAgent
+                    UserAgent = userAgent,
                 },
                 cancellationToken: cancellationToken
             )
@@ -551,32 +505,19 @@ public sealed class AuthService
         return new MySqlConnection(_connectionString);
     }
 
-    private static bool VerifyPassword(
-        string inputPassword,
-        string storedPassword
-    )
+    private static bool VerifyPassword(string inputPassword, string storedPassword)
     {
         if (IsBcryptHash(storedPassword))
         {
-            return BCrypt.Net.BCrypt.Verify(
-                inputPassword,
-                storedPassword
-            );
+            return BCrypt.Net.BCrypt.Verify(inputPassword, storedPassword);
         }
 
-        return string.Equals(
-            inputPassword,
-            storedPassword,
-            StringComparison.Ordinal
-        );
+        return string.Equals(inputPassword, storedPassword, StringComparison.Ordinal);
     }
 
     private static bool IsBcryptHash(string hash)
     {
-        return hash.StartsWith(
-            "$2",
-            StringComparison.Ordinal
-        );
+        return hash.StartsWith("$2", StringComparison.Ordinal);
     }
 
     private static string GenerateRefreshToken()
@@ -590,9 +531,7 @@ public sealed class AuthService
 
     private static string ComputeSha256(string input)
     {
-        var bytes = SHA256.HashData(
-            Encoding.UTF8.GetBytes(input)
-        );
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
 
         return Convert.ToHexString(bytes);
     }
